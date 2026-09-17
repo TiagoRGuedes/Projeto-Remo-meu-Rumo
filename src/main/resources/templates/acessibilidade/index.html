@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Acessibilidade')}"></head>
+<body th:class="${temaClasses}">
+<a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+<header th:replace="~{fragments/header :: header}"></header>
+<div class="app-shell">
+    <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
+    <main id="conteudo" class="content" tabindex="-1">
+        <div th:replace="~{fragments/mensagens :: mensagens}"></div>
+        <div class="page-header">
+            <div>
+                <p class="eyebrow">Preferências visuais</p>
+                <h1>Acessibilidade</h1>
+                <p class="muted">Ajuste a leitura, o contraste e o movimento. As escolhas ficam salvas durante sua sessão.</p>
+            </div>
+        </div>
+
+        <div th:replace="~{fragments/acessibilidade :: resumo}"></div>
+
+        <form class="form-card accessibility-form section-block" method="post" th:action="@{/acessibilidade}">
+            <fieldset class="settings-group">
+                <legend>Tamanho da fonte</legend>
+                <div class="choice-grid">
+                <label class="choice-card">
+                    <input type="radio" name="tamanhoFonte" value="normal"
+                           th:checked="${preferenciasAcessibilidade.tamanhoFonte() == 'normal'}"> Fonte normal
+                </label>
+                <label class="choice-card">
+                    <input type="radio" name="tamanhoFonte" value="grande"
+                           th:checked="${preferenciasAcessibilidade.tamanhoFonte() == 'grande'}"> Fonte grande
+                </label>
+                <label class="choice-card">
+                    <input type="radio" name="tamanhoFonte" value="muito-grande"
+                           th:checked="${preferenciasAcessibilidade.tamanhoFonte() == 'muito-grande'}"> Fonte muito grande
+                </label>
+                </div>
+            </fieldset>
+
+            <fieldset class="settings-group">
+                <legend>Contraste e movimento</legend>
+                <div class="choice-grid">
+                <label class="choice-card">
+                    <input type="checkbox" name="altoContraste" value="true"
+                           th:checked="${preferenciasAcessibilidade.altoContraste()}"> Alto contraste
+                </label>
+                <label class="choice-card">
+                    <input type="checkbox" name="modoEscuro" value="true"
+                           th:checked="${preferenciasAcessibilidade.modoEscuro()}"> Modo escuro
+                </label>
+                <label class="choice-card">
+                    <input type="checkbox" name="reduzirAnimacoes" value="true"
+                           th:checked="${preferenciasAcessibilidade.reduzirAnimacoes()}"> Reduzir animações
+                </label>
+                </div>
+            </fieldset>
+
+            <div class="button-row section-block">
+                <button class="button button-primary" type="submit"><span class="icon icon-check" aria-hidden="true"></span>Salvar preferências</button>
+                <a class="button button-soft" th:href="@{/}">Voltar para a Visão geral</a>
+            </div>
+        </form>
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
+    </main>
+</div>
+</body>
+</html>

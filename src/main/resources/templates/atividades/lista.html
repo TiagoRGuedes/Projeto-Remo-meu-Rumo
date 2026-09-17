@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Atividades')}"></head>
+<body th:class="${temaClasses}">
+<a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+<header th:replace="~{fragments/header :: header}"></header>
+<div class="app-shell">
+    <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
+    <main id="conteudo" class="content" tabindex="-1">
+        <div th:replace="~{fragments/mensagens :: mensagens}"></div>
+        <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="@{/}">Visão geral</a><span aria-hidden="true">›</span><span aria-current="page">Atividades</span></nav>
+        <div class="page-header">
+            <div>
+                <p class="eyebrow">Operação</p>
+                <h1>Atividades</h1>
+                <p class="muted">Organize as atividades, turmas e grupos acompanhados pelo Instituto.</p>
+            </div>
+            <a class="button button-primary" th:href="@{/atividades/nova}"><span class="icon icon-plus" aria-hidden="true"></span>Cadastrar atividade</a>
+        </div>
+
+        <section class="metric-grid module-metrics" aria-label="Resumo de atividades">
+            <a class="metric" th:href="@{/atividades}"><span>Total</span><strong th:text="${totalAtividades}">0</strong></a>
+            <a class="metric metric-success" th:href="@{/atividades(situacao='ativas')}"><span>Ativas</span><strong th:text="${atividadesAtivas}">0</strong></a>
+            <a class="metric metric-neutral" th:href="@{/atividades(situacao='inativas')}"><span>Inativas</span><strong th:text="${atividadesInativas}">0</strong></a>
+            <article class="metric"><span>Encontros relacionados</span><strong th:text="${totalEncontros}">0</strong></article>
+        </section>
+
+        <form class="form-card filters filter-panel" method="get" th:action="@{/atividades}">
+            <div class="field field-wide">
+                <label for="busca">Buscar atividade</label>
+                <input id="busca" name="busca" th:value="${busca}" placeholder="Exemplo: oficina">
+            </div>
+            <div class="field field-medium">
+                <label for="situacao">Situação</label>
+                <select id="situacao" name="situacao">
+                    <option value="">Todas</option>
+                    <option value="ativas" th:selected="${situacao == 'ativas'}">Ativas</option>
+                    <option value="inativas" th:selected="${situacao == 'inativas'}">Inativas</option>
+                </select>
+            </div>
+            <button class="button button-primary" type="submit"><span class="icon icon-search" aria-hidden="true"></span>Pesquisar</button>
+            <a class="button button-soft" th:href="@{/atividades}" th:if="${(busca != null and !#strings.isEmpty(busca)) or situacao != null}"><span class="icon icon-reset" aria-hidden="true"></span>Limpar filtros</a>
+        </form>
+
+        <div class="results-summary section-block" aria-live="polite"><strong th:text="${totalResultados == 1 ? '1 atividade encontrada' : totalResultados + ' atividades encontradas'}">0 atividades encontradas</strong></div>
+
+        <section class="table-card data-surface" th:if="${!#lists.isEmpty(atividades)}">
+            <div class="table-wrapper">
+                <table class="mobile-card-table">
+                    <caption>Lista de atividades</caption>
+                    <thead>
+                    <tr>
+                        <th scope="col">Nome</th>
+                        <th scope="col">Situação</th>
+                        <th scope="col">Descrição</th>
+                        <th scope="col">Ações</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="atividade : ${atividades}">
+                        <td class="table-primary" data-label="Atividade">
+                            <div class="data-identity">
+                                <span class="data-avatar data-avatar-activity"><span class="icon icon-activity" aria-hidden="true"></span></span>
+                                <span><strong th:text="${atividade.nome}">Nome</strong><small>Atividade do Instituto</small></span>
+                            </div>
+                        </td>
+                        <td data-label="Situação">
+                            <span th:class="${atividade.ativo} ? 'status-pill status-on' : 'status-pill status-off'"
+                                  th:text="${atividade.ativo} ? 'Ativa' : 'Inativa'">Ativa</span>
+                        </td>
+                        <td data-label="Descrição" th:text="${atividade.descricao} ?: 'Sem descrição'">Sem descrição</td>
+                        <td class="table-actions" data-label="Ações">
+                            <a th:href="@{/atividades/{id}(id=${atividade.id})}">Ver</a>
+                            <a th:href="@{/atividades/{id}/editar(id=${atividade.id})}"><span class="icon icon-edit" aria-hidden="true"></span>Editar</a>
+                            <form method="post" th:if="${atividade.ativo}" th:action="@{/atividades/{id}/desativar(id=${atividade.id})}"><button class="text-action" type="submit">Desativar</button></form>
+                            <form method="post" th:if="${!atividade.ativo}" th:action="@{/atividades/{id}/ativar(id=${atividade.id})}"><button class="text-action" type="submit">Ativar</button></form>
+                            <a class="danger-link" th:href="@{/atividades/{id}/excluir(id=${atividade.id})}">Excluir</a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        <div class="empty-state" th:if="${#lists.isEmpty(atividades)}">
+            <span class="icon icon-activity" aria-hidden="true"></span>
+            <strong th:text="${busca != null and !#strings.isEmpty(busca) ? 'Nenhuma atividade encontrada' : 'Nenhuma atividade cadastrada'}">Nenhuma atividade cadastrada</strong>
+            <p th:text="${busca != null and !#strings.isEmpty(busca) ? 'Revise o nome pesquisado ou limpe o filtro.' : 'Comece cadastrando a primeira atividade.'}">Comece cadastrando a primeira atividade.</p>
+            <a class="button button-primary" th:if="${busca == null or #strings.isEmpty(busca)}" th:href="@{/atividades/nova}"><span class="icon icon-plus" aria-hidden="true"></span>Cadastrar atividade</a>
+            <a class="button button-soft" th:if="${busca != null and !#strings.isEmpty(busca)}" th:href="@{/atividades}">Limpar pesquisa</a>
+        </div>
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
+    </main>
+</div>
+</body>
+</html>

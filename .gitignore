@@ -1,0 +1,14 @@
+target/
+*.class
+.idea/
+*.iml
+dados/
+application-local.properties
+.mvn/wrapper/apache-maven-*/
+work/
+outputs/
+Instituto-Remo-Meu-Rumo-NOVO-*/
+*.zip
+*.log
+Thumbs.db
+.DS_Store

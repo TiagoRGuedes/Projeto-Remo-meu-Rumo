@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Revisar operação')}"></head>
+<body th:class="${temaClasses}">
+<a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+<header th:replace="~{fragments/header :: header}"></header>
+<div class="app-shell">
+    <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
+    <main id="conteudo" class="content confirmation-workspace" tabindex="-1">
+        <nav class="breadcrumbs" aria-label="Caminho da página">
+            <a th:href="@{/}">Visão geral</a><span aria-hidden="true">›</span><span aria-current="page">Revisar operação</span>
+        </nav>
+
+        <section class="impact-review" th:classappend="${confirmacao.destrutiva()} ? ' impact-review-danger' : ''">
+            <header class="impact-review-header">
+                <span class="impact-review-icon"><span class="icon" th:classappend="${confirmacao.destrutiva()} ? ' icon-shield' : ' icon-check'" aria-hidden="true"></span></span>
+                <div>
+                    <p class="eyebrow" th:text="${confirmacao.etiqueta()}">Revisar alteração</p>
+                    <h1 th:text="${confirmacao.titulo()}">Confirmar operação?</h1>
+                    <p th:text="${confirmacao.resumo()}">Confira os dados antes de continuar.</p>
+                </div>
+            </header>
+
+            <ol class="confirmation-flow" aria-label="Fluxo da operação">
+                <li class="complete"><span>01</span><strong>Alteração</strong><small>Dados preparados</small></li>
+                <li class="current"><span>02</span><strong>Confirmação</strong><small>Você está aqui</small></li>
+                <li><span>03</span><strong>Registro</strong><small>Banco e histórico</small></li>
+            </ol>
+
+            <div class="impact-entity" th:if="${!#strings.isEmpty(confirmacao.nomeEntidade())}">
+                <span>Registro</span><strong th:text="${confirmacao.nomeEntidade()}">Nome do registro</strong>
+            </div>
+
+            <section class="impact-diff" th:if="${!#lists.isEmpty(confirmacao.alteracoes())}" aria-labelledby="alteracoes-revisao">
+                <div class="section-header"><div><p class="section-index">Conferência</p><h2 id="alteracoes-revisao">Dados da operação</h2></div></div>
+                <dl>
+                    <div th:each="item : ${confirmacao.alteracoes()}" th:classappend="${item.alterado()} ? ' changed' : ' unchanged'">
+                        <dt th:text="${item.campo()}">Campo</dt>
+                        <dd class="diff-before"><span>Antes</span><strong th:text="${item.antes()}">Antes</strong></dd>
+                        <dd class="diff-arrow" aria-hidden="true"><span class="icon icon-arrow"></span></dd>
+                        <dd class="diff-after"><span>Depois</span><strong th:text="${item.depois()}">Depois</strong></dd>
+                        <dd class="diff-state" th:text="${item.alterado()} ? 'Será alterado' : 'Sem alteração'">Sem alteração</dd>
+                    </div>
+                </dl>
+            </section>
+
+            <section class="impact-consequences" th:if="${!#lists.isEmpty(confirmacao.consequencias())}" aria-labelledby="consequencias-revisao">
+                <div><span class="icon icon-info" aria-hidden="true"></span><h2 id="consequencias-revisao">Depois da confirmação</h2></div>
+                <ul><li th:each="item : ${confirmacao.consequencias()}"><span class="icon icon-check" aria-hidden="true"></span><span th:text="${item}">Consequência</span></li></ul>
+            </section>
+
+            <div class="impact-actions">
+                <div>
+                    <form th:if="${!#strings.isEmpty(confirmacao.urlCorrecao())}" method="post" th:action="${confirmacao.urlCorrecao()}">
+                        <input type="hidden" name="tokenConfirmacao" th:value="${confirmacao.token()}">
+                        <input th:each="item : ${confirmacao.dados().entrySet()}" type="hidden" th:name="${item.key}" th:value="${item.value}">
+                        <button class="button button-soft" type="submit"><span class="icon icon-back" aria-hidden="true"></span>Voltar e corrigir</button>
+                    </form>
+                    <form method="post" th:action="@{/confirmacoes/{token}/cancelar(token=${confirmacao.token()})}">
+                        <button class="button button-link" type="submit">Cancelar operação</button>
+                    </form>
+                </div>
+                <form method="post" th:action="@{/confirmacoes/{token}(token=${confirmacao.token()})}">
+                    <button class="button button-prominent" th:classappend="${confirmacao.destrutiva()} ? ' button-danger-solid' : ' button-primary'" type="submit" data-confirm-once>
+                        <span class="icon" th:classappend="${confirmacao.destrutiva()} ? ' icon-shield' : ' icon-check'" aria-hidden="true"></span>
+                        <span th:text="${confirmacao.textoConfirmacao()}">Confirmar</span>
+                    </button>
+                </form>
+            </div>
+            <p class="confirmation-security"><span class="icon icon-shield" aria-hidden="true"></span>Somente este botão executa a operação. A revisão não alterou o banco nem o Histórico.</p>
+        </section>
+
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
+    </main>
+</div>
+</body>
+</html>

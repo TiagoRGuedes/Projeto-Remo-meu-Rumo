@@ -1,0 +1,14 @@
+<div th:fragment="mensagens" class="messages" aria-live="polite" xmlns:th="http://www.thymeleaf.org">
+    <div class="alert alert-success" th:if="${sucesso}">
+        <span class="icon icon-check" aria-hidden="true"></span>
+        <span th:text="${sucesso}">Ação concluída.</span>
+    </div>
+    <div class="alert alert-error" th:if="${erro}">
+        <span class="icon icon-info" aria-hidden="true"></span>
+        <span th:text="${erro}">Não foi possível concluir.</span>
+    </div>
+    <div class="alert alert-info" th:if="${aviso}">
+        <span class="icon icon-info" aria-hidden="true"></span>
+        <span th:text="${aviso}">Revise as informações.</span>
+    </div>
+</div>

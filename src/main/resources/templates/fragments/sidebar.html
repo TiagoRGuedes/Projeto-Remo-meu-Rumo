@@ -1,0 +1,44 @@
+<nav class="sidebar" th:fragment="sidebar" th:with="rota=${rotaAtual ?: ''}" aria-label="Navegação principal" xmlns:th="http://www.thymeleaf.org">
+    <p class="nav-kicker">Fluxo de trabalho</p>
+    <div class="nav-list">
+        <span class="nav-section-label">Visão geral</span>
+        <a th:href="@{/}" th:classappend="${rota == '/'} ? 'active' : ''" th:attr="aria-current=${rota == '/'} ? 'page' : null">
+            <span class="nav-node" aria-hidden="true"><span class="icon icon-dashboard"></span></span><span>Visão geral</span>
+        </a>
+        <span class="nav-section-label">Operação</span>
+        <a class="nav-priority" th:href="@{/presencas/registrar}" th:classappend="${#strings.startsWith(rota, '/presencas')} ? 'active' : ''" th:attr="aria-current=${#strings.startsWith(rota, '/presencas')} ? 'page' : null">
+            <span class="nav-node" aria-hidden="true"><span class="icon icon-presence"></span></span><span>Registrar presença</span>
+        </a>
+        <a th:href="@{/encontros}" th:classappend="${#strings.startsWith(rota, '/encontros')} ? 'active' : ''" th:attr="aria-current=${#strings.startsWith(rota, '/encontros')} ? 'page' : null">
+            <span class="nav-node" aria-hidden="true"><span class="icon icon-calendar"></span></span><span>Encontros</span>
+        </a>
+        <span class="nav-section-label">Pessoas</span>
+        <a th:href="@{/participantes}" th:classappend="${#strings.startsWith(rota, '/participantes')} ? 'active' : ''" th:attr="aria-current=${#strings.startsWith(rota, '/participantes')} ? 'page' : null">
+            <span class="nav-node" aria-hidden="true"><span class="icon icon-users"></span></span><span>Participantes</span>
+        </a>
+        <span class="nav-section-label">Gestão</span>
+        <a th:href="@{/atividades}" th:classappend="${#strings.startsWith(rota, '/atividades')} ? 'active' : ''" th:attr="aria-current=${#strings.startsWith(rota, '/atividades')} ? 'page' : null">
+            <span class="nav-node" aria-hidden="true"><span class="icon icon-activity"></span></span><span>Atividades</span>
+        </a>
+        <a th:href="@{/frequencia}" th:classappend="${#strings.startsWith(rota, '/frequencia')} ? 'active' : ''" th:attr="aria-current=${#strings.startsWith(rota, '/frequencia')} ? 'page' : null">
+            <span class="nav-node" aria-hidden="true"><span class="icon icon-frequency"></span></span><span>Frequência</span>
+        </a>
+        <a th:href="@{/relatorios}" th:classappend="${#strings.startsWith(rota, '/relatorios')} ? 'active' : ''" th:attr="aria-current=${#strings.startsWith(rota, '/relatorios')} ? 'page' : null">
+            <span class="nav-node" aria-hidden="true"><span class="icon icon-report"></span></span><span>Relatórios</span>
+        </a>
+        <span class="nav-section-label">Controle</span>
+        <a th:href="@{/historico}" th:classappend="${#strings.startsWith(rota, '/historico')} ? 'active' : ''" th:attr="aria-current=${#strings.startsWith(rota, '/historico')} ? 'page' : null">
+            <span class="nav-node" aria-hidden="true"><span class="icon icon-history"></span></span><span>Histórico</span>
+        </a>
+    </div>
+    <div class="sidebar-support">
+        <span>Suporte</span>
+        <a th:href="@{/ajuda}" th:classappend="${#strings.startsWith(rota, '/ajuda')} ? 'active' : ''" th:attr="aria-current=${#strings.startsWith(rota, '/ajuda')} ? 'page' : null">
+            <span class="nav-node" aria-hidden="true"><span class="icon icon-help"></span></span><span>Central de Ajuda</span>
+        </a>
+    </div>
+    <div class="sidebar-meta">
+        <span class="system-status" aria-hidden="true"></span>
+        <span><strong>Ambiente administrativo</strong>Operação local disponível</span>
+    </div>
+</nav>

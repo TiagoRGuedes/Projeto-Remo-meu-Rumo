@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Registrar presença')}"></head>
+<body th:class="${temaClasses}">
+<a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+<header th:replace="~{fragments/header :: header}"></header>
+<div class="app-shell">
+    <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
+    <main id="conteudo" class="content presence-workspace" tabindex="-1">
+        <div th:replace="~{fragments/mensagens :: mensagens}"></div>
+        <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="@{/}">Visão geral</a><span aria-hidden="true">›</span><span aria-current="page">Registrar presença</span></nav>
+        <div class="page-header">
+            <div>
+                <p class="eyebrow">Fluxo principal</p>
+                <h1>Registrar presença</h1>
+                <p class="muted">Você só precisa escolher o encontro, marcar os participantes e salvar.</p>
+            </div>
+        </div>
+
+        <ol class="workflow-progress" aria-label="Etapas do registro de presença">
+            <li th:classappend="${atividadeId != null} ? ' complete' : ' current'"><span>01</span>Atividade</li>
+            <li th:classappend="${atividadeId != null and encontroId == null} ? ' current' : (${encontroId != null} ? ' complete' : '')"><span>02</span>Encontro</li>
+            <li th:classappend="${encontroId != null} ? ' current' : ''"><span>03</span>Presenças</li>
+            <li><span>04</span>Revisar</li>
+            <li><span>05</span>Confirmar</li>
+        </ol>
+
+        <section class="success-summary" th:if="${resultadoPresenca != null}" aria-labelledby="presenca-salva-titulo">
+            <span class="success-summary-icon"><span class="icon icon-check" aria-hidden="true"></span></span>
+            <div><h2 id="presenca-salva-titulo">Presença salva!</h2><p>Confira abaixo o resultado armazenado para este encontro.</p></div>
+            <dl class="success-counts"><div><dt>Presentes</dt><dd th:text="${resultadoPresenca.presentes()}">0</dd></div><div><dt>Ausentes</dt><dd th:text="${resultadoPresenca.ausentes()}">0</dd></div><div><dt>Justificadas</dt><dd th:text="${resultadoPresenca.justificadas()}">0</dd></div></dl>
+            <div class="button-row"><a class="button button-primary" th:href="@{/encontros/{id}(id=${encontroId})}">Ver encontro</a><a class="button button-soft" th:href="@{/presencas/registrar}">Registrar outra presença</a></div>
+        </section>
+
+        <section class="workflow-grid" aria-label="Escolher atividade e encontro">
+            <form class="form-card workflow-step" method="get" th:action="@{/presencas/registrar}">
+                <span class="step-number" aria-hidden="true">1</span>
+                <div class="form-intro">
+                    <h2>Escolha a atividade</h2>
+                    <p class="muted">O sistema mostrará os encontros vinculados à atividade escolhida.</p>
+                </div>
+                <div class="field">
+                    <label for="atividadeId">Atividade</label>
+                    <select id="atividadeId" name="atividadeId">
+                        <option value="">Escolha uma atividade</option>
+                        <option th:each="atividade : ${atividades}" th:value="${atividade.id}" th:text="${atividade.nome}"
+                                th:selected="${atividadeId != null and atividade.id == atividadeId}">Atividade</option>
+                    </select>
+                </div>
+                <button class="button button-primary" type="submit">
+                    Ver encontros<span class="icon icon-arrow" aria-hidden="true"></span>
+                </button>
+            </form>
+
+            <form class="form-card workflow-step" method="get" th:action="@{/presencas/registrar}" th:if="${atividadeId != null}">
+                <span class="step-number" aria-hidden="true">2</span>
+                <div class="form-intro">
+                    <h2>Escolha o encontro</h2>
+                    <p class="muted">Abra a data que receberá os registros de presença.</p>
+                </div>
+                <input type="hidden" name="atividadeId" th:value="${atividadeId}">
+                <div class="field">
+                    <label for="encontroId">Encontro</label>
+                    <select id="encontroId" name="encontroId">
+                        <option value="">Escolha um encontro</option>
+                        <option th:each="encontroOpcao : ${encontros}" th:value="${encontroOpcao.id}"
+                                th:text="${encontroOpcao.data + ' - ' + encontroOpcao.status.descricao}"
+                                th:selected="${encontroId != null and encontroOpcao.id == encontroId}">Encontro</option>
+                    </select>
+                </div>
+                <button class="button button-primary" type="submit">
+                    <span class="icon icon-list" aria-hidden="true"></span>Abrir lista de presença
+                </button>
+                <p class="field-help" th:if="${#lists.isEmpty(encontros)}">Ainda não há encontros para esta atividade.</p>
+            </form>
+        </section>
+
+        <section class="form-card quick-meeting" th:if="${atividadeId != null}" aria-labelledby="encontro-rapido-titulo">
+            <div class="form-intro">
+                <h2 id="encontro-rapido-titulo">Criar encontro rapidamente</h2>
+                <p class="muted">Use esta opção quando a atividade aconteceu em uma data ainda não cadastrada.</p>
+            </div>
+            <form method="post" th:action="@{/presencas/encontro-rapido}" class="filters">
+                <input type="hidden" name="atividadeId" th:value="${atividadeId}">
+                <div class="field field-compact">
+                    <label for="dataRapida">Data</label>
+                    <input id="dataRapida" type="date" name="data" th:value="${hoje}" required>
+                </div>
+                <div class="field field-expand">
+                    <label for="observacoesRapidas">Observação</label>
+                    <input id="observacoesRapidas" name="observacoes" placeholder="Opcional">
+                </div>
+                <button class="button button-soft" type="submit">
+                    <span class="icon icon-plus" aria-hidden="true"></span>Criar encontro e registrar presença
+                </button>
+            </form>
+        </section>
+
+        <section th:if="${encontro != null}" aria-labelledby="chamada-titulo">
+            <div class="attendance-heading">
+                <div>
+                    <p class="eyebrow">Etapa 3</p>
+                    <h2 id="chamada-titulo">Marque a presença</h2>
+                    <p class="muted">
+                        <strong th:text="${encontro.atividade.nome}">Atividade</strong>
+                        · encontro de <span th:text="${encontro.data}">Data</span>
+                    </p>
+                </div>
+                <div class="actions no-print">
+                    <a class="button button-accent"
+                       th:href="@{/presencas/registrar(atividadeId=${atividadeId}, encontroId=${encontroId}, busca=${busca}, marcar='presentes')}">
+                        <span class="icon icon-user-check" aria-hidden="true"></span>Marcar todos como presentes
+                    </a>
+                    <a class="button button-soft"
+                       th:href="@{/presencas/registrar(atividadeId=${atividadeId}, encontroId=${encontroId})}">
+                        <span class="icon icon-reset" aria-hidden="true"></span>Limpar seleção
+                    </a>
+                </div>
+            </div>
+            <p class="bulk-help"><strong>Forma mais rápida:</strong> marque todos como presentes e depois altere somente quem faltou.</p>
+
+            <div class="alert alert-error" th:if="${encontro.status.name() == 'CANCELADO'}"><span class="icon icon-info" aria-hidden="true"></span><span>Este encontro está cancelado. A lista pode ser consultada, mas não pode ser alterada.</span></div>
+
+            <div class="attendance-summary" aria-label="Resumo da presença">
+                <article class="metric metric-neutral"><span>Total registrado</span><strong th:text="${resumo.total()}">0</strong></article>
+                <article class="metric metric-success"><span>Presentes</span><strong th:text="${resumo.presentes()}">0</strong></article>
+                <article class="metric"><span>Ausentes</span><strong th:text="${resumo.ausentes()}">0</strong></article>
+                <article class="metric metric-warning"><span>Justificadas</span><strong th:text="${resumo.justificadas()}">0</strong></article>
+            </div>
+
+            <form class="form-card filters filter-panel section-block no-print" method="get" th:action="@{/presencas/registrar}">
+                <input type="hidden" name="atividadeId" th:value="${atividadeId}">
+                <input type="hidden" name="encontroId" th:value="${encontroId}">
+                <div class="field field-wide">
+                    <label for="busca">Pesquisar participante nesta lista</label>
+                    <input id="busca" name="busca" th:value="${busca}" placeholder="Digite parte do nome">
+                </div>
+                <button class="button button-primary" type="submit"><span class="icon icon-search" aria-hidden="true"></span>Pesquisar</button>
+                <a class="button button-soft" th:href="@{/presencas/registrar(atividadeId=${atividadeId}, encontroId=${encontroId})}"
+                   th:if="${busca != null and !#strings.isEmpty(busca)}"><span class="icon icon-reset" aria-hidden="true"></span>Limpar filtros</a>
+            </form>
+
+            <form method="post" th:action="@{/presencas/conferir}" class="section-block" data-attendance-form th:if="${encontro.status.name() != 'CANCELADO'}">
+                <input type="hidden" name="encontroId" th:value="${encontroId}">
+                <div class="attendance-list">
+                    <div class="attendance-row" th:each="item : ${itens}">
+                        <div class="participant-name">
+                            <span class="data-avatar" aria-hidden="true" th:text="${#strings.substring(item.nomeParticipante(), 0, 1)}">A</span>
+                            <div>
+                                <strong th:text="${item.nomeParticipante()}">Participante</strong>
+                                <p class="muted">Selecione uma situação</p>
+                            </div>
+                        </div>
+                        <fieldset>
+                            <legend class="sr-only" th:text="'Presença de ' + ${item.nomeParticipante()}">Presença</legend>
+                            <div class="radio-group">
+                                <label class="radio-card" th:each="status : ${statusPresenca}">
+                                    <input type="radio"
+                                           th:name="${'status_' + item.participanteId()}"
+                                           th:value="${status}"
+                                           th:checked="${item.statusAtual() == status}">
+                                    <span th:text="${status.descricao}">Presente</span>
+                                </label>
+                            </div>
+                        </fieldset>
+                        <div class="field">
+                            <label th:for="${'observacoes_' + item.participanteId()}">Observação</label>
+                            <input th:id="${'observacoes_' + item.participanteId()}"
+                                   th:name="${'observacoes_' + item.participanteId()}"
+                                   th:value="${item.observacoes()}"
+                                   placeholder="Opcional">
+                        </div>
+                    </div>
+                    <div class="empty-state" th:if="${#lists.isEmpty(itens)}">
+                        <strong>Nenhum participante encontrado</strong>
+                        <p>Revise o termo pesquisado ou limpe o filtro para ver a lista completa.</p>
+                    </div>
+                </div>
+                <div class="attendance-actions">
+                    <dl class="command-summary" aria-live="polite" aria-label="Resumo atual da chamada">
+                        <div><dt>Participantes</dt><dd data-attendance-count="total">0</dd></div>
+                        <div><dt>Presentes</dt><dd data-attendance-count="presente">0</dd></div>
+                        <div><dt>Ausentes</dt><dd data-attendance-count="ausente">0</dd></div>
+                        <div><dt>Justificadas</dt><dd data-attendance-count="justificada">0</dd></div>
+                    </dl>
+                    <p class="muted"><span class="icon icon-info" aria-hidden="true"></span> Revise as marcações antes de continuar.</p>
+                    <div class="button-row">
+                        <button class="button button-primary" type="submit"><span class="icon icon-check" aria-hidden="true"></span>Conferir presença</button>
+                        <a class="button button-soft" th:href="@{/encontros/{id}(id=${encontroId})}">Ver encontro</a>
+                    </div>
+                </div>
+            </form>
+        </section>
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
+    </main>
+</div>
+</body>
+</html>

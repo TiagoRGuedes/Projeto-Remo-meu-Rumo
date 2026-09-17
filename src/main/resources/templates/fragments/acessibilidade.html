@@ -1,0 +1,8 @@
+<section th:fragment="resumo" class="assistive-note" xmlns:th="http://www.thymeleaf.org">
+    <span class="icon icon-accessibility" aria-hidden="true"></span>
+    <strong>Preferências ativas</strong>
+    <span class="preference-tag" th:text="'Fonte: ' + ${preferenciasAcessibilidade.tamanhoFonte()}">Fonte: normal</span>
+    <span class="preference-tag" th:if="${preferenciasAcessibilidade.altoContraste()}">Alto contraste</span>
+    <span class="preference-tag" th:if="${preferenciasAcessibilidade.modoEscuro()}">Modo escuro</span>
+    <span class="preference-tag" th:if="${preferenciasAcessibilidade.reduzirAnimacoes()}">Animações reduzidas</span>
+</section>

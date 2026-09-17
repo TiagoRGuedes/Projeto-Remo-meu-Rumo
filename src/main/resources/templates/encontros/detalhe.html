@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Detalhe do encontro')}"></head>
+<body th:class="${temaClasses}">
+<a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+<header th:replace="~{fragments/header :: header}"></header>
+<div class="app-shell">
+    <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
+    <main id="conteudo" class="content" tabindex="-1">
+        <div th:replace="~{fragments/mensagens :: mensagens}"></div>
+        <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="@{/}">Visão geral</a><span aria-hidden="true">›</span><a th:href="@{/encontros}">Encontros</a><span aria-hidden="true">›</span><span aria-current="page" th:text="${encontro.atividade.nome + ' · ' + encontro.data}">Encontro</span></nav>
+        <a class="back-link" th:href="@{/encontros}"><span class="icon icon-back" aria-hidden="true"></span>Voltar para encontros</a>
+        <div class="page-header">
+            <div>
+                <p class="eyebrow">Encontro</p>
+                <h1>Encontro</h1>
+                <p class="muted"><a th:href="@{/atividades/{id}(id=${encontro.atividade.id})}" th:text="${encontro.atividade.nome}">Atividade</a> em <span th:text="${encontro.data}">Data</span></p>
+            </div>
+            <div class="actions">
+                <a class="button button-primary" th:href="@{/presencas/registrar(atividadeId=${encontro.atividade.id}, encontroId=${encontro.id})}"><span class="icon icon-presence" aria-hidden="true"></span>Registrar presença</a>
+                <a class="button button-soft" th:href="@{/encontros/{id}/editar(id=${encontro.id})}"><span class="icon icon-edit" aria-hidden="true"></span>Editar encontro</a>
+                <a class="button button-soft" th:href="@{/relatorios/encontro/{id}.csv(id=${encontro.id})}"><span class="icon icon-download" aria-hidden="true"></span>Exportar CSV</a>
+                <a class="button button-danger" th:href="@{/encontros/{id}/excluir(id=${encontro.id})}"><span class="icon icon-close" aria-hidden="true"></span>Remover ou cancelar</a>
+            </div>
+        </div>
+
+        <section class="grid grid-4">
+            <article class="metric metric-neutral"><span>Total</span><strong th:text="${resumo.total()}">0</strong></article>
+            <article class="metric metric-success"><span>Presentes</span><strong th:text="${resumo.presentes()}">0</strong></article>
+            <article class="metric"><span>Ausentes</span><strong th:text="${resumo.ausentes()}">0</strong></article>
+            <article class="metric metric-warning"><span>Justificadas</span><strong th:text="${resumo.justificadas()}">0</strong></article>
+        </section>
+
+        <section class="table-card section-block">
+            <div class="table-wrapper">
+                <table>
+                    <caption>Presença do encontro</caption>
+                    <thead>
+                    <tr>
+                        <th scope="col">Participante</th>
+                        <th scope="col">Presença</th>
+                        <th scope="col">Observação</th>
+                        <th scope="col">Ações</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="presenca : ${presencas}">
+                        <td class="table-primary"><a th:href="@{/participantes/{id}(id=${presenca.participante.id})}" th:text="${presenca.participante.nome}">Participante</a></td>
+                        <td><span th:class="${presenca.status.name() == 'PRESENTE'} ? 'status-pill status-on' : (${presenca.status.name() == 'AUSENTE'} ? 'status-pill status-off' : 'status-pill status-warning')" th:text="${presenca.status.descricao}">Presente</span></td>
+                        <td th:text="${presenca.observacoes} ?: 'Sem observação'">Sem observação</td>
+                        <td class="table-actions"><a th:href="@{/presencas/registrar(atividadeId=${encontro.atividade.id}, encontroId=${encontro.id})}"><span class="icon icon-edit" aria-hidden="true"></span>Corrigir presença</a><a class="danger-link" th:href="@{/presencas/{id}/excluir(id=${presenca.id})}">Excluir registro</a></td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(presencas)}">
+                        <td class="empty-cell" colspan="4">Ainda não há presença registrada para este encontro.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        <section class="section-block" aria-labelledby="historico-encontro-titulo">
+            <div class="section-header"><div><h2 id="historico-encontro-titulo">Histórico deste registro</h2><p class="muted">Criação, edições e alterações da lista de presença.</p></div><a class="button button-soft" th:href="@{/historico(busca=${encontro.atividade.nome})}">Ver histórico completo</a></div>
+            <div class="timeline timeline-compact" th:if="${!#lists.isEmpty(historicoAdministrativo)}"><article class="timeline-item" th:each="evento : ${historicoAdministrativo}"><time th:text="${evento.dataFormatada + ' · ' + evento.horaFormatada}">Data</time><strong th:text="${evento.acao.descricao + ' · ' + evento.modulo.descricao}">Ação</strong><span th:text="${evento.descricao}">Descrição</span></article></div>
+            <div class="empty-state" th:if="${#lists.isEmpty(historicoAdministrativo)}">As próximas alterações deste encontro aparecerão aqui.</div>
+        </section>
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
+    </main>
+</div>
+</body>
+</html>

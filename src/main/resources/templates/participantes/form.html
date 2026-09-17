@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head(${modoEdicao} ? 'Editar participante' : 'Cadastrar participante')}"></head>
+<body th:class="${temaClasses}">
+<a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+<header th:replace="~{fragments/header :: header}"></header>
+<div class="app-shell">
+    <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
+    <main id="conteudo" class="content" tabindex="-1">
+        <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="@{/}">Visão geral</a><span aria-hidden="true">›</span><a th:href="@{/participantes}">Participantes</a><span aria-hidden="true">›</span><span aria-current="page" th:text="${modoEdicao ? 'Editar' : 'Cadastrar'}">Cadastrar</span></nav>
+        <a class="back-link" th:href="${modoEdicao} ? @{/participantes/{id}(id=${participante.id})} : @{/participantes}"><span class="icon icon-back" aria-hidden="true"></span>Voltar para participantes</a>
+        <div class="page-header">
+            <div>
+                <p class="eyebrow">Participantes</p>
+                <h1 th:text="${modoEdicao} ? 'Editar participante' : 'Cadastrar participante'">Cadastrar participante</h1>
+                <p class="muted">Mantenha o cadastro objetivo e informe somente os dados necessários para a rotina.</p>
+            </div>
+        </div>
+
+        <form class="form-card edit-form" method="post" th:object="${participante}"
+              th:action="${modoEdicao} ? @{/participantes/{id}/editar(id=${participante.id})} : @{/participantes/novo}">
+            <div class="global-error" th:if="${#fields.hasGlobalErrors()}" th:each="erro : ${#fields.globalErrors()}" th:text="${erro}">Erro</div>
+            <div class="field">
+                <label for="nome">Nome <span class="required">(obrigatório)</span></label>
+                <input id="nome" th:field="*{nome}" aria-describedby="erro-nome" th:attr="aria-invalid=${#fields.hasErrors('nome')}" autofocus>
+                <div id="erro-nome" class="field-error" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}">Erro</div>
+            </div>
+            <div class="field">
+                <label for="observacoes">Observações</label>
+                <textarea id="observacoes" th:field="*{observacoes}" aria-describedby="ajuda-observacoes"></textarea>
+                <p id="ajuda-observacoes" class="field-help">Use este campo apenas para informações simples, necessárias e não sensíveis.</p>
+            </div>
+            <div class="button-row">
+                <button class="button button-primary" type="submit"><span class="icon icon-arrow" aria-hidden="true"></span><span th:text="${modoEdicao} ? 'Revisar alterações' : 'Revisar cadastro'">Revisar cadastro</span></button>
+                <a class="button button-soft" th:href="@{/participantes}"><span class="icon icon-close" aria-hidden="true"></span>Cancelar e voltar</a>
+            </div>
+        </form>
+        <aside class="context-help section-block"><span class="icon icon-info" aria-hidden="true"></span><div><strong>O que acontece depois?</strong><p>Você verá uma revisão do cadastro. Nada será salvo até a confirmação final.</p></div></aside>
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
+    </main>
+</div>
+</body>
+</html>

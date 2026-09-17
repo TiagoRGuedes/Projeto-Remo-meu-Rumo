@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Ajuda')}"></head>
+<body th:class="${temaClasses}">
+<a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+<header th:replace="~{fragments/header :: header}"></header>
+<div class="app-shell">
+    <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
+    <main id="conteudo" class="content" tabindex="-1">
+        <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="@{/}">Visão geral</a><span>›</span><span aria-current="page">Ajuda</span></nav>
+        <div class="page-header">
+            <div>
+                <p class="eyebrow">Central de ajuda</p>
+                <h1>Central de Ajuda</h1>
+                <p class="muted">Encontre uma tarefa e siga as orientações em linguagem simples.</p>
+            </div>
+        </div>
+
+        <section class="first-steps" aria-labelledby="primeira-vez-titulo">
+            <p class="eyebrow">Primeiros passos</p><h2 id="primeira-vez-titulo">Se é sua primeira vez aqui, comece por aqui</h2>
+            <p>Cadastre as informações nesta ordem. Cada botão leva diretamente à próxima tarefa.</p>
+        </section>
+
+        <section class="help-grid" aria-label="Etapas de uso do sistema">
+            <a class="card help-card" th:href="@{/participantes/novo}">
+                <span class="help-step">Etapa 1</span>
+                <span class="help-icon"><span class="icon icon-users" aria-hidden="true"></span></span>
+                <h2>Cadastrar participante</h2>
+                <p class="muted">Adicione as pessoas que participam das atividades.</p>
+            </a>
+            <a class="card help-card" th:href="@{/atividades/nova}">
+                <span class="help-step">Etapa 2</span>
+                <span class="help-icon"><span class="icon icon-activity" aria-hidden="true"></span></span>
+                <h2>Criar atividade</h2>
+                <p class="muted">Informe qual atividade, turma ou grupo será acompanhado.</p>
+            </a>
+            <a class="card help-card" th:href="@{/encontros/novo}">
+                <span class="help-step">Etapa 3</span>
+                <span class="help-icon"><span class="icon icon-calendar" aria-hidden="true"></span></span>
+                <h2>Criar encontro</h2>
+                <p class="muted">Registre a data em que uma atividade aconteceu.</p>
+            </a>
+            <a class="card help-card" th:href="@{/presencas/registrar}">
+                <span class="help-step">Etapa 4</span>
+                <span class="help-icon"><span class="icon icon-presence" aria-hidden="true"></span></span>
+                <h2>Registrar presença</h2>
+                <p class="muted">Marque presenças, ausências e justificativas em uma única lista.</p>
+            </a>
+            <a class="card help-card" th:href="@{/frequencia}">
+                <span class="help-step">Etapa 5</span>
+                <span class="help-icon"><span class="icon icon-frequency" aria-hidden="true"></span></span>
+                <h2>Consultar frequência</h2>
+                <p class="muted">Acompanhe os percentuais e o histórico de participação.</p>
+            </a>
+            <a class="card help-card" th:href="@{/relatorios}">
+                <span class="help-step">Etapa 6</span>
+                <span class="help-icon"><span class="icon icon-report" aria-hidden="true"></span></span>
+                <h2>Gerar relatório</h2>
+                <p class="muted">Use filtros, impressão e exportação CSV para consultar os dados.</p>
+            </a>
+            <a class="card help-card" th:href="@{/historico}">
+                <span class="help-step">Etapa 7</span>
+                <span class="help-icon"><span class="icon icon-history" aria-hidden="true"></span></span>
+                <h2>Consultar histórico</h2>
+                <p class="muted">Veja o que foi cadastrado, editado, desativado ou corrigido.</p>
+            </a>
+        </section>
+
+        <section class="help-topics section-block" aria-labelledby="duvidas-titulo">
+            <div class="section-header"><div><h2 id="duvidas-titulo">Orientações por tarefa</h2><p class="muted">Abra somente o assunto que precisa consultar.</p></div></div>
+            <details><summary>Como buscar em todo o sistema</summary><div><p>Use “O que você procura?” no topo. Digite pelo menos duas letras para encontrar participantes, atividades e encontros na mesma página.</p></div></details>
+            <details><summary>Como editar um cadastro</summary><div><p>Abra Participantes ou Atividades, localize o registro e clique em <strong>Editar</strong>. Depois de preencher, confira a tela de revisão e use o botão principal para confirmar. Voltar ou cancelar não altera o cadastro.</p></div></details>
+            <details><summary>Por que existe uma tela de confirmação</summary><div><p>Ela mostra o registro, as mudanças e o que acontecerá depois. O sistema só salva quando você pressiona o botão final uma vez; atualizar a página não repete a operação.</p></div></details>
+            <details><summary>Como desativar sem perder o histórico</summary><div><p>Abra o registro e escolha <strong>Desativar</strong>. Ele deixa de aparecer em novas listas, mas os encontros e presenças anteriores permanecem disponíveis.</p></div></details>
+            <details><summary>Como excluir com segurança</summary><div><p>Use <strong>Excluir</strong> na lista ou no detalhe. O sistema mostra uma página de confirmação. Se houver histórico relacionado, a exclusão será bloqueada e a opção segura será desativar ou cancelar.</p></div></details>
+            <details><summary>Como corrigir uma presença</summary><div><p>Abra o encontro, clique em <strong>Corrigir presença</strong>, ajuste a lista, confira o resumo e confirme a operação. A correção produz um único registro no Histórico do Sistema.</p></div></details>
+            <details><summary>Como usar filtros</summary><div><p>Preencha apenas os campos necessários e clique em <strong>Filtrar</strong> ou <strong>Pesquisar</strong>. Para voltar à lista completa, use <strong>Limpar filtros</strong>.</p></div></details>
+            <details><summary>Como interpretar a frequência</summary><div><p>O percentual considera os registros marcados como Presente em relação ao total encontrado. Ausências e justificadas aparecem separadas para facilitar a leitura.</p></div></details>
+            <details><summary>Como consultar o Histórico do Sistema</summary><div><p>Abra <strong>Histórico</strong> no menu. Filtre por período, módulo, ação ou texto. O histórico é somente leitura e não pode ser editado ou excluído.</p></div></details>
+            <details><summary>Como gerar e exportar um relatório</summary><div><p>Abra Relatórios, escolha atividade e período, e clique em <strong>Gerar relatório</strong>. Depois use Imprimir ou Exportar CSV.</p></div></details>
+        </section>
+
+        <section class="help-notes" aria-label="Orientações adicionais">
+            <article class="form-card">
+                <span class="icon icon-check" aria-hidden="true"></span>
+                <h2>Lista mais rápida</h2>
+                <p>Use “Marcar todos como presentes” e ajuste somente as exceções antes de salvar.</p>
+            </article>
+            <article class="form-card">
+                <span class="icon icon-shield" aria-hidden="true"></span>
+                <h2>Proteção dos dados</h2>
+                <p>Cadastre apenas as informações necessárias para a rotina administrativa.</p>
+            </article>
+            <article class="form-card">
+                <span class="icon icon-info" aria-hidden="true"></span>
+                <h2>Ausência justificada</h2>
+                <p>A justificativa aparece separadamente para manter a leitura dos registros clara.</p>
+            </article>
+        </section>
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
+    </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Conferir presença')}"></head>
+<body th:class="${temaClasses}">
+<a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+<header th:replace="~{fragments/header :: header}"></header>
+<div class="app-shell">
+    <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
+    <main id="conteudo" class="content" tabindex="-1">
+        <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="@{/}">Visão geral</a><span>›</span><a th:href="@{/presencas/registrar}">Registrar presença</a><span>›</span><span aria-current="page">Conferir</span></nav>
+        <div class="page-header"><div><p class="eyebrow">Etapa 4 de 5</p><h1>Revise a chamada</h1><p class="muted" th:text="${encontro.atividade.nome + ' · encontro de ' + encontro.data}">Atividade · data</p></div></div>
+
+        <ol class="workflow-progress" aria-label="Etapas do registro de presença">
+            <li class="complete"><span>01</span>Atividade</li><li class="complete"><span>02</span>Encontro</li><li class="complete"><span>03</span>Presenças</li><li class="current"><span>04</span>Revisar</li><li><span>05</span>Confirmar</li>
+        </ol>
+
+        <section class="review-summary" aria-labelledby="resumo-conferencia-titulo">
+            <div><p class="eyebrow">Resumo</p><h2 id="resumo-conferencia-titulo" th:text="${resumoConferencia.total() == 1 ? '1 participante' : resumoConferencia.total() + ' participantes'}">0 participantes</h2><p>Nada foi salvo. A confirmação final vem na próxima etapa.</p></div>
+            <dl class="success-counts"><div><dt>Presentes</dt><dd th:text="${resumoConferencia.presentes()}">0</dd></div><div><dt>Ausentes</dt><dd th:text="${resumoConferencia.ausentes()}">0</dd></div><div><dt>Justificadas</dt><dd th:text="${resumoConferencia.justificadas()}">0</dd></div></dl>
+        </section>
+
+        <form method="post" th:action="@{/presencas/registrar}" class="section-block">
+            <input type="hidden" name="encontroId" th:value="${encontro.id}">
+            <div th:each="item : ${itens}">
+                <input type="hidden" th:name="${'status_' + item.participanteId()}" th:value="${item.statusAtual()}">
+                <input type="hidden" th:name="${'observacoes_' + item.participanteId()}" th:value="${item.observacoes()}">
+            </div>
+            <section class="table-card data-surface">
+                <div class="table-wrapper"><table class="mobile-card-table"><caption>Marcações que serão salvas</caption><thead><tr><th scope="col">Participante</th><th scope="col">Situação</th><th scope="col">Observação</th></tr></thead><tbody>
+                    <tr th:each="item : ${itens}"><td class="table-primary" data-label="Participante" th:text="${item.nomeParticipante()}">Participante</td><td data-label="Situação"><span th:class="${item.statusAtual().name() == 'PRESENTE'} ? 'status-pill status-on' : (${item.statusAtual().name() == 'AUSENTE'} ? 'status-pill status-off' : 'status-pill status-warning')" th:text="${item.statusAtual().descricao}">Presente</span></td><td data-label="Observação" th:text="${#strings.isEmpty(item.observacoes()) ? 'Sem observação' : item.observacoes()}">Sem observação</td></tr>
+                </tbody></table></div>
+            </section>
+            <div class="review-actions">
+                <p><span class="icon icon-info" aria-hidden="true"></span>Revise os totais e a lista. Você ainda pode voltar e corrigir antes de salvar.</p>
+                <div class="button-row"><button class="button button-soft" type="submit" th:formaction="@{/presencas/revisar}"><span class="icon icon-back" aria-hidden="true"></span>Voltar e corrigir</button><button class="button button-primary button-prominent" type="submit"><span class="icon icon-arrow" aria-hidden="true"></span>Continuar para confirmação</button></div>
+            </div>
+        </form>
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
+    </main>
+</div>
+</body>
+</html>

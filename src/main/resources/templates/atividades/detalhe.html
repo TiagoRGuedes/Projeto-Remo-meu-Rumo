@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Detalhe da atividade')}"></head>
+<body th:class="${temaClasses}">
+<a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+<header th:replace="~{fragments/header :: header}"></header>
+<div class="app-shell">
+    <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
+    <main id="conteudo" class="content" tabindex="-1">
+        <div th:replace="~{fragments/mensagens :: mensagens}"></div>
+        <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="@{/}">Visão geral</a><span aria-hidden="true">›</span><a th:href="@{/atividades}">Atividades</a><span aria-hidden="true">›</span><span aria-current="page" th:text="${atividade.nome}">Atividade</span></nav>
+        <a class="back-link" th:href="@{/atividades}"><span class="icon icon-back" aria-hidden="true"></span>Voltar para atividades</a>
+        <div class="page-header">
+            <div>
+                <p class="eyebrow">Atividade</p>
+                <h1 th:text="${atividade.nome}">Atividade</h1>
+                <p class="muted" th:text="${atividade.descricao} ?: 'Sem descrição cadastrada.'">Descrição</p>
+            </div>
+            <div class="actions">
+                <a class="button button-primary" th:href="@{/atividades/{id}/editar(id=${atividade.id})}"><span class="icon icon-edit" aria-hidden="true"></span>Editar atividade</a>
+                <a class="button button-soft" th:href="@{/encontros/novo(atividadeId=${atividade.id})}"><span class="icon icon-plus" aria-hidden="true"></span>Criar encontro</a>
+                <form method="post" th:if="${atividade.ativo}" th:action="@{/atividades/{id}/desativar(id=${atividade.id})}">
+                    <button class="button button-danger" type="submit">Desativar atividade</button>
+                </form>
+                <form method="post" th:if="${!atividade.ativo}" th:action="@{/atividades/{id}/ativar(id=${atividade.id})}">
+                    <button class="button button-primary" type="submit">Ativar atividade</button>
+                </form>
+                <a class="button button-danger" th:href="@{/atividades/{id}/excluir(id=${atividade.id})}"><span class="icon icon-close" aria-hidden="true"></span>Excluir atividade</a>
+            </div>
+        </div>
+
+        <section class="detail-grid">
+            <article class="form-card"><h2>Situação da atividade</h2><p><span th:class="${atividade.ativo} ? 'status-pill status-on' : 'status-pill status-off'" th:text="${atividade.ativo} ? 'Ativa' : 'Inativa'">Ativa</span></p><p class="muted">Atividades inativas permanecem nos relatórios, mas não recebem novos encontros.</p></article>
+            <article class="form-card"><h2>Rede relacionada</h2><p><strong th:text="${totalEncontros + ' encontros'}">0 encontros</strong></p><p><strong th:text="${participantesRelacionados + ' participantes com registros'}">0 participantes</strong></p><div class="inline-links"><a class="inline-action" th:href="@{/encontros(atividadeId=${atividade.id})}">Ver encontros</a><a class="inline-action" th:href="@{/frequencia(atividadeId=${atividade.id})}">Ver frequência</a></div></article>
+            <article class="form-card"><h2>Exclusão segura</h2><p th:if="${podeExcluir}" class="status-message status-success"><span class="icon icon-check" aria-hidden="true"></span>Pode ser excluída porque ainda não possui encontros.</p><p th:if="${!podeExcluir}" class="status-message status-warning"><span class="icon icon-info" aria-hidden="true"></span>Desative esta atividade para preservar seus encontros.</p></article>
+        </section>
+
+        <section class="table-card">
+            <div class="table-wrapper">
+                <table>
+                    <caption>Encontros relacionados</caption>
+                    <thead>
+                    <tr>
+                        <th scope="col">Data</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Observação</th>
+                        <th scope="col">Ações</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="encontro : ${encontros}">
+                        <td class="table-primary"><a th:href="@{/encontros/{id}(id=${encontro.id})}" th:text="${encontro.data}">2026-01-01</a></td>
+                        <td th:text="${encontro.status.descricao}">Realizado</td>
+                        <td th:text="${encontro.observacoes} ?: 'Sem observação'">Sem observação</td>
+                        <td class="table-actions">
+                            <a th:href="@{/encontros/{id}(id=${encontro.id})}">Visualizar</a>
+                            <a th:href="@{/presencas/registrar(atividadeId=${atividade.id}, encontroId=${encontro.id})}">Registrar presença</a>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(encontros)}">
+                        <td class="empty-cell" colspan="4">Ainda não há encontros para esta atividade.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        <section class="section-block" aria-labelledby="historico-atividade-titulo">
+            <div class="section-header"><div><h2 id="historico-atividade-titulo">Histórico deste registro</h2><p class="muted">Alterações administrativas desta atividade.</p></div><a class="button button-soft" th:href="@{/historico(modulo='ATIVIDADES', busca=${atividade.nome})}">Ver histórico completo</a></div>
+            <div class="timeline timeline-compact" th:if="${!#lists.isEmpty(historicoAdministrativo)}"><article class="timeline-item" th:each="evento : ${historicoAdministrativo}"><time th:text="${evento.dataFormatada + ' · ' + evento.horaFormatada}">Data</time><strong th:text="${evento.acao.descricao}">Ação</strong><span th:text="${evento.descricao}">Descrição</span></article></div>
+            <div class="empty-state" th:if="${#lists.isEmpty(historicoAdministrativo)}">As próximas alterações desta atividade aparecerão aqui.</div>
+        </section>
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
+    </main>
+</div>
+</body>
+</html>

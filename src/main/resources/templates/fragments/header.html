@@ -1,0 +1,37 @@
+<header class="topbar" th:fragment="header" xmlns:th="http://www.thymeleaf.org">
+    <a class="brand" th:href="@{/}" aria-label="Ir para a Visão geral">
+        <img class="brand-logo brand-logo-screen" th:src="@{/img/brand/logo-irmr-branco.png}"
+             alt="Instituto Remo Meu Rumo" width="142" height="35">
+        <img class="brand-logo brand-logo-print" th:src="@{/img/brand/logo-irmr-colorido.png}"
+             alt="Instituto Remo Meu Rumo" width="145" height="30">
+        <span class="brand-copy">
+            <strong>Sistema administrativo</strong>
+            <small>Instituto Remo Meu Rumo</small>
+        </span>
+    </a>
+    <div class="topbar-context" aria-label="Contexto da aplicação">
+        <span class="context-marker" aria-hidden="true"></span>
+        <span>
+            <strong>Centro de operações</strong>
+            <small>Presença, frequência e trajetória</small>
+        </span>
+    </div>
+    <form class="global-search" th:action="@{/busca}" method="get" role="search">
+        <label class="sr-only" for="busca-global">Buscar em todo o sistema</label>
+        <span class="icon icon-search" aria-hidden="true"></span>
+        <input id="busca-global" type="search" name="q" minlength="2"
+               th:value="${param.q != null ? param.q[0] : ''}"
+               placeholder="O que você procura?" autocomplete="off">
+        <button type="submit" aria-label="Buscar"><span class="icon icon-arrow" aria-hidden="true"></span></button>
+    </form>
+    <div class="topbar-actions">
+        <a class="button button-soft" th:href="@{/acessibilidade}" aria-label="Abrir configurações de acessibilidade">
+            <span class="icon icon-accessibility" aria-hidden="true"></span>
+            <span class="topbar-action-label">Acessibilidade</span>
+        </a>
+        <a class="button button-accent" th:href="@{/presencas/registrar}" aria-label="Registrar presença">
+            <span class="icon icon-presence" aria-hidden="true"></span>
+            <span class="topbar-presence-label">Registrar presença</span>
+        </a>
+    </div>
+</header>

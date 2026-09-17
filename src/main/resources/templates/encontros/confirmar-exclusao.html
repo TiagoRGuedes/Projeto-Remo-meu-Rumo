@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Remover ou cancelar encontro')}"></head>
+<body th:class="${temaClasses}">
+<a class="skip-link" href="#conteudo">Pular para o conteúdo</a><header th:replace="~{fragments/header :: header}"></header>
+<div class="app-shell"><nav th:replace="~{fragments/sidebar :: sidebar}"></nav><main id="conteudo" class="content" tabindex="-1">
+    <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="@{/}">Visão geral</a><span>›</span><a th:href="@{/encontros}">Encontros</a><span>›</span><a th:href="@{/encontros/{id}(id=${encontro.id})}">Ver encontro</a><span>›</span><span aria-current="page">Remover</span></nav>
+    <a class="back-link" th:href="@{/encontros/{id}(id=${encontro.id})}"><span class="icon icon-back" aria-hidden="true"></span>Voltar sem alterar</a>
+    <section class="confirmation-panel" th:classappend="${podeExcluir} ? '' : ' confirmation-blocked'">
+        <span class="confirmation-icon"><span class="icon icon-calendar" aria-hidden="true"></span></span>
+        <p class="eyebrow">Proteção do histórico</p>
+        <h1 th:text="${podeExcluir} ? 'Excluir este encontro?' : 'Este encontro deve ser cancelado'">Excluir este encontro?</h1>
+        <p><strong th:text="${encontro.atividade.nome}">Atividade</strong> · <span th:text="${encontro.data}">Data</span></p>
+        <p th:if="${podeExcluir}">Este encontro ainda não possui presença registrada e pode ser excluído definitivamente. Esta ação não pode ser desfeita.</p>
+        <p th:if="${!podeExcluir}" th:text="${'Existem ' + totalPresencas + ' registros de presença. O encontro não será apagado; cancele-o para preservar os dados.'}">Existem registros de presença.</p>
+        <div class="button-row" th:if="${podeExcluir}"><a class="button button-soft" th:href="@{/encontros/{id}(id=${encontro.id})}">Cancelar</a><form method="post" th:action="@{/encontros/{id}/excluir(id=${encontro.id})}"><button class="button button-danger-solid" type="submit"><span class="icon icon-close" aria-hidden="true"></span>Excluir encontro</button></form></div>
+        <div class="button-row" th:if="${!podeExcluir}"><a class="button button-soft" th:href="@{/encontros/{id}(id=${encontro.id})}">Manter como está</a><form method="post" th:if="${encontro.status.name() != 'CANCELADO'}" th:action="@{/encontros/{id}/cancelar(id=${encontro.id})}"><button class="button button-primary" type="submit">Cancelar encontro e preservar registros</button></form></div>
+    </section>
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+</main></div></body></html>

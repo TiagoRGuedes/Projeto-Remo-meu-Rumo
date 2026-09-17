@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Detalhe do participante')}"></head>
+<body th:class="${temaClasses}">
+<a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+<header th:replace="~{fragments/header :: header}"></header>
+<div class="app-shell">
+    <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
+    <main id="conteudo" class="content" tabindex="-1">
+        <div th:replace="~{fragments/mensagens :: mensagens}"></div>
+        <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="@{/}">Visão geral</a><span aria-hidden="true">›</span><a th:href="@{/participantes}">Participantes</a><span aria-hidden="true">›</span><span aria-current="page" th:text="${participante.nome}">Participante</span></nav>
+        <a class="back-link" th:href="@{/participantes}"><span class="icon icon-back" aria-hidden="true"></span>Voltar para participantes</a>
+        <div class="page-header">
+            <div>
+                <p class="eyebrow">Participante</p>
+                <h1 th:text="${participante.nome}">Participante</h1>
+                <p class="muted">Histórico e situação cadastral.</p>
+            </div>
+            <div class="actions">
+                <a class="button button-primary" th:href="@{/participantes/{id}/editar(id=${participante.id})}"><span class="icon icon-edit" aria-hidden="true"></span>Editar participante</a>
+                <form method="post" th:if="${participante.ativo}" th:action="@{/participantes/{id}/desativar(id=${participante.id})}">
+                    <button class="button button-danger" type="submit">Desativar participante</button>
+                </form>
+                <form method="post" th:if="${!participante.ativo}" th:action="@{/participantes/{id}/ativar(id=${participante.id})}">
+                    <button class="button button-primary" type="submit">Ativar participante</button>
+                </form>
+                <a class="button button-danger" th:href="@{/participantes/{id}/excluir(id=${participante.id})}"><span class="icon icon-close" aria-hidden="true"></span>Excluir participante</a>
+            </div>
+        </div>
+
+        <section class="detail-grid">
+            <article class="form-card">
+                <h2>Dados</h2>
+                <p><strong>Situação:</strong>
+                    <span th:class="${participante.ativo} ? 'status-pill status-on' : 'status-pill status-off'"
+                          th:text="${participante.ativo} ? 'Ativo' : 'Inativo'">Ativo</span>
+                </p>
+                <p><strong>Observações:</strong> <span th:text="${participante.observacoes} ?: 'Sem observações'">Sem observações</span></p>
+                <p class="muted">Desativar mantém todo o histórico e remove a pessoa das novas listas de presença.</p>
+            </article>
+            <article class="form-card">
+                <h2>Frequência</h2>
+                <p class="detail-frequency"><strong th:text="${#numbers.formatDecimal(frequencia.percentual(), 1, 1) + '%'}">0%</strong><span th:text="${frequencia.presentes() + ' presenças em ' + frequencia.totalEncontros() + ' registros'}">Resumo</span></p>
+                <progress th:value="${frequencia.percentual()}" max="100" th:attr="aria-label=|Frequência de ${participante.nome}: ${frequencia.percentual()}%|">0%</progress>
+                <a class="inline-action" th:href="@{/frequencia(participanteId=${participante.id})}">Ver registros completos <span class="icon icon-arrow" aria-hidden="true"></span></a>
+                <p><strong>Registros no histórico:</strong> <span th:text="${#lists.size(historico)}">0</span></p>
+                <p th:if="${podeExcluir}" class="status-message status-success"><span class="icon icon-check" aria-hidden="true"></span>Este cadastro não possui presenças e pode ser excluído.</p>
+                <p th:if="${!podeExcluir}" class="status-message status-warning"><span class="icon icon-info" aria-hidden="true"></span>Possui <span th:text="${totalPresencas}">0</span> registros e só pode ser desativado.</p>
+            </article>
+        </section>
+
+        <section class="section-block" aria-labelledby="historico-registro-titulo">
+            <div class="section-header"><div><h2 id="historico-registro-titulo">Histórico deste registro</h2><p class="muted" th:text="${'Alterações administrativas de ' + participante.nome + '.'}">Alterações do cadastro.</p></div><a class="button button-soft" th:href="@{/historico(modulo='PARTICIPANTES', busca=${participante.nome})}">Ver no histórico completo</a></div>
+            <div class="timeline timeline-compact" th:if="${!#lists.isEmpty(historicoAdministrativo)}">
+                <article class="timeline-item" th:each="evento : ${historicoAdministrativo}">
+                    <time th:text="${evento.dataFormatada + ' · ' + evento.horaFormatada}">Data</time>
+                    <strong th:text="${evento.acao.descricao}">Ação</strong>
+                    <span th:text="${evento.descricao}">Descrição</span>
+                </article>
+            </div>
+            <div class="empty-state" th:if="${#lists.isEmpty(historicoAdministrativo)}">As próximas alterações deste cadastro aparecerão aqui.</div>
+        </section>
+
+        <section class="table-card section-block">
+            <div class="table-wrapper">
+                <table>
+                    <caption>Histórico de presença</caption>
+                    <thead>
+                    <tr>
+                        <th scope="col">Data</th>
+                        <th scope="col">Atividade</th>
+                        <th scope="col">Presença</th>
+                        <th scope="col">Observação</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="presenca : ${historico}">
+                        <td th:text="${presenca.encontro.data}">2026-01-01</td>
+                        <td class="table-primary"><a th:href="@{/encontros/{id}(id=${presenca.encontro.id})}" th:text="${presenca.encontro.atividade.nome}">Atividade</a></td>
+                        <td th:text="${presenca.status.descricao}">Presente</td>
+                        <td th:text="${presenca.observacoes} ?: 'Sem observação'">Sem observação</td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(historico)}">
+                        <td class="empty-cell" colspan="4">Ainda não há presença registrada para este participante.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
+    </main>
+</div>
+</body>
+</html>

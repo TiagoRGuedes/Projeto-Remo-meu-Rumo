@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Relatórios')}"></head>
+<body th:class="${temaClasses}">
+<a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+<header th:replace="~{fragments/header :: header}"></header>
+<div class="app-shell">
+    <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
+    <main id="conteudo" class="content" tabindex="-1">
+        <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="@{/}">Visão geral</a><span aria-hidden="true">›</span><span aria-current="page">Relatórios</span></nav>
+        <div class="page-header">
+            <div>
+                <p class="eyebrow">Análise e exportação</p>
+                <h1>Relatórios</h1>
+                <p class="muted">Consulte informações consolidadas, imprima a página ou exporte os registros disponíveis.</p>
+            </div>
+            <button class="button button-soft" type="button" onclick="window.print()"><span class="icon icon-print" aria-hidden="true"></span>Imprimir página</button>
+        </div>
+
+        <form class="form-card filters filter-panel reporting-workspace" method="get" th:action="@{/relatorios}">
+            <div class="filter-title">
+                <h2>Filtros do relatório</h2>
+                <p class="muted">Defina a atividade e o período antes de gerar ou exportar.</p>
+            </div>
+            <div class="field field-medium">
+                <label for="atividadeId">Atividade</label>
+                <select id="atividadeId" name="atividadeId">
+                    <option value="">Todas</option>
+                    <option th:each="atividade : ${atividades}" th:value="${atividade.id}" th:text="${atividade.nome}"
+                            th:selected="${atividadeId != null and atividade.id == atividadeId}">Atividade</option>
+                </select>
+            </div>
+            <div class="field field-compact">
+                <label for="inicio">Início</label>
+                <input id="inicio" type="date" name="inicio" th:value="${inicio}">
+            </div>
+            <div class="field field-compact">
+                <label for="fim">Fim</label>
+                <input id="fim" type="date" name="fim" th:value="${fim}">
+            </div>
+            <button class="button button-primary" type="submit"><span class="icon icon-filter" aria-hidden="true"></span>Gerar relatório</button>
+            <a class="button button-soft" th:href="@{/relatorios}"><span class="icon icon-reset" aria-hidden="true"></span>Limpar filtros</a>
+            <a class="button button-soft" th:href="@{/relatorios/frequencia-participantes.csv(atividadeId=${atividadeId}, inicio=${inicio}, fim=${fim})}"><span class="icon icon-download" aria-hidden="true"></span>Exportar frequência CSV</a>
+        </form>
+
+        <section class="metric-grid module-metrics section-block" aria-label="Resumo do relatório atual">
+            <article class="metric metric-featured"><span>Participantes analisados</span><strong th:text="${#lists.size(frequenciaParticipantes)}">0</strong></article>
+            <article class="metric"><span>Atividades analisadas</span><strong th:text="${#lists.size(frequenciaAtividades)}">0</strong></article>
+            <article class="metric metric-success"><span>Cadastros disponíveis</span><strong th:text="${#lists.size(participantes)}">0</strong></article>
+            <article class="metric"><span>Encontros disponíveis</span><strong th:text="${#lists.size(encontros)}">0</strong></article>
+        </section>
+
+        <div class="section-header section-header-flow report-results-header section-block">
+            <div><p class="section-index">Resultados</p><h2>Dados consolidados</h2></div>
+            <p>As tabelas abaixo respeitam os filtros definidos no espaço de relatório.</p>
+        </div>
+
+        <section class="report-grid">
+            <article class="table-card data-surface">
+                <div class="table-wrapper">
+                    <table class="mobile-card-table">
+                        <caption>Frequência por participante</caption>
+                        <thead>
+                        <tr>
+                            <th scope="col">Nome</th>
+                            <th scope="col">Encontros</th>
+                            <th scope="col">Frequência</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="item : ${frequenciaParticipantes}">
+                            <td class="table-primary" data-label="Participante" th:text="${item.nome()}">Nome</td>
+                            <td data-label="Encontros" th:text="${item.totalEncontros()}">0</td>
+                            <td data-label="Frequência" th:text="${#numbers.formatDecimal(item.percentual(), 1, 1)} + '%'">0%</td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(frequenciaParticipantes)}">
+                            <td class="empty-cell" colspan="3">Nenhum dado encontrado para os filtros informados.</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </article>
+            <article class="table-card data-surface">
+                <div class="table-wrapper">
+                    <table class="mobile-card-table">
+                        <caption>Frequência por atividade</caption>
+                        <thead>
+                        <tr>
+                            <th scope="col">Atividade</th>
+                            <th scope="col">Registros</th>
+                            <th scope="col">Frequência</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="item : ${frequenciaAtividades}">
+                            <td class="table-primary" data-label="Atividade" th:text="${item.nome()}">Atividade</td>
+                            <td data-label="Registros" th:text="${item.totalEncontros()}">0</td>
+                            <td data-label="Frequência" th:text="${#numbers.formatDecimal(item.percentual(), 1, 1)} + '%'">0%</td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(frequenciaAtividades)}">
+                            <td class="empty-cell" colspan="3">Nenhum dado encontrado para os filtros informados.</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </article>
+        </section>
+
+        <section class="table-card data-surface section-block">
+            <div class="table-wrapper">
+                <table class="mobile-card-table">
+                    <caption>Participantes ativos e inativos</caption>
+                    <thead>
+                    <tr>
+                        <th scope="col">Nome</th>
+                        <th scope="col">Situação</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="participante : ${participantes}">
+                        <td class="table-primary" data-label="Participante" th:text="${participante.nome}">Nome</td>
+                        <td data-label="Situação"><span th:class="${participante.ativo} ? 'status-pill status-on' : 'status-pill status-off'" th:text="${participante.ativo} ? 'Ativo' : 'Inativo'">Ativo</span></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="table-card data-surface section-block">
+            <div class="table-wrapper">
+                <table class="mobile-card-table">
+                    <caption>Exportação da presença por encontro</caption>
+                    <thead>
+                    <tr>
+                        <th scope="col">Data</th>
+                        <th scope="col">Atividade</th>
+                        <th scope="col">CSV</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="encontro : ${encontros}">
+                        <td class="table-primary" data-label="Data" th:text="${encontro.data}">Data</td>
+                        <td data-label="Atividade" th:text="${encontro.atividade.nome}">Atividade</td>
+                        <td data-label="Exportação"><a class="button button-link" th:href="@{/relatorios/encontro/{id}.csv(id=${encontro.id})}"><span class="icon icon-download" aria-hidden="true"></span>Exportar presença CSV</a></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
+    </main>
+</div>
+</body>
+</html>

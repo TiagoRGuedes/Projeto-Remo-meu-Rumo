@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Excluir atividade')}"></head>
+<body th:class="${temaClasses}">
+<a class="skip-link" href="#conteudo">Pular para o conteúdo</a><header th:replace="~{fragments/header :: header}"></header>
+<div class="app-shell"><nav th:replace="~{fragments/sidebar :: sidebar}"></nav><main id="conteudo" class="content" tabindex="-1">
+    <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="@{/}">Visão geral</a><span>›</span><a th:href="@{/atividades}">Atividades</a><span>›</span><a th:href="@{/atividades/{id}(id=${atividade.id})}" th:text="${atividade.nome}">Atividade</a><span>›</span><span aria-current="page">Excluir</span></nav>
+    <a class="back-link" th:href="@{/atividades/{id}(id=${atividade.id})}"><span class="icon icon-back" aria-hidden="true"></span>Voltar sem excluir</a>
+    <section class="confirmation-panel" th:classappend="${podeExcluir} ? '' : ' confirmation-blocked'">
+        <span class="confirmation-icon"><span class="icon" th:classappend="${podeExcluir} ? ' icon-info' : ' icon-shield'" aria-hidden="true"></span></span>
+        <p class="eyebrow">Confirmação necessária</p>
+        <h1 th:text="${podeExcluir} ? 'Excluir esta atividade?' : 'Esta atividade não pode ser excluída'">Excluir esta atividade?</h1>
+        <p th:if="${podeExcluir}" th:text="${'Você está prestes a excluir ' + atividade.nome + '.'}">Você está prestes a excluir.</p>
+        <p th:if="${podeExcluir}">A exclusão é permitida porque ainda não existem encontros relacionados. Esta ação não pode ser desfeita.</p>
+        <p th:if="${!podeExcluir}" th:text="${atividade.nome + ' possui ' + totalEncontros + ' encontros. Desative a atividade para manter todo o histórico.'}">Esta atividade possui encontros.</p>
+        <div class="button-row" th:if="${podeExcluir}"><a class="button button-soft" th:href="@{/atividades/{id}(id=${atividade.id})}">Cancelar</a><form method="post" th:action="@{/atividades/{id}/excluir(id=${atividade.id})}"><button class="button button-danger-solid" type="submit"><span class="icon icon-close" aria-hidden="true"></span>Excluir atividade</button></form></div>
+        <div class="button-row" th:if="${!podeExcluir}"><a class="button button-soft" th:href="@{/atividades/{id}(id=${atividade.id})}">Voltar para a atividade</a><form method="post" th:if="${atividade.ativo}" th:action="@{/atividades/{id}/desativar(id=${atividade.id})}"><button class="button button-primary" type="submit">Desativar atividade</button></form></div>
+    </section>
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+</main></div></body></html>

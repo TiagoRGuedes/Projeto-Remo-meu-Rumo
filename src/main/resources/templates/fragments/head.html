@@ -1,0 +1,9 @@
+<head th:fragment="head(titulo)" xmlns:th="http://www.thymeleaf.org">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#003b67">
+    <title th:text="${titulo} + ' | Instituto Remo Meu Rumo'">Instituto Remo Meu Rumo</title>
+    <link rel="icon" type="image/png" th:href="@{/img/brand/simbolo-irmr.png}">
+    <link rel="stylesheet" th:href="@{/css/irmr.css}">
+    <script defer th:src="@{/js/irmr.js}"></script>
+</head>

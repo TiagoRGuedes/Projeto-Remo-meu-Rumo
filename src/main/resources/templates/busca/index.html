@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Busca global')}"></head>
+<body th:class="${temaClasses}">
+<a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+<header th:replace="~{fragments/header :: header}"></header>
+<div class="app-shell">
+    <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
+    <main id="conteudo" class="content" tabindex="-1">
+        <nav class="breadcrumbs" aria-label="Caminho da página">
+            <a th:href="@{/}">Visão geral</a><span aria-hidden="true">›</span><span aria-current="page">Busca</span>
+        </nav>
+
+        <header class="page-header search-page-header">
+            <div>
+                <p class="eyebrow">Sistema conectado</p>
+                <h1 th:text="${#strings.isEmpty(resultado.termo()) ? 'Busca global' : 'Resultados para “' + resultado.termo() + '”'}">Busca global</h1>
+                <p>Encontre participantes, atividades e encontros em uma única consulta.</p>
+            </div>
+        </header>
+
+        <form class="global-search global-search-page" th:action="@{/busca}" method="get" role="search">
+            <label class="sr-only" for="busca-global-pagina">Buscar em todo o sistema</label>
+            <span class="icon icon-search" aria-hidden="true"></span>
+            <input id="busca-global-pagina" type="search" name="q" minlength="2" required
+                   th:value="${resultado.termo()}" placeholder="Nome, atividade ou data (AAAA-MM-DD)" autofocus>
+            <button class="button button-primary" type="submit">Buscar</button>
+        </form>
+
+        <div class="search-guidance" th:if="${#strings.isEmpty(resultado.termo()) or resultado.termo().length() < 2}">
+            <span class="icon icon-search" aria-hidden="true"></span>
+            <div><strong>Digite pelo menos duas letras</strong><span>Os resultados serão organizados por tipo.</span></div>
+        </div>
+
+        <section class="search-results" th:if="${resultado.termo().length() >= 2}">
+            <div class="section-header section-header-flow">
+                <div><p class="section-index">Rede de informações</p><h2 th:text="${resultado.total() + (resultado.total() == 1 ? ' resultado' : ' resultados')}">0 resultados</h2></div>
+                <a class="inline-action" th:href="@{/busca}">Limpar busca</a>
+            </div>
+
+            <div class="empty-state search-empty" th:if="${resultado.total() == 0}">
+                <span class="icon icon-search" aria-hidden="true"></span>
+                <strong>Nenhum registro encontrado</strong>
+                <p>Revise o termo ou tente uma parte menor do nome.</p>
+            </div>
+
+            <div class="search-groups" th:if="${resultado.total() > 0}">
+                <section class="search-group" th:if="${!#lists.isEmpty(resultado.participantes())}" aria-labelledby="busca-participantes">
+                    <header><span class="icon icon-users" aria-hidden="true"></span><div><p>Participantes</p><h2 id="busca-participantes" th:text="${#lists.size(resultado.participantes()) + ' encontrados'}">Participantes</h2></div></header>
+                    <a class="search-result-row" th:each="item : ${resultado.participantes()}" th:href="@{/participantes/{id}(id=${item.id})}">
+                        <span class="result-avatar" th:text="${#strings.substring(item.nome, 0, 1)}">A</span>
+                        <span><strong th:text="${item.nome}">Nome</strong><small th:text="${item.ativo ? 'Participante ativo' : 'Participante inativo'}">Situação</small></span>
+                        <span class="icon icon-arrow" aria-hidden="true"></span>
+                    </a>
+                </section>
+
+                <section class="search-group" th:if="${!#lists.isEmpty(resultado.atividades())}" aria-labelledby="busca-atividades">
+                    <header><span class="icon icon-activity" aria-hidden="true"></span><div><p>Atividades</p><h2 id="busca-atividades" th:text="${#lists.size(resultado.atividades()) + ' encontradas'}">Atividades</h2></div></header>
+                    <a class="search-result-row" th:each="item : ${resultado.atividades()}" th:href="@{/atividades/{id}(id=${item.id})}">
+                        <span class="result-symbol"><span class="icon icon-activity" aria-hidden="true"></span></span>
+                        <span><strong th:text="${item.nome}">Atividade</strong><small th:text="${item.ativo ? 'Atividade ativa' : 'Atividade inativa'}">Situação</small></span>
+                        <span class="icon icon-arrow" aria-hidden="true"></span>
+                    </a>
+                </section>
+
+                <section class="search-group search-group-wide" th:if="${!#lists.isEmpty(resultado.encontros())}" aria-labelledby="busca-encontros">
+                    <header><span class="icon icon-calendar" aria-hidden="true"></span><div><p>Encontros</p><h2 id="busca-encontros" th:text="${#lists.size(resultado.encontros()) + ' encontrados'}">Encontros</h2></div></header>
+                    <a class="search-result-row" th:each="item : ${resultado.encontros()}" th:href="@{/encontros/{id}(id=${item.id})}">
+                        <time><strong th:text="${#temporals.format(item.data, 'dd')}">31</strong><small th:text="${#strings.toUpperCase(#temporals.format(item.data, 'MMM'))}">AGO</small></time>
+                        <span><strong th:text="${item.atividade.nome}">Atividade</strong><small th:text="${item.status.descricao + ' · ' + #temporals.format(item.data, 'dd/MM/yyyy')}">Data</small></span>
+                        <span class="icon icon-arrow" aria-hidden="true"></span>
+                    </a>
+                </section>
+            </div>
+        </section>
+
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
+    </main>
+</div>
+</body>
+</html>

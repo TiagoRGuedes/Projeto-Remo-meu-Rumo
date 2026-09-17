@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Histórico do sistema')}"></head>
+<body th:class="${temaClasses}">
+<a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+<header th:replace="~{fragments/header :: header}"></header>
+<div class="app-shell">
+    <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
+    <main id="conteudo" class="content" tabindex="-1">
+        <div th:replace="~{fragments/mensagens :: mensagens}"></div>
+        <nav class="breadcrumbs" aria-label="Caminho da página">
+            <a th:href="@{/}">Visão geral</a><span aria-hidden="true">›</span><span aria-current="page">Histórico</span>
+        </nav>
+        <div class="page-header">
+            <div>
+                <p class="eyebrow">Consulta somente leitura</p>
+                <h1>Histórico do sistema</h1>
+                <p class="muted">Veja as principais alterações realizadas no sistema. Estes registros não podem ser editados nem excluídos.</p>
+            </div>
+        </div>
+
+        <section class="metric-grid module-metrics" aria-label="Resumo do histórico">
+            <article class="metric"><span>Ações hoje</span><strong th:text="${indicadores.acoesHoje()}">0</strong></article>
+            <article class="metric"><span>Últimos 7 dias</span><strong th:text="${indicadores.acoesUltimosSeteDias()}">0</strong></article>
+            <article class="metric metric-success"><span>Cadastros</span><strong th:text="${indicadores.cadastros()}">0</strong></article>
+            <article class="metric metric-warning"><span>Alterações</span><strong th:text="${indicadores.alteracoes()}">0</strong></article>
+        </section>
+
+        <form class="form-card filters filter-panel section-block" method="get" th:action="@{/historico}">
+            <div class="filter-title">
+                <h2>Filtrar histórico</h2>
+                <p class="muted">Use apenas os campos necessários para encontrar uma alteração.</p>
+            </div>
+            <div class="field field-compact">
+                <label for="inicio">De</label>
+                <input id="inicio" type="date" name="inicio" th:value="${inicio}">
+            </div>
+            <div class="field field-compact">
+                <label for="fim">Até</label>
+                <input id="fim" type="date" name="fim" th:value="${fim}">
+            </div>
+            <div class="field field-medium">
+                <label for="modulo">Módulo</label>
+                <select id="modulo" name="modulo">
+                    <option value="">Todos</option>
+                    <option th:each="opcao : ${modulos}" th:value="${opcao}" th:text="${opcao.descricao}"
+                            th:selected="${modulo == opcao}">Participantes</option>
+                </select>
+            </div>
+            <div class="field field-medium">
+                <label for="acao">Ação</label>
+                <select id="acao" name="acao">
+                    <option value="">Todas</option>
+                    <option th:each="opcao : ${acoes}" th:value="${opcao}" th:text="${opcao.descricao}"
+                            th:selected="${acao == opcao}">Criação</option>
+                </select>
+            </div>
+            <div class="field field-wide">
+                <label for="busca">Buscar</label>
+                <input id="busca" name="busca" th:value="${busca}" placeholder="Participante, atividade ou descrição">
+            </div>
+            <button class="button button-primary" type="submit"><span class="icon icon-filter" aria-hidden="true"></span>Filtrar</button>
+            <a class="button button-soft" th:href="@{/historico}"><span class="icon icon-reset" aria-hidden="true"></span>Limpar filtros</a>
+        </form>
+
+        <div class="results-summary section-block" aria-live="polite">
+            <strong th:text="${totalResultados == 1 ? '1 alteração encontrada' : totalResultados + ' alterações encontradas'}">0 alterações encontradas</strong>
+        </div>
+
+        <section class="history-groups" aria-label="Linha do tempo das alterações" th:if="${totalResultados > 0}">
+            <section class="history-day" th:each="grupo : ${historicoPorData}">
+                <h2 th:text="${grupo.value[0].dataFormatada}">30/08/2026</h2>
+                <div class="timeline">
+                    <article class="timeline-item" th:each="evento : ${grupo.value}">
+                        <time th:text="${evento.horaFormatada}">14:32</time>
+                        <span class="timeline-marker" aria-hidden="true"
+                              th:classappend="${' action-' + #strings.toLowerCase(evento.acao.name())}"></span>
+                        <div class="timeline-content">
+                            <div class="timeline-title-row">
+                                <strong th:text="${evento.acao.descricao + ' · ' + evento.tipoEntidade}">Edição · Participante</strong>
+                                <span class="status-pill" th:text="${evento.modulo.descricao}">Participantes</span>
+                            </div>
+                            <h3><a th:if="${evento.urlRelacionada != null}" th:href="${evento.urlRelacionada}" th:text="${evento.nomeEntidade}">Nome do registro</a><span th:if="${evento.urlRelacionada == null}" th:text="${evento.nomeEntidade}">Nome do registro</span></h3>
+                            <p th:text="${evento.descricao}">Descrição da ação.</p>
+                            <dl class="history-diff" th:if="${evento.temComparacao}">
+                                <div><dt>Antes</dt><dd th:text="${evento.detalhesAnteriores}">Situação anterior</dd></div>
+                                <div><dt>Depois</dt><dd th:text="${evento.detalhesNovos}">Nova situação</dd></div>
+                            </dl>
+                            <a class="inline-action" th:if="${evento.urlRelacionada != null}" th:href="${evento.urlRelacionada}">Abrir registro <span class="icon icon-arrow" aria-hidden="true"></span></a>
+                        </div>
+                    </article>
+                </div>
+            </section>
+        </section>
+
+        <div class="empty-state section-block" th:if="${totalResultados == 0}">
+            <span class="icon icon-history" aria-hidden="true"></span>
+            <strong>Nenhuma alteração encontrada</strong>
+            <p>Limpe os filtros ou escolha um período diferente.</p>
+            <a class="button button-primary" th:href="@{/historico}">Limpar filtros</a>
+        </div>
+
+        <aside class="context-help section-block">
+            <span class="icon icon-info" aria-hidden="true"></span>
+            <div><strong>O que aparece aqui?</strong><p>Cadastros, edições, ativações, desativações, exclusões, cancelamentos e correções de presença.</p></div>
+        </aside>
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
+    </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Excluir registro de presença')}"></head>
+<body th:class="${temaClasses}">
+<a class="skip-link" href="#conteudo">Pular para o conteúdo</a><header th:replace="~{fragments/header :: header}"></header>
+<div class="app-shell"><nav th:replace="~{fragments/sidebar :: sidebar}"></nav><main id="conteudo" class="content" tabindex="-1">
+    <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="@{/}">Visão geral</a><span>›</span><a th:href="@{/encontros/{id}(id=${presenca.encontro.id})}">Encontro</a><span>›</span><span aria-current="page">Excluir presença</span></nav>
+    <a class="back-link" th:href="@{/encontros/{id}(id=${presenca.encontro.id})}"><span class="icon icon-back" aria-hidden="true"></span>Voltar sem excluir</a>
+    <section class="confirmation-panel">
+        <span class="confirmation-icon"><span class="icon icon-info" aria-hidden="true"></span></span>
+        <p class="eyebrow">Confirmação necessária</p><h1>Excluir este registro de presença?</h1>
+        <dl class="detail-list"><div><dt>Participante</dt><dd th:text="${presenca.participante.nome}">Participante</dd></div><div><dt>Encontro</dt><dd th:text="${presenca.encontro.atividade.nome + ' · ' + presenca.encontro.data}">Encontro</dd></div><div><dt>Situação atual</dt><dd th:text="${presenca.status.descricao}">Presente</dd></div></dl>
+        <p>A exclusão ficará registrada no Histórico do Sistema com a situação anterior.</p>
+        <div class="button-row"><a class="button button-soft" th:href="@{/encontros/{id}(id=${presenca.encontro.id})}">Cancelar</a><form method="post" th:action="@{/presencas/{id}/excluir(id=${presenca.id})}"><button class="button button-danger-solid" type="submit"><span class="icon icon-close" aria-hidden="true"></span>Excluir registro</button></form></div>
+    </section>
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+</main></div></body></html>

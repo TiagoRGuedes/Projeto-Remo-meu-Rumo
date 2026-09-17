@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Frequência')}"></head>
+<body th:class="${temaClasses}">
+<a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+<header th:replace="~{fragments/header :: header}"></header>
+<div class="app-shell">
+    <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
+    <main id="conteudo" class="content" tabindex="-1">
+        <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="@{/}">Visão geral</a><span>›</span><span aria-current="page">Frequência</span></nav>
+        <div class="page-header">
+            <div>
+                <p class="eyebrow">Acompanhamento</p>
+                <h1>Frequência</h1>
+                <p class="muted">Consulte percentuais, totais e o histórico detalhado de participação.</p>
+            </div>
+        </div>
+
+        <section class="metric-grid module-metrics" aria-label="Resumo da frequência exibida">
+            <article class="metric metric-featured"><span>Média geral</span><strong th:text="${#numbers.formatDecimal(resumoFrequencia.mediaGeral(), 1, 1)} + '%'">0%</strong></article>
+            <article class="metric"><span>Participantes exibidos</span><strong th:text="${resumoFrequencia.participantesExibidos()}">0</strong></article>
+            <article class="metric metric-success"><span>Presenças</span><strong th:text="${resumoFrequencia.presencas()}">0</strong></article>
+            <article class="metric metric-warning"><span>Ausências + justificadas</span><strong th:text="${resumoFrequencia.ausencias() + resumoFrequencia.justificadas()}">0</strong></article>
+        </section>
+
+        <form class="form-card filters filter-panel" method="get" th:action="@{/frequencia}">
+            <div class="filter-title">
+                <h2>Filtros de consulta</h2>
+                <p class="muted">Combine os campos abaixo para localizar o período desejado.</p>
+            </div>
+            <div class="field field-medium">
+                <label for="participanteId">Participante</label>
+                <select id="participanteId" name="participanteId">
+                    <option value="">Todos</option>
+                    <option th:each="participante : ${participantes}" th:value="${participante.id}" th:text="${participante.nome}"
+                            th:selected="${participanteId != null and participante.id == participanteId}">Participante</option>
+                </select>
+            </div>
+            <div class="field field-medium">
+                <label for="atividadeId">Atividade</label>
+                <select id="atividadeId" name="atividadeId">
+                    <option value="">Todas</option>
+                    <option th:each="atividade : ${atividades}" th:value="${atividade.id}" th:text="${atividade.nome}"
+                            th:selected="${atividadeId != null and atividade.id == atividadeId}">Atividade</option>
+                </select>
+            </div>
+            <div class="field field-compact">
+                <label for="inicio">Início</label>
+                <input id="inicio" type="date" name="inicio" th:value="${inicio}">
+            </div>
+            <div class="field field-compact">
+                <label for="fim">Fim</label>
+                <input id="fim" type="date" name="fim" th:value="${fim}">
+            </div>
+            <div class="field field-compact">
+                <label for="status">Status</label>
+                <select id="status" name="status">
+                    <option value="">Todos</option>
+                    <option th:each="opcao : ${statusPresenca}" th:value="${opcao}" th:text="${opcao.descricao}"
+                            th:selected="${status == opcao}">Presente</option>
+                </select>
+            </div>
+            <button class="button button-primary" type="submit"><span class="icon icon-filter" aria-hidden="true"></span>Filtrar</button>
+            <a class="button button-soft" th:href="@{/frequencia}"><span class="icon icon-reset" aria-hidden="true"></span>Limpar filtros</a>
+        </form>
+
+        <section class="table-card data-surface section-block">
+            <div class="table-wrapper">
+                <table class="mobile-card-table">
+                    <caption>Frequência por participante</caption>
+                    <thead>
+                    <tr>
+                        <th scope="col">Participante</th>
+                        <th scope="col">Encontros</th>
+                        <th scope="col">Presentes</th>
+                        <th scope="col">Ausentes</th>
+                        <th scope="col">Justificadas</th>
+                        <th scope="col">Frequência</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="item : ${frequencias}">
+                        <td class="table-primary" data-label="Participante" th:text="${item.nome()}">Nome</td>
+                        <td data-label="Encontros" th:text="${item.totalEncontros()}">0</td>
+                        <td data-label="Presentes" th:text="${item.presentes()}">0</td>
+                        <td data-label="Ausentes" th:text="${item.ausentes()}">0</td>
+                        <td data-label="Justificadas" th:text="${item.justificadas()}">0</td>
+                        <td class="frequency-cell" data-label="Frequência">
+                            <div class="frequency-value">
+                                <span th:text="${#numbers.formatDecimal(item.percentual(), 1, 1)} + '%'">0%</span>
+                                <span class="sr-only" th:text="${item.presentes()} + ' presenças'">0 presenças</span>
+                            </div>
+                            <progress th:value="${item.percentual()}" max="100"
+                                      th:attr="aria-label=|Frequência de ${item.nome()}: ${#numbers.formatDecimal(item.percentual(), 1, 1)}%|">0%</progress>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(frequencias)}">
+                        <td class="empty-cell" colspan="6">Nenhum dado de frequência encontrado para os filtros informados.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="table-card data-surface section-block">
+            <div class="table-wrapper">
+                <table class="mobile-card-table">
+                    <caption>Histórico detalhado</caption>
+                    <thead>
+                    <tr>
+                        <th scope="col">Participante</th>
+                        <th scope="col">Atividade</th>
+                        <th scope="col">Data</th>
+                        <th scope="col">Presença</th>
+                        <th scope="col">Observação</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="presenca : ${historico}">
+                        <td class="table-primary" data-label="Participante" th:text="${presenca.participante.nome}">Participante</td>
+                        <td data-label="Atividade" th:text="${presenca.encontro.atividade.nome}">Atividade</td>
+                        <td data-label="Data" th:text="${presenca.encontro.data}">Data</td>
+                        <td data-label="Presença"><span th:class="${presenca.status.name() == 'PRESENTE'} ? 'status-pill status-on' : (${presenca.status.name() == 'AUSENTE'} ? 'status-pill status-off' : 'status-pill status-warning')" th:text="${presenca.status.descricao}">Presente</span></td>
+                        <td data-label="Observação" th:text="${presenca.observacoes} ?: 'Sem observação'">Sem observação</td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(historico)}">
+                        <td class="empty-cell" colspan="5">Nenhum registro encontrado para os filtros informados.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <aside class="context-help section-block"><span class="icon icon-info" aria-hidden="true"></span><div><strong>Como a frequência é calculada?</strong><p>A frequência mostra quantos registros estão como Presente em relação a todos os registros encontrados. Ausências justificadas aparecem separadamente.</p></div></aside>
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
+    </main>
+</div>
+</body>
+</html>

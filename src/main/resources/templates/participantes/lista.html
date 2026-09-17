@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Participantes')}"></head>
+<body th:class="${temaClasses}">
+<a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+<header th:replace="~{fragments/header :: header}"></header>
+<div class="app-shell">
+    <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
+    <main id="conteudo" class="content" tabindex="-1">
+        <div th:replace="~{fragments/mensagens :: mensagens}"></div>
+        <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="@{/}">Visão geral</a><span aria-hidden="true">›</span><span aria-current="page">Participantes</span></nav>
+        <div class="page-header">
+            <div>
+                <p class="eyebrow">Pessoas</p>
+                <h1>Participantes</h1>
+                <p class="muted">Gerencie as pessoas cadastradas no Instituto e consulte seus históricos.</p>
+            </div>
+            <a class="button button-primary" th:href="@{/participantes/novo}">
+                <span class="icon icon-plus" aria-hidden="true"></span>Cadastrar participante
+            </a>
+        </div>
+
+        <section class="metric-grid module-metrics" aria-label="Resumo de participantes">
+            <a class="metric" th:href="@{/participantes}"><span>Total</span><strong th:text="${totalParticipantes}">0</strong></a>
+            <a class="metric metric-success" th:href="@{/participantes(situacao='ativos')}"><span>Ativos</span><strong th:text="${participantesAtivos}">0</strong></a>
+            <a class="metric metric-neutral" th:href="@{/participantes(situacao='inativos')}"><span>Inativos</span><strong th:text="${participantesInativos}">0</strong></a>
+            <article class="metric"><span>Cadastrados nos últimos 30 dias</span><strong th:text="${participantesRecentes}">0</strong></article>
+        </section>
+
+        <form class="form-card filters filter-panel" method="get" th:action="@{/participantes}">
+            <div class="field field-wide">
+                <label for="busca">Buscar participante pelo nome</label>
+                <input id="busca" name="busca" th:value="${busca}" placeholder="Exemplo: Ana">
+            </div>
+            <div class="field field-medium">
+                <label for="situacao">Situação</label>
+                <select id="situacao" name="situacao">
+                    <option value="">Todos</option>
+                    <option value="ativos" th:selected="${situacao == 'ativos'}">Ativos</option>
+                    <option value="inativos" th:selected="${situacao == 'inativos'}">Inativos</option>
+                </select>
+            </div>
+            <button class="button button-primary" type="submit"><span class="icon icon-search" aria-hidden="true"></span>Pesquisar</button>
+            <a class="button button-soft" th:href="@{/participantes}" th:if="${(busca != null and !#strings.isEmpty(busca)) or situacao != null}"><span class="icon icon-reset" aria-hidden="true"></span>Limpar filtros</a>
+        </form>
+
+        <div class="results-summary section-block" aria-live="polite">
+            <strong th:text="${totalResultados == 1 ? '1 participante encontrado' : totalResultados + ' participantes encontrados'}">0 participantes encontrados</strong>
+        </div>
+
+        <section class="table-card data-surface" th:if="${!#lists.isEmpty(participantes)}">
+            <div class="table-wrapper">
+                <table class="mobile-card-table">
+                    <caption>Lista de participantes</caption>
+                    <thead>
+                    <tr>
+                        <th scope="col">Nome</th>
+                        <th scope="col">Situação</th>
+                        <th scope="col">Observações</th>
+                        <th scope="col">Ações</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="participante : ${participantes}">
+                        <td class="table-primary" data-label="Participante">
+                            <div class="data-identity">
+                                <span class="data-avatar" th:text="${#strings.substring(participante.nome, 0, 1)}">A</span>
+                                <span><strong th:text="${participante.nome}">Nome</strong><small>Participante do Instituto</small></span>
+                            </div>
+                        </td>
+                        <td data-label="Situação">
+                            <span th:class="${participante.ativo} ? 'status-pill status-on' : 'status-pill status-off'"
+                                  th:text="${participante.ativo} ? 'Ativo' : 'Inativo'">Ativo</span>
+                        </td>
+                        <td data-label="Observações" th:text="${participante.observacoes} ?: 'Sem observações'">Sem observações</td>
+                        <td class="table-actions" data-label="Ações">
+                            <a th:href="@{/participantes/{id}(id=${participante.id})}">Ver</a>
+                            <a th:href="@{/participantes/{id}/editar(id=${participante.id})}"><span class="icon icon-edit" aria-hidden="true"></span>Editar</a>
+                            <form method="post" th:if="${participante.ativo}" th:action="@{/participantes/{id}/desativar(id=${participante.id})}">
+                                <button class="text-action" type="submit">Desativar</button>
+                            </form>
+                            <form method="post" th:if="${!participante.ativo}" th:action="@{/participantes/{id}/ativar(id=${participante.id})}">
+                                <button class="text-action" type="submit">Ativar</button>
+                            </form>
+                            <a class="danger-link" th:href="@{/participantes/{id}/excluir(id=${participante.id})}">Excluir</a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        <div class="empty-state" th:if="${#lists.isEmpty(participantes)}">
+            <span class="icon icon-users" aria-hidden="true"></span>
+            <strong th:text="${busca != null and !#strings.isEmpty(busca) ? 'Nenhum participante encontrado' : 'Nenhum participante cadastrado'}">Nenhum participante cadastrado</strong>
+            <p th:text="${busca != null and !#strings.isEmpty(busca) ? 'Revise o nome pesquisado ou limpe o filtro.' : 'Comece cadastrando a primeira pessoa.'}">Comece cadastrando a primeira pessoa.</p>
+            <a class="button button-primary" th:if="${busca == null or #strings.isEmpty(busca)}" th:href="@{/participantes/novo}"><span class="icon icon-plus" aria-hidden="true"></span>Cadastrar participante</a>
+            <a class="button button-soft" th:if="${busca != null and !#strings.isEmpty(busca)}" th:href="@{/participantes}">Limpar pesquisa</a>
+        </div>
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
+    </main>
+</div>
+</body>
+</html>

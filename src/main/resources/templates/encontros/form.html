@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head(${modoEdicao} ? 'Editar encontro' : 'Cadastrar encontro')}"></head>
+<body th:class="${temaClasses}">
+<a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+<header th:replace="~{fragments/header :: header}"></header>
+<div class="app-shell">
+    <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
+    <main id="conteudo" class="content" tabindex="-1">
+        <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="@{/}">Visão geral</a><span aria-hidden="true">›</span><a th:href="@{/encontros}">Encontros</a><span aria-hidden="true">›</span><span aria-current="page" th:text="${modoEdicao ? 'Editar' : 'Criar'}">Criar</span></nav>
+        <a class="back-link" th:href="${modoEdicao} ? @{/encontros/{id}(id=${encontro.id})} : @{/encontros}"><span class="icon icon-back" aria-hidden="true"></span>Voltar para encontros</a>
+        <div class="page-header">
+            <div>
+                <p class="eyebrow">Encontros</p>
+                <h1 th:text="${modoEdicao} ? 'Editar encontro' : 'Cadastrar encontro'">Cadastrar encontro</h1>
+                <p class="muted">Registre a data e a atividade para preparar a lista de presença.</p>
+            </div>
+        </div>
+
+        <form class="form-card edit-form" method="post" th:object="${encontroForm}"
+              th:action="${modoEdicao} ? @{/encontros/{id}/editar(id=${encontro.id})} : @{/encontros/novo}">
+            <div class="global-error" th:if="${#fields.hasGlobalErrors()}" th:each="erro : ${#fields.globalErrors()}" th:text="${erro}">Erro</div>
+            <div class="field">
+                <label for="atividadeId">Atividade <span class="required">(obrigatório)</span></label>
+                <select id="atividadeId" th:field="*{atividadeId}" aria-describedby="erro-atividade" th:attr="aria-invalid=${#fields.hasErrors('atividadeId')}" autofocus>
+                    <option value="">Escolha uma atividade</option>
+                    <option th:each="atividade : ${atividades}" th:value="${atividade.id}" th:text="${atividade.nome}">Atividade</option>
+                </select>
+                <div id="erro-atividade" class="field-error" th:if="${#fields.hasErrors('atividadeId')}" th:errors="*{atividadeId}">Erro</div>
+            </div>
+            <div class="field">
+                <label for="data">Data <span class="required">(obrigatório)</span></label>
+                <input id="data" type="date" th:field="*{data}" aria-describedby="erro-data" th:attr="aria-invalid=${#fields.hasErrors('data')}">
+                <div id="erro-data" class="field-error" th:if="${#fields.hasErrors('data')}" th:errors="*{data}">Erro</div>
+            </div>
+            <div class="field">
+                <label for="status">Status</label>
+                <select id="status" th:field="*{status}">
+                    <option th:each="status : ${statusEncontro}" th:value="${status}" th:text="${status.descricao}">Realizado</option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="observacoes">Observações</label>
+                <textarea id="observacoes" th:field="*{observacoes}" aria-describedby="ajuda-observacoes"></textarea>
+                <p id="ajuda-observacoes" class="field-help">Inclua somente uma observação necessária para identificar este encontro.</p>
+            </div>
+            <div class="button-row">
+                <button class="button button-primary" type="submit"><span class="icon icon-arrow" aria-hidden="true"></span><span th:text="${modoEdicao} ? 'Revisar alterações' : 'Revisar encontro'">Revisar encontro</span></button>
+                <a class="button button-soft" th:href="@{/encontros}"><span class="icon icon-close" aria-hidden="true"></span>Cancelar e voltar</a>
+            </div>
+        </form>
+        <aside class="context-help section-block"><span class="icon icon-info" aria-hidden="true"></span><div><strong>Próximo passo</strong><p>Revise atividade, data e status. O encontro só será criado na confirmação final.</p></div></aside>
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
+    </main>
+</div>
+</body>
+</html>

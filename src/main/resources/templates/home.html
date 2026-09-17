@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Central de operações')}"></head>
+<body th:class="${temaClasses}">
+<a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+<header th:replace="~{fragments/header :: header}"></header>
+<div class="app-shell">
+    <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
+    <main id="conteudo" class="content content-dashboard" tabindex="-1">
+        <div th:replace="~{fragments/mensagens :: mensagens}"></div>
+
+        <section class="page-hero page-hero-command" aria-labelledby="boas-vindas-titulo">
+            <div class="page-hero-copy">
+                <p class="eyebrow">Visão geral do Instituto</p>
+                <h1 id="boas-vindas-titulo">
+                    <span th:text="${saudacao + '.'}">Bom dia.</span>
+                    Tudo que precisa de atenção está aqui.
+                </h1>
+                <p>Acompanhe a operação recente e siga direto para a próxima tarefa.</p>
+            </div>
+            <a class="primary-command" th:href="@{/presencas/registrar}">
+                <span class="primary-command-icon"><span class="icon icon-presence" aria-hidden="true"></span></span>
+                <span>
+                    <small>Operação principal</small>
+                    <strong>Registrar presença</strong>
+                    <span>Escolha o encontro e faça a chamada.</span>
+                </span>
+                <span class="icon icon-arrow primary-command-arrow" aria-hidden="true"></span>
+            </a>
+        </section>
+
+        <div class="alert alert-warning operations-alert" th:if="${encontrosSemPresenca > 0}" role="status">
+            <span class="icon icon-info" aria-hidden="true"></span>
+            <div>
+                <strong th:text="${encontrosSemPresenca == 1 ? '1 encontro aguarda o registro de presença.' : encontrosSemPresenca + ' encontros aguardam o registro de presença.'}">Há encontros pendentes.</strong>
+                <span>Complete a chamada para manter a frequência atualizada.</span>
+            </div>
+            <a class="button button-soft" th:href="@{/encontros}">Ver pendências <span class="icon icon-arrow" aria-hidden="true"></span></a>
+        </div>
+
+        <nav class="live-pulse" aria-label="Pulso da operação">
+            <span class="live-pulse-label"><i aria-hidden="true"></i>Pulso da operação</span>
+            <a th:href="@{/participantes(situacao='ativos')}"><strong th:text="${indicadores.participantesAtivos()}">0</strong><span>participantes ativos</span><span class="icon icon-arrow" aria-hidden="true"></span></a>
+            <a th:href="@{/atividades(situacao='ativas')}"><strong th:text="${indicadores.atividadesAtivas()}">0</strong><span>atividades ativas</span><span class="icon icon-arrow" aria-hidden="true"></span></a>
+            <a th:href="@{/encontros(inicio=${inicioMes},fim=${fimMes})}"><strong th:text="${indicadores.encontrosNoMes()}">0</strong><span>encontros no mês</span><span class="icon icon-arrow" aria-hidden="true"></span></a>
+            <a th:href="@{/frequencia}"><strong th:text="${#numbers.formatDecimal(indicadores.frequenciaMedia(), 1, 1) + '%'}">0%</strong><span>frequência média</span><span class="icon icon-arrow" aria-hidden="true"></span></a>
+        </nav>
+
+        <nav class="command-strip" aria-label="Atalhos operacionais">
+            <a class="command-strip-item command-strip-priority" th:href="@{/presencas/registrar}">
+                <span class="command-strip-icon"><span class="icon icon-presence" aria-hidden="true"></span></span>
+                <span><strong>Registrar presença</strong><small>Fazer a chamada</small></span>
+                <span class="icon icon-arrow" aria-hidden="true"></span>
+            </a>
+            <a class="command-strip-item" th:href="@{/participantes/novo}">
+                <span class="command-strip-icon"><span class="icon icon-plus" aria-hidden="true"></span></span>
+                <span><strong>Cadastrar participante</strong><small>Adicionar uma pessoa</small></span>
+                <span class="icon icon-arrow" aria-hidden="true"></span>
+            </a>
+            <a class="command-strip-item" th:href="@{/encontros/novo}">
+                <span class="command-strip-icon"><span class="icon icon-calendar" aria-hidden="true"></span></span>
+                <span><strong>Criar encontro</strong><small>Preparar uma nova data</small></span>
+                <span class="icon icon-arrow" aria-hidden="true"></span>
+            </a>
+            <a class="command-strip-item" th:href="@{/frequencia}">
+                <span class="command-strip-icon"><span class="icon icon-frequency" aria-hidden="true"></span></span>
+                <span><strong>Consultar frequência</strong><small>Conferir resultados</small></span>
+                <span class="icon icon-arrow" aria-hidden="true"></span>
+            </a>
+        </nav>
+
+        <section class="dashboard-section" aria-labelledby="operacao-titulo">
+            <div class="section-header section-header-flow">
+                <div>
+                    <p class="section-index">01 / Operação</p>
+                    <h2 id="operacao-titulo">Ritmo do Instituto</h2>
+                </div>
+                <p>Presença, cadastros e atividade recente em uma leitura.</p>
+            </div>
+
+            <div class="dashboard-bento">
+                <article class="flow-panel presence-panel" th:if="${ultimoEncontro != null}">
+                    <div class="flow-panel-header">
+                        <div>
+                            <span class="panel-kicker">Último encontro</span>
+                            <h3 th:text="${ultimoEncontro.atividadeNome()}">Atividade</h3>
+                            <p th:text="${ultimoEncontro.data + ' · ' + ultimoEncontro.status.descricao}">Data · status</p>
+                        </div>
+                        <a class="inline-action" th:href="@{/encontros/{id}(id=${ultimoEncontro.id()})}">Ver encontro <span class="icon icon-arrow" aria-hidden="true"></span></a>
+                    </div>
+                    <div class="presence-panel-body">
+                        <div class="progress-ring" role="img"
+                             th:style="'--progress: ' + ${ultimoEncontro.percentualPresenca()}"
+                             th:attr="aria-label=|Percentual de presença: ${#numbers.formatDecimal(ultimoEncontro.percentualPresenca(), 1, 1)}%|">
+                            <div class="progress-ring-center">
+                                <strong th:text="${#numbers.formatDecimal(ultimoEncontro.percentualPresenca(), 1, 1)} + '%'">0%</strong>
+                                <span>presença</span>
+                            </div>
+                        </div>
+                        <div class="presence-reading">
+                            <strong th:text="${ultimoEncontro.presentes() + ' de ' + ultimoEncontro.totalEsperado()}">0 de 0</strong>
+                            <span>participantes presentes</span>
+                            <progress th:value="${ultimoEncontro.percentualPresenca()}" max="100"
+                                      th:attr="aria-label=|Presença no último encontro: ${ultimoEncontro.percentualPresenca()}%|">0%</progress>
+                        </div>
+                    </div>
+                    <dl class="presence-breakdown">
+                        <div class="present"><dt>Presentes</dt><dd th:text="${ultimoEncontro.presentes()}">0</dd></div>
+                        <div class="absent"><dt>Ausentes</dt><dd th:text="${ultimoEncontro.ausentes()}">0</dd></div>
+                        <div class="justified"><dt>Justificadas</dt><dd th:text="${ultimoEncontro.justificadas()}">0</dd></div>
+                    </dl>
+                </article>
+
+                <article class="flow-panel presence-panel presence-panel-empty" th:if="${ultimoEncontro == null}">
+                    <div class="flow-panel-header">
+                        <div><span class="panel-kicker">Próximo passo</span><h3>Comece pelo primeiro encontro</h3></div>
+                    </div>
+                    <div class="empty-state">
+                        <span class="icon icon-calendar" aria-hidden="true"></span>
+                        <strong>Nenhum encontro cadastrado</strong>
+                        <p>Crie uma data para começar a acompanhar presença e frequência.</p>
+                        <a class="button button-primary" th:href="@{/encontros/novo}"><span class="icon icon-plus" aria-hidden="true"></span>Criar encontro</a>
+                    </div>
+                </article>
+
+                <a class="flow-panel data-module participants-module" th:href="@{/participantes(situacao='ativos')}">
+                    <span class="data-module-icon"><span class="icon icon-users" aria-hidden="true"></span></span>
+                    <span class="panel-kicker">Participantes</span>
+                    <strong class="data-module-value"><span th:text="${indicadores.participantesAtivos()}">0</span> ativos</strong>
+                    <span class="data-module-detail" th:text="${indicadores.participantesInativos() + ' inativos'}">0 inativos</span>
+                    <span class="data-module-link">Ver gestão <span class="icon icon-arrow" aria-hidden="true"></span></span>
+                </a>
+
+                <a class="flow-panel data-module activities-module" th:href="@{/atividades(situacao='ativas')}">
+                    <span class="data-module-icon"><span class="icon icon-activity" aria-hidden="true"></span></span>
+                    <span class="panel-kicker">Atividades</span>
+                    <strong class="data-module-value"><span th:text="${indicadores.atividadesAtivas()}">0</span> ativas</strong>
+                    <span class="data-module-detail" th:text="${indicadores.atividadesInativas() + ' inativas'}">0 inativas</span>
+                    <span class="data-module-link">Ver atividades <span class="icon icon-arrow" aria-hidden="true"></span></span>
+                </a>
+
+                <article class="flow-panel frequency-panel">
+                    <div class="flow-panel-header">
+                        <div><span class="panel-kicker">Frequência média</span><h3>Visão do mês</h3></div>
+                        <a class="inline-action" th:href="@{/frequencia}">Abrir análise <span class="icon icon-arrow" aria-hidden="true"></span></a>
+                    </div>
+                    <div class="frequency-overview">
+                        <strong th:text="${#numbers.formatDecimal(indicadores.frequenciaMedia(), 1, 1)} + '%'">0%</strong>
+                        <progress th:value="${indicadores.frequenciaMedia()}" max="100" aria-label="Frequência média do Instituto">0%</progress>
+                    </div>
+                    <dl class="frequency-counts">
+                        <div><dt>Presenças</dt><dd th:text="${indicadores.presencasNoMes()}">0</dd></div>
+                        <div><dt>Ausências</dt><dd th:text="${indicadores.ausenciasNoMes()}">0</dd></div>
+                        <div><dt>Justificadas</dt><dd th:text="${indicadores.justificadasNoMes()}">0</dd></div>
+                    </dl>
+                    <p class="data-note"><span th:text="${indicadores.totalRegistrosPresenca()}">0</span> registros de presença no histórico</p>
+                </article>
+
+                <section class="flow-panel meetings-panel" aria-labelledby="recentes-titulo">
+                    <div class="flow-panel-header">
+                        <div><span class="panel-kicker">Trajetória recente</span><h3 id="recentes-titulo">Encontros</h3></div>
+                        <a class="inline-action" th:href="@{/encontros}">Ver todos <span class="icon icon-arrow" aria-hidden="true"></span></a>
+                    </div>
+                    <div class="route-list" th:if="${!#lists.isEmpty(encontrosRecentes)}">
+                        <article class="route-row" th:each="item : ${encontrosRecentes}">
+                            <time><strong th:text="${#temporals.format(item.data(), 'dd')}">30</strong><span th:text="${#strings.toUpperCase(#temporals.format(item.data(), 'MMM'))}">AGO</span></time>
+                            <span class="route-node" aria-hidden="true"></span>
+                            <div>
+                                <strong th:text="${item.atividadeNome()}">Atividade</strong>
+                                <span th:text="${item.status.descricao + ' · ' + item.presentes() + ' presenças'}">Status · presenças</span>
+                            </div>
+                            <a th:href="@{/encontros/{id}(id=${item.id()})}" th:aria-label="|Ver encontro de ${item.atividadeNome()} em ${item.data()}|">Ver <span class="icon icon-arrow" aria-hidden="true"></span></a>
+                        </article>
+                    </div>
+                    <div class="empty-state" th:if="${#lists.isEmpty(encontrosRecentes)}">Nenhum encontro recente.</div>
+                </section>
+            </div>
+        </section>
+
+        <section class="activity-stream dashboard-section" aria-labelledby="alteracoes-titulo">
+            <div class="section-header section-header-flow">
+                <div>
+                    <p class="section-index">02 / Rastreabilidade</p>
+                    <h2 id="alteracoes-titulo">Últimas alterações</h2>
+                </div>
+                <a class="inline-action" th:href="@{/historico}">Ver histórico completo <span class="icon icon-arrow" aria-hidden="true"></span></a>
+            </div>
+            <div class="activity-list" th:if="${!#lists.isEmpty(ultimasAlteracoes)}">
+                <article class="activity-row" th:each="evento : ${ultimasAlteracoes}">
+                    <time><strong th:text="${evento.horaFormatada}">14:42</strong><span th:text="${evento.dataFormatada}">Hoje</span></time>
+                    <span class="activity-marker" aria-hidden="true"><span class="icon icon-history"></span></span>
+                    <div>
+                        <strong th:text="${evento.acao.descricao + ' · ' + evento.tipoEntidade}">Ação</strong>
+                        <span th:text="${evento.nomeEntidade}">Registro</span>
+                    </div>
+                    <a th:if="${evento.urlRelacionada != null}" th:href="${evento.urlRelacionada}" th:aria-label="|Abrir ${evento.nomeEntidade}|">Abrir <span class="icon icon-arrow" aria-hidden="true"></span></a>
+                </article>
+            </div>
+            <div class="empty-state" th:if="${#lists.isEmpty(ultimasAlteracoes)}">As próximas alterações aparecerão aqui.</div>
+        </section>
+
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
+    </main>
+</div>
+</body>
+</html>
