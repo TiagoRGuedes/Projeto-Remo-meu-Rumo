@@ -4,7 +4,7 @@ Sistema web acadêmico para a disciplina IBM4024 - Projeto em Ciência de Dados 
 
 A interface utiliza a identidade oficial do Instituto Remo Meu Rumo e foi desenhada para a gestão de presença e frequência. A origem dos assets, a paleta e as regras visuais estão documentadas em [`docs/IDENTIDADE_VISUAL.md`](docs/IDENTIDADE_VISUAL.md).
 
-Integrantes: Bruno Cappellette, Tiago Guedes e Paolo Ce.
+Integrantes: Bruno Cappellette e Tiago Guedes.
 
 ## Requisitos
 
