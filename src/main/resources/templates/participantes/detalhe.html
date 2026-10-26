@@ -8,13 +8,13 @@
     <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
     <main id="conteudo" class="content" tabindex="-1">
         <div th:replace="~{fragments/mensagens :: mensagens}"></div>
-        <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="@{/}">Visão geral</a><span aria-hidden="true">›</span><a th:href="@{/participantes}">Participantes</a><span aria-hidden="true">›</span><span aria-current="page" th:text="${participante.nome}">Participante</span></nav>
+        <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="@{/}">Início</a><span aria-hidden="true">›</span><a th:href="@{/participantes}">Participantes</a><span aria-hidden="true">›</span><span aria-current="page" th:text="${participante.nome}">Participante</span></nav>
         <a class="back-link" th:href="@{/participantes}"><span class="icon icon-back" aria-hidden="true"></span>Voltar para participantes</a>
         <div class="page-header">
             <div>
                 <p class="eyebrow">Participante</p>
                 <h1 th:text="${participante.nome}">Participante</h1>
-                <p class="muted">Histórico e situação cadastral.</p>
+                <p class="muted">Dados cadastrais, matrículas e frequência mensal.</p>
             </div>
             <div class="actions">
                 <a class="button button-primary" th:href="@{/participantes/{id}/editar(id=${participante.id})}"><span class="icon icon-edit" aria-hidden="true"></span>Editar participante</a>
@@ -35,18 +35,151 @@
                     <span th:class="${participante.ativo} ? 'status-pill status-on' : 'status-pill status-off'"
                           th:text="${participante.ativo} ? 'Ativo' : 'Inativo'">Ativo</span>
                 </p>
-                <p><strong>Observações:</strong> <span th:text="${participante.observacoes} ?: 'Sem observações'">Sem observações</span></p>
+                <dl class="data-list">
+                    <div><dt>Sexo</dt><dd th:text="${participante.sexo != null ? participante.sexo.descricao : 'Não informado'}">Não informado</dd></div>
+                    <div><dt>Nascimento</dt><dd th:text="${participante.dataNascimento != null ? #temporals.format(participante.dataNascimento, 'dd/MM/yyyy') + ' · ' + participante.idade + ' anos' : 'Não informado'}">Não informado</dd></div>
+                    <div><dt>Escola</dt><dd th:text="${participante.tipoEscola != null ? participante.tipoEscola.descricao : 'Não informado'}">Não informado</dd></div>
+                    <div><dt>Deficiência</dt><dd><span th:text="${participante.descricaoDeficiencia}">Não informado</span>
+                        <span class="status-pill status-warning-pill" th:if="${participante.laudoPendente}">Laudo pendente</span></dd></div>
+                    <div th:if="${participante.laudoReferencia != null}"><dt>Laudo</dt><dd th:text="${participante.laudoReferencia}">Referência</dd></div>
+                </dl>
+                <p><strong>Observações:</strong> <span th:text="${#strings.isEmpty(participante.observacoes)} ? 'Sem observações' : ${participante.observacoes}">Sem observações</span></p>
                 <p class="muted">Desativar mantém todo o histórico e remove a pessoa das novas listas de presença.</p>
             </article>
             <article class="form-card">
-                <h2>Frequência</h2>
+                <h2>Frequência geral</h2>
                 <p class="detail-frequency"><strong th:text="${#numbers.formatDecimal(frequencia.percentual(), 1, 1) + '%'}">0%</strong><span th:text="${frequencia.presentes() + ' presenças em ' + frequencia.totalEncontros() + ' registros'}">Resumo</span></p>
                 <progress th:value="${frequencia.percentual()}" max="100" th:attr="aria-label=|Frequência de ${participante.nome}: ${frequencia.percentual()}%|">0%</progress>
                 <a class="inline-action" th:href="@{/frequencia(participanteId=${participante.id})}">Ver registros completos <span class="icon icon-arrow" aria-hidden="true"></span></a>
                 <p><strong>Registros no histórico:</strong> <span th:text="${#lists.size(historico)}">0</span></p>
-                <p th:if="${podeExcluir}" class="status-message status-success"><span class="icon icon-check" aria-hidden="true"></span>Este cadastro não possui presenças e pode ser excluído.</p>
-                <p th:if="${!podeExcluir}" class="status-message status-warning"><span class="icon icon-info" aria-hidden="true"></span>Possui <span th:text="${totalPresencas}">0</span> registros e só pode ser desativado.</p>
+                <p th:if="${podeExcluir}" class="status-message status-success"><span class="icon icon-check" aria-hidden="true"></span>Este cadastro não possui matrículas nem presenças e pode ser excluído.</p>
+                <p th:if="${!podeExcluir}" class="status-message status-warning"><span class="icon icon-info" aria-hidden="true"></span>Possui matrículas ou <span th:text="${totalPresencas}">0</span> registros de presença e só pode ser desativado.</p>
             </article>
+        </section>
+
+        <section class="section-block" aria-labelledby="frequencia-mensal-titulo">
+            <div class="section-header">
+                <div>
+                    <h2 id="frequencia-mensal-titulo">Frequência do mês</h2>
+                    <p class="muted" th:text="${'Presenças sobre as aulas previstas. Aula sem registro conta como falta. Mais de ' + limiteFaltas + ' faltas no mês pedem contato com a família.'}">Regra do mês.</p>
+                </div>
+                <form class="inline-filter" method="get" th:action="@{/participantes/{id}(id=${participante.id})}">
+                    <label for="mes">Mês</label>
+                    <input id="mes" name="mes" type="month" th:value="${mesReferencia}">
+                    <button class="button button-soft" type="submit">Ver mês</button>
+                </form>
+            </div>
+            <div class="month-summary" th:with="total=${frequenciaMensal.consolidado()}">
+                <div class="month-stat"><span>Frequência</span><strong th:text="${#numbers.formatDecimal(total.percentual(), 1, 1) + '%'}">0%</strong></div>
+                <div class="month-stat"><span>Aulas previstas</span><strong th:text="${total.aulasPrevistas()}">0</strong></div>
+                <div class="month-stat"><span>Presenças</span><strong th:text="${total.presencas()}">0</strong></div>
+                <div class="month-stat"><span>Faltas</span><strong th:text="${total.faltas()}">0</strong></div>
+            </div>
+            <div class="table-card">
+                <div class="table-wrapper">
+                    <table>
+                        <caption class="sr-only">Frequência mensal por turma</caption>
+                        <thead>
+                        <tr>
+                            <th scope="col">Turma</th>
+                            <th scope="col">Aulas previstas</th>
+                            <th scope="col">Presenças</th>
+                            <th scope="col">Faltas</th>
+                            <th scope="col">Frequência</th>
+                            <th scope="col">Situação</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="linha : ${frequenciaMensal.porTurma()}">
+                            <td class="table-primary"><a th:href="@{/atividades/{id}(id=${linha.turmaId()}, mes=${mesReferencia})}" th:text="${linha.turma()}">Turma</a></td>
+                            <td th:text="${linha.aulasPrevistas()}">0</td>
+                            <td th:text="${linha.presencas()}">0</td>
+                            <td><span th:text="${linha.faltas()}">0</span><span class="muted" th:if="${linha.faltasJustificadas() > 0}" th:text="${' (' + linha.faltasJustificadas() + ' justificadas)'}"></span></td>
+                            <td th:text="${linha.semAulasPrevistas()} ? 'Sem aulas' : ${#numbers.formatDecimal(linha.percentual(), 1, 1) + '%'}">0%</td>
+                            <td>
+                                <span class="status-pill status-off" th:if="${linha.contatoNecessario()}">Contatar família</span>
+                                <span class="status-pill status-warning-pill" th:if="${!linha.contatoNecessario() and linha.abaixoDaMeta()}">Abaixo da meta</span>
+                                <span class="status-pill status-on" th:if="${!linha.contatoNecessario() and !linha.abaixoDaMeta() and !linha.semAulasPrevistas()}">Em dia</span>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(frequenciaMensal.porTurma())}">
+                            <td class="empty-cell" colspan="6">Sem matrícula vigente neste mês.</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section class="section-block" aria-labelledby="matriculas-titulo">
+            <div class="section-header">
+                <div>
+                    <h2 id="matriculas-titulo">Matrículas</h2>
+                    <p class="muted">Turmas em que a presença desta pessoa é esperada. Uma pessoa pode estar em várias turmas.</p>
+                </div>
+            </div>
+            <form class="form-card inline-form" method="post" th:action="@{/matriculas/nova}" th:if="${participante.ativo and !#lists.isEmpty(turmasDisponiveis)}">
+                <input type="hidden" name="participanteId" th:value="${participante.id}">
+                <div class="field">
+                    <label for="turmaId">Turma</label>
+                    <select id="turmaId" name="turmaId" required>
+                        <option th:each="turma : ${turmasDisponiveis}" th:value="${turma.id}" th:text="${turma.nome + ' · ' + turma.gradeResumo}">Turma</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="dataInicio">Início</label>
+                    <input id="dataInicio" name="dataInicio" type="date" th:value="${hoje}">
+                </div>
+                <button class="button button-primary" type="submit"><span class="icon icon-plus" aria-hidden="true"></span>Matricular</button>
+            </form>
+            <p class="muted" th:if="${!participante.ativo}">Ative o cadastro para criar novas matrículas.</p>
+            <div class="table-card">
+                <div class="table-wrapper">
+                    <table>
+                        <caption class="sr-only">Matrículas do participante</caption>
+                        <thead>
+                        <tr>
+                            <th scope="col">Turma</th>
+                            <th scope="col">Grade</th>
+                            <th scope="col">Início</th>
+                            <th scope="col">Situação</th>
+                            <th scope="col">Ações</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="matricula : ${matriculas}">
+                            <td class="table-primary"><a th:href="@{/atividades/{id}(id=${matricula.atividade.id})}" th:text="${matricula.atividade.nome}">Turma</a></td>
+                            <td th:text="${matricula.atividade.gradeResumo}">Grade</td>
+                            <td th:text="${#temporals.format(matricula.dataInicio, 'dd/MM/yyyy')}">01/01/2026</td>
+                            <td>
+                                <span th:class="${matricula.ativa} ? 'status-pill status-on' : 'status-pill status-off'" th:text="${matricula.status.descricao}">Ativa</span>
+                                <p class="muted" th:if="${!matricula.ativa}" th:text="${matricula.motivoSaidaDescricao + (matricula.dataSaida != null ? ' · saiu em ' + #temporals.format(matricula.dataSaida, 'dd/MM/yyyy') : '')}">Motivo</p>
+                            </td>
+                            <td>
+                                <details class="row-action" th:if="${matricula.ativa}">
+                                    <summary>Registrar saída</summary>
+                                    <form method="post" th:action="@{/matriculas/{id}/encerrar(id=${matricula.id})}">
+                                        <label th:for="${'motivo-' + matricula.id}">Motivo</label>
+                                        <select th:id="${'motivo-' + matricula.id}" name="motivoSaida" required>
+                                            <option th:each="motivo : ${motivosSaida}" th:value="${motivo}" th:text="${motivo.descricao}">Motivo</option>
+                                        </select>
+                                        <label th:for="${'obs-' + matricula.id}">Observação</label>
+                                        <input th:id="${'obs-' + matricula.id}" name="observacaoSaida" maxlength="300">
+                                        <button class="button button-danger" type="submit">Revisar saída</button>
+                                    </form>
+                                </details>
+                                <form method="post" th:if="${!matricula.ativa}" th:action="@{/matriculas/{id}/reativar(id=${matricula.id})}">
+                                    <button class="button button-soft" type="submit">Reativar matrícula</button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(matriculas)}">
+                            <td class="empty-cell" colspan="5">Ainda sem matrícula. Use o formulário acima para incluir a pessoa em uma turma.</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </section>
 
         <section class="section-block" aria-labelledby="historico-registro-titulo">
@@ -68,7 +201,7 @@
                     <thead>
                     <tr>
                         <th scope="col">Data</th>
-                        <th scope="col">Atividade</th>
+                        <th scope="col">Turma</th>
                         <th scope="col">Presença</th>
                         <th scope="col">Observação</th>
                     </tr>
@@ -76,7 +209,7 @@
                     <tbody>
                     <tr th:each="presenca : ${historico}">
                         <td th:text="${presenca.encontro.data}">2026-01-01</td>
-                        <td class="table-primary"><a th:href="@{/encontros/{id}(id=${presenca.encontro.id})}" th:text="${presenca.encontro.atividade.nome}">Atividade</a></td>
+                        <td class="table-primary"><a th:href="@{/encontros/{id}(id=${presenca.encontro.id})}" th:text="${presenca.encontro.atividade.nome}">Turma</a></td>
                         <td th:text="${presenca.status.descricao}">Presente</td>
                         <td th:text="${presenca.observacoes} ?: 'Sem observação'">Sem observação</td>
                     </tr>

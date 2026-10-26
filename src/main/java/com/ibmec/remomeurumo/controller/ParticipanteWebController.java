@@ -1,5 +1,7 @@
 package com.ibmec.remomeurumo.controller;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,10 +22,15 @@ import com.ibmec.remomeurumo.exception.RegraNegocioException;
 import com.ibmec.remomeurumo.dto.ConfirmacaoOperacao;
 import com.ibmec.remomeurumo.dto.TipoOperacaoConfirmacao;
 import com.ibmec.remomeurumo.model.ModuloHistorico;
+import com.ibmec.remomeurumo.model.MotivoSaida;
 import com.ibmec.remomeurumo.model.Participante;
+import com.ibmec.remomeurumo.model.Sexo;
+import com.ibmec.remomeurumo.model.TipoEscola;
+import com.ibmec.remomeurumo.support.MesReferencia;
 import com.ibmec.remomeurumo.service.ConfirmacaoOperacaoService;
 import com.ibmec.remomeurumo.service.FrequenciaService;
 import com.ibmec.remomeurumo.service.HistoricoOperacaoService;
+import com.ibmec.remomeurumo.service.MatriculaService;
 import com.ibmec.remomeurumo.service.ParticipanteService;
 import com.ibmec.remomeurumo.service.PresencaService;
 
@@ -39,17 +46,28 @@ public class ParticipanteWebController {
     private final HistoricoOperacaoService historicoService;
     private final ConfirmacaoOperacaoService confirmacaoService;
     private final FrequenciaService frequenciaService;
+    private final MatriculaService matriculaService;
+
+    private static final DateTimeFormatter DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     public ParticipanteWebController(ParticipanteService participanteService,
             PresencaService presencaService,
             HistoricoOperacaoService historicoService,
             ConfirmacaoOperacaoService confirmacaoService,
-            FrequenciaService frequenciaService) {
+            FrequenciaService frequenciaService,
+            MatriculaService matriculaService) {
         this.participanteService = participanteService;
         this.presencaService = presencaService;
         this.historicoService = historicoService;
         this.confirmacaoService = confirmacaoService;
         this.frequenciaService = frequenciaService;
+        this.matriculaService = matriculaService;
+    }
+
+    @ModelAttribute
+    public void opcoesCadastro(Model model) {
+        model.addAttribute("opcoesSexo", Sexo.values());
+        model.addAttribute("opcoesTipoEscola", TipoEscola.values());
     }
 
     @GetMapping
@@ -95,11 +113,15 @@ public class ParticipanteWebController {
                     participante.getNome(),
                     confirmacaoService.alteracoes(
                             confirmacaoService.alteracao("Nome", null, participante.getNome()),
+                            confirmacaoService.alteracao("Sexo", null, descricaoSexo(participante)),
+                            confirmacaoService.alteracao("Data de nascimento", null, dataNascimento(participante)),
+                            confirmacaoService.alteracao("Escola", null, descricaoEscola(participante)),
+                            confirmacaoService.alteracao("Deficiência", null, participante.getDescricaoDeficiencia()),
                             confirmacaoService.alteracao("Situação inicial", null, "Ativo"),
                             confirmacaoService.alteracao("Observações", null, participante.getObservacoes())),
                     List.of(
                             "A pessoa será adicionada à lista de participantes.",
-                            "Ela ficará disponível para novas chamadas.",
+                            "Depois do cadastro, matricule a pessoa em uma ou mais turmas.",
                             "A criação será registrada no Histórico do sistema."),
                     dadosParticipante(participante),
                     "/participantes/novo/corrigir",
@@ -117,7 +139,8 @@ public class ParticipanteWebController {
     }
 
     @GetMapping("/{id}")
-    public String visualizar(@PathVariable Long id, Model model) {
+    public String visualizar(@PathVariable Long id,
+            @RequestParam(required = false) String mes, Model model) {
         Participante participante = participanteService.obter(id);
         var historico = presencaService.listarHistorico(id, null, null, null, null);
         model.addAttribute("participante", participante);
@@ -127,6 +150,15 @@ public class ParticipanteWebController {
                 historicoService.porEntidade(ModuloHistorico.PARTICIPANTES, id));
         model.addAttribute("podeExcluir", participanteService.podeExcluir(id));
         model.addAttribute("totalPresencas", participanteService.contarPresencas(id));
+        var referencia = MesReferencia.resolver(mes);
+        model.addAttribute("mesReferencia", referencia.toString());
+        model.addAttribute("frequenciaMensal", frequenciaService.frequenciaMensalDoParticipante(id, referencia));
+        model.addAttribute("matriculas", matriculaService.listarPorParticipante(id));
+        model.addAttribute("turmasDisponiveis", matriculaService.turmasDisponiveis(id));
+        model.addAttribute("motivosSaida", MotivoSaida.values());
+        model.addAttribute("hoje", LocalDate.now());
+        model.addAttribute("limiteFaltas", FrequenciaService.LIMITE_FALTAS_MES);
+        model.addAttribute("metaFrequencia", FrequenciaService.META_FREQUENCIA_MENSAL);
         return "participantes/detalhe";
     }
 
@@ -160,6 +192,12 @@ public class ParticipanteWebController {
                     participante.getNome(),
                     confirmacaoService.alteracoes(
                             confirmacaoService.alteracao("Nome", atual.getNome(), participante.getNome()),
+                            confirmacaoService.alteracao("Sexo", descricaoSexo(atual), descricaoSexo(participante)),
+                            confirmacaoService.alteracao("Data de nascimento", dataNascimento(atual),
+                                    dataNascimento(participante)),
+                            confirmacaoService.alteracao("Escola", descricaoEscola(atual), descricaoEscola(participante)),
+                            confirmacaoService.alteracao("Deficiência", atual.getDescricaoDeficiencia(),
+                                    participante.getDescricaoDeficiencia()),
                             confirmacaoService.alteracao("Observações", atual.getObservacoes(), participante.getObservacoes()),
                             confirmacaoService.alteracao("Situação", atual.isAtivo() ? "Ativo" : "Inativo",
                                     atual.isAtivo() ? "Ativo" : "Inativo")),
@@ -253,12 +291,12 @@ public class ParticipanteWebController {
     private ConfirmacaoOperacao prepararExclusao(Participante participante, HttpSession session) {
         if (!participanteService.podeExcluir(participante.getId())) {
             throw new RegraNegocioException(
-                    "Este participante possui histórico de presença e não pode ser excluído. Desative-o para preservar os registros.");
+                    "Este participante possui matrículas ou histórico de presença e não pode ser excluído. Desative-o para preservar os registros.");
         }
         return confirmacaoService.criar(session,
                 TipoOperacaoConfirmacao.EXCLUIR_PARTICIPANTE, participante.getId(), "Exclusão definitiva",
                 "Excluir " + participante.getNome() + "?",
-                "Esta operação é permitida porque o cadastro nunca apareceu em uma presença.", participante.getNome(),
+                "Esta operação é permitida porque o cadastro não tem matrículas nem presenças.", participante.getNome(),
                 confirmacaoService.alteracoes(
                         confirmacaoService.alteracao("Cadastro", participante.getNome(), "Será removido")),
                 List.of("O cadastro será removido definitivamente.",
@@ -271,7 +309,27 @@ public class ParticipanteWebController {
     private Map<String, String> dadosParticipante(Participante participante) {
         Map<String, String> dados = new LinkedHashMap<>();
         dados.put("nome", Objects.toString(participante.getNome(), ""));
+        dados.put("sexo", participante.getSexo() == null ? "" : participante.getSexo().name());
+        dados.put("dataNascimento", Objects.toString(participante.getDataNascimento(), ""));
+        dados.put("tipoEscola", participante.getTipoEscola() == null ? "" : participante.getTipoEscola().name());
+        dados.put("possuiDeficiencia", Objects.toString(participante.getPossuiDeficiencia(), ""));
+        dados.put("laudoReferencia", Objects.toString(participante.getLaudoReferencia(), ""));
         dados.put("observacoes", Objects.toString(participante.getObservacoes(), ""));
         return dados;
+    }
+
+    private String descricaoSexo(Participante participante) {
+        return participante.getSexo() == null ? Sexo.NAO_INFORMADO.getDescricao()
+                : participante.getSexo().getDescricao();
+    }
+
+    private String descricaoEscola(Participante participante) {
+        return participante.getTipoEscola() == null ? TipoEscola.NAO_INFORMADO.getDescricao()
+                : participante.getTipoEscola().getDescricao();
+    }
+
+    private String dataNascimento(Participante participante) {
+        return participante.getDataNascimento() == null ? "Não informada"
+                : participante.getDataNascimento().format(DATA);
     }
 }

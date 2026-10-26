@@ -25,7 +25,9 @@ class WebControllerSmokeTest {
         assertOk("/participantes");
         assertOk("/atividades");
         assertOk("/encontros");
-        assertOk("/presencas/registrar");
+        assertRedirect("/presencas/registrar", "/chamada");
+        assertOk("/presencas/registrar?completa=1");
+        assertOk("/chamada?lista=1");
         assertOk("/frequencia");
         assertOk("/relatorios");
         assertOk("/historico");
@@ -38,10 +40,10 @@ class WebControllerSmokeTest {
     void deveAbrirDetalhesEConfirmacoesSeguras() throws Exception {
         assertOkComTexto("/participantes/1", "Ana Souza");
         assertOkComTexto("/participantes/1/excluir", "não pode ser excluído");
-        assertOkComTexto("/atividades/1", "Treino demonstrativo de percurso");
+        assertOkComTexto("/atividades/1", "Remo iniciação");
         assertOkComTexto("/atividades/1/excluir", "não pode ser excluída");
-        assertOkComTexto("/encontros/3", "Encontro");
-        assertOkComTexto("/encontros/3/excluir", "deve ser cancelado");
+        assertOkComTexto("/encontros/3", "Aula");
+        assertOkComTexto("/encontros/3/excluir", "deve ser cancelada");
         assertRedirect("/presencas/1/excluir", "/confirmacoes/");
     }
 
@@ -58,6 +60,60 @@ class WebControllerSmokeTest {
     @Test
     void deveRetornarApiParticipantes() throws Exception {
         assertOk("/api/participantes");
+    }
+
+    @Test
+    void deveExporTurmasMatriculasEFrequenciaMensalNaApi() throws Exception {
+        assertOkComTexto("/api/turmas", "\"grade\"");
+        assertOkComTexto("/api/turmas/1/matriculas", "\"participante\"");
+        assertOkComTexto("/api/turmas/1/frequencia", "\"aulasPrevistas\"");
+        assertOkComTexto("/api/turmas/1/faltosos", "[");
+        assertOkComTexto("/api/matriculas", "\"status\"");
+        assertOkComTexto("/api/participantes/1/frequencia", "\"consolidado\"");
+        assertOkComTexto("/api/exportacao/frequencia-mensal", "\"record_id\"");
+    }
+
+    @Test
+    void naoExpoeDadosSensiveisNaListagemNemNaExportacao() throws Exception {
+        assertThat(get("/api/participantes").body()).doesNotContain("possuiDeficiencia", "laudoReferencia");
+        assertThat(get("/api/exportacao/frequencia-mensal").body())
+                .doesNotContain("deficiencia", "laudo", "nascimento");
+    }
+
+    @Test
+    void deveRecusarMesInvalido() throws Exception {
+        HttpResponse<String> response = get("/api/turmas/1/frequencia?mes=marco");
+
+        assertThat(response.statusCode()).isEqualTo(400);
+        assertThat(response.body()).contains("AAAA-MM");
+    }
+
+    @Test
+    void deveMostrarMatriculasEFrequenciaMensalNasTelas() throws Exception {
+        assertOkComTexto("/participantes/1", "Matrículas");
+        assertOkComTexto("/participantes/1", "Frequência do mês");
+        assertOkComTexto("/atividades/1", "Matrículas da turma");
+        assertOkComTexto("/frequencia", "Frequência mensal por turma");
+        assertOkComTexto("/frequencia?atividadeId=1", "Participantes da turma no mês");
+    }
+
+    @Test
+    void inicioMostraPrioridadesDoMes() throws Exception {
+        HttpResponse<String> response = get("/");
+
+        assertThat(response.statusCode()).isEqualTo(200);
+        assertThat(response.body()).contains("Frequência do mês", "Precisam de contato", "Chamadas pendentes",
+                "Frequência por turma", "Fazer chamada");
+        assertThat(response.body()).doesNotContain("Centro de operações", "Pulso da operação");
+    }
+
+    @Test
+    void chamadaDeUmaTurmaAbreComMatriculados() throws Exception {
+        HttpResponse<String> response = get("/chamada/1?data=" + java.time.LocalDate.now().minusDays(1));
+
+        assertThat(response.statusCode()).isIn(200, 302);
+        HttpResponse<String> lista = get("/chamada?lista=1");
+        assertThat(lista.body()).contains("Aulas anteriores sem chamada", "Outra data");
     }
 
     @Test

@@ -1,5 +1,6 @@
 package com.ibmec.remomeurumo.service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -12,6 +13,7 @@ import com.ibmec.remomeurumo.exception.RegraNegocioException;
 import com.ibmec.remomeurumo.model.AcaoHistorico;
 import com.ibmec.remomeurumo.model.ModuloHistorico;
 import com.ibmec.remomeurumo.model.Participante;
+import com.ibmec.remomeurumo.repository.MatriculaRepository;
 import com.ibmec.remomeurumo.repository.ParticipanteRepository;
 import com.ibmec.remomeurumo.repository.PresencaRepository;
 
@@ -20,13 +22,16 @@ public class ParticipanteService {
 
     private final ParticipanteRepository participanteRepository;
     private final PresencaRepository presencaRepository;
+    private final MatriculaRepository matriculaRepository;
     private final HistoricoOperacaoService historicoService;
 
     public ParticipanteService(ParticipanteRepository participanteRepository,
             PresencaRepository presencaRepository,
+            MatriculaRepository matriculaRepository,
             HistoricoOperacaoService historicoService) {
         this.participanteRepository = participanteRepository;
         this.presencaRepository = presencaRepository;
+        this.matriculaRepository = matriculaRepository;
         this.historicoService = historicoService;
     }
 
@@ -69,6 +74,7 @@ public class ParticipanteService {
     public Participante cadastrar(Participante participante) {
         validar(participante);
         participante.setNome(participante.getNome().trim());
+        participante.setLaudoReferencia(textoOuNulo(participante.getLaudoReferencia()));
         Participante salvo = participanteRepository.save(participante);
         historicoService.registrar(ModuloHistorico.PARTICIPANTES, "Participante", salvo.getId(), salvo.getNome(),
                 AcaoHistorico.CRIACAO, "Participante cadastrado no sistema.");
@@ -79,15 +85,18 @@ public class ParticipanteService {
     public Participante atualizar(Long id, Participante dados) {
         validar(dados);
         Participante participante = obter(id);
-        String detalhesAnteriores = "Nome: " + participante.getNome()
-                + " | Situação: " + (participante.isAtivo() ? "Ativo" : "Inativo");
+        String detalhesAnteriores = resumoCadastral(participante);
         participante.setNome(dados.getNome().trim());
+        participante.setSexo(dados.getSexo());
+        participante.setDataNascimento(dados.getDataNascimento());
+        participante.setTipoEscola(dados.getTipoEscola());
+        participante.setPossuiDeficiencia(dados.getPossuiDeficiencia());
+        participante.setLaudoReferencia(textoOuNulo(dados.getLaudoReferencia()));
         participante.setObservacoes(dados.getObservacoes());
         Participante salvo = participanteRepository.save(participante);
         historicoService.registrar(ModuloHistorico.PARTICIPANTES, "Participante", salvo.getId(), salvo.getNome(),
                 AcaoHistorico.EDICAO, "O cadastro do participante foi atualizado.",
-                detalhesAnteriores,
-                "Nome: " + salvo.getNome() + " | Situação: " + (salvo.isAtivo() ? "Ativo" : "Inativo"));
+                detalhesAnteriores, resumoCadastral(salvo));
         return salvo;
     }
 
@@ -119,7 +128,7 @@ public class ParticipanteService {
     @Transactional(readOnly = true)
     public boolean podeExcluir(Long id) {
         obter(id);
-        return !presencaRepository.existsByParticipanteId(id);
+        return !presencaRepository.existsByParticipanteId(id) && !matriculaRepository.existsByParticipanteId(id);
     }
 
     @Transactional(readOnly = true)
@@ -134,6 +143,10 @@ public class ParticipanteService {
         if (presencaRepository.existsByParticipanteId(id)) {
             throw new RegraNegocioException(
                     "Este participante possui histórico de presença e não pode ser excluído. Desative-o para preservar os registros.");
+        }
+        if (matriculaRepository.existsByParticipanteId(id)) {
+            throw new RegraNegocioException(
+                    "Este participante possui matrícula em uma turma e não pode ser excluído. Registre a saída ou desative o cadastro.");
         }
         historicoService.registrar(ModuloHistorico.PARTICIPANTES, "Participante", participante.getId(),
                 participante.getNome(), AcaoHistorico.EXCLUSAO,
@@ -160,6 +173,28 @@ public class ParticipanteService {
         if (participante == null || !temTexto(participante.getNome())) {
             throw new RegraNegocioException("Informe o nome do participante.");
         }
+        LocalDate nascimento = participante.getDataNascimento();
+        if (nascimento != null && !nascimento.isBefore(LocalDate.now())) {
+            throw new RegraNegocioException("A data de nascimento deve ser anterior a hoje.");
+        }
+        if (!Boolean.TRUE.equals(participante.getPossuiDeficiencia())
+                && temTexto(participante.getLaudoReferencia())) {
+            throw new RegraNegocioException(
+                    "A referência de laudo só se aplica a participantes registrados com deficiência (CD).");
+        }
+    }
+
+    private String resumoCadastral(Participante participante) {
+        return "Nome: " + participante.getNome()
+                + " | Sexo: " + participante.getSexo().getDescricao()
+                + " | Nascimento: " + (participante.getDataNascimento() == null
+                        ? "Não informado" : participante.getDataNascimento())
+                + " | Escola: " + participante.getTipoEscola().getDescricao()
+                + " | Situação: " + (participante.isAtivo() ? "Ativo" : "Inativo");
+    }
+
+    private String textoOuNulo(String valor) {
+        return temTexto(valor) ? valor.trim() : null;
     }
 
     private boolean temTexto(String valor) {

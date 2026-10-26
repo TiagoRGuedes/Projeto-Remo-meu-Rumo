@@ -10,14 +10,19 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ibmec.remomeurumo.dto.ApiMensagem;
+import com.ibmec.remomeurumo.dto.FrequenciaMensalParticipante;
+import com.ibmec.remomeurumo.dto.MatriculaOutput;
 import com.ibmec.remomeurumo.dto.ParticipanteInput;
 import com.ibmec.remomeurumo.dto.ParticipanteOutput;
-import com.ibmec.remomeurumo.model.Participante;
+import com.ibmec.remomeurumo.service.FrequenciaService;
+import com.ibmec.remomeurumo.service.MatriculaService;
 import com.ibmec.remomeurumo.service.ParticipanteService;
+import com.ibmec.remomeurumo.support.MesReferencia;
 
 import jakarta.validation.Valid;
 
@@ -26,20 +31,26 @@ import jakarta.validation.Valid;
 public class ParticipanteApiController {
 
     private final ParticipanteService participanteService;
+    private final MatriculaService matriculaService;
+    private final FrequenciaService frequenciaService;
 
-    public ParticipanteApiController(ParticipanteService participanteService) {
+    public ParticipanteApiController(ParticipanteService participanteService,
+            MatriculaService matriculaService,
+            FrequenciaService frequenciaService) {
         this.participanteService = participanteService;
+        this.matriculaService = matriculaService;
+        this.frequenciaService = frequenciaService;
     }
 
     @GetMapping
     public List<ParticipanteOutput> listar() {
-        return participanteService.listar(null).stream().map(ParticipanteOutput::de).toList();
+        return participanteService.listar(null).stream().map(ParticipanteOutput::resumo).toList();
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ParticipanteOutput cadastrar(@Valid @RequestBody ParticipanteInput input) {
-        return ParticipanteOutput.de(participanteService.cadastrar(new Participante(input.nome(), input.observacoes())));
+        return ParticipanteOutput.de(participanteService.cadastrar(input.paraModelo()));
     }
 
     @GetMapping("/{id}")
@@ -49,7 +60,19 @@ public class ParticipanteApiController {
 
     @PutMapping("/{id}")
     public ParticipanteOutput atualizar(@PathVariable Long id, @Valid @RequestBody ParticipanteInput input) {
-        return ParticipanteOutput.de(participanteService.atualizar(id, new Participante(input.nome(), input.observacoes())));
+        return ParticipanteOutput.de(participanteService.atualizar(id, input.paraModelo()));
+    }
+
+    @GetMapping("/{id}/frequencia")
+    public FrequenciaMensalParticipante frequenciaMensal(@PathVariable Long id,
+            @RequestParam(required = false) String mes) {
+        return frequenciaService.frequenciaMensalDoParticipante(id, MesReferencia.resolver(mes));
+    }
+
+    @GetMapping("/{id}/matriculas")
+    public List<MatriculaOutput> matriculas(@PathVariable Long id) {
+        participanteService.obter(id);
+        return matriculaService.listarPorParticipante(id).stream().map(MatriculaOutput::de).toList();
     }
 
     @DeleteMapping("/{id}")

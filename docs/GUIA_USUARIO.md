@@ -4,17 +4,32 @@
 
 1. Abra Participantes.
 2. Clique em Cadastrar participante.
-3. Informe o nome.
-4. Salve.
+3. Informe o nome e, se souber, sexo, data de nascimento, escola e deficiência.
+4. Em "Referência do laudo", informe só o código ou a pasta onde o laudo está guardado.
+5. Revise e confirme.
 
-## Cadastrar atividades
+## Matricular em uma turma
 
-1. Abra Atividades.
-2. Clique em Cadastrar atividade.
-3. Informe o nome da atividade.
-4. Salve.
+1. Abra a página do participante.
+2. Em Matrículas, escolha a turma e a data de início.
+3. Clique em Matricular, revise e confirme.
+4. Uma pessoa pode estar em várias turmas.
 
-## Criar encontro
+## Registrar a saída e o retorno
+
+1. Na matrícula, clique em Registrar saída.
+2. Escolha o motivo (dedicação a outra atividade, mudança na rotina familiar, afastamento de saúde ou outro).
+3. Revise e confirme. O histórico de presença continua guardado.
+4. Se a pessoa voltar, clique em Reativar matrícula.
+
+## Cadastrar turmas
+
+1. Abra Turmas.
+2. Clique em Cadastrar turma.
+3. Informe o nome, os dias da semana e o horário.
+4. Revise e confirme.
+
+## Criar aula
 
 1. Abra Encontros.
 2. Clique em Cadastrar encontro.
@@ -22,25 +37,29 @@
 4. Informe a data.
 5. Salve.
 
-## Registrar presença
+## Fazer chamada
 
-1. Abra Registrar presença.
-2. Escolha a atividade.
-3. Escolha ou crie o encontro.
-4. Marque Presente, Ausente ou Justificada.
-5. Clique em Conferir presença.
-6. Revise o resumo e clique em Salvar presença.
+1. Toque em Fazer chamada (botão vermelho no topo). O sistema abre a turma do horário atual; se não houver aula agora, mostra as aulas de hoje e as anteriores sem chamada.
+2. Toque no nome para alternar entre Presente, Falta e Falta avisada, ou use os botões da linha.
+3. Use Marcar vazios como presentes para completar quem ainda não foi marcado.
+4. Clique em Salvar chamada. O botão mostra quantas pessoas ainda faltam marcar.
+5. Se a internet cair, as marcações ficam guardadas no aparelho até você salvar.
 
-## Corrigir presença
+Quem já tem 3 faltas no mês aparece destacado na lista. A chamada completa, com busca e observação por pessoa, continua disponível em Chamada > Outra data.
 
-1. Abra Encontros.
-2. Abra o encontro desejado.
-3. Clique em Corrigir presença.
-4. Ajuste as marcações, confira e salve.
+## Corrigir chamada
+
+1. Abra Chamada e escolha a aula (ou a turma e a data em Outra data).
+2. Clique em Corrigir chamada.
+3. Ajuste as marcações e salve.
+
+## Início
+
+A tela Início mostra a frequência do mês contra a meta de 60%, quem precisa de contato (mais de 3 faltas no mês), as chamadas pendentes, as chamadas de hoje e a frequência por turma. Use as setas para ver meses anteriores.
 
 ## Desativar ou excluir
 
-1. Abra o participante, a atividade ou o encontro.
+1. Abra o participante, a turma ou a aula.
 2. Escolha Excluir ou Remover/cancelar.
 3. Leia a página de confirmação.
 4. Se houver histórico relacionado, use Desativar ou Cancelar para preservar os dados.
@@ -56,6 +75,8 @@
 1. Abra Frequência.
 2. Use os filtros desejados.
 3. Consulte o resumo e o histórico.
+4. Em "Frequência mensal por turma", escolha o mês para ver aulas previstas, percentual e quem precisa de contato.
+5. Clique em uma turma para ver cada participante no mês. Mais de 3 faltas no mês aparece como "Contatar família".
 
 ## Relatórios
 

@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/head :: head('Registrar presença')}"></head>
+<head th:replace="~{fragments/head :: head('Chamada completa')}"></head>
 <body th:class="${temaClasses}">
 <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
 <header th:replace="~{fragments/header :: header}"></header>
@@ -8,18 +8,18 @@
     <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
     <main id="conteudo" class="content presence-workspace" tabindex="-1">
         <div th:replace="~{fragments/mensagens :: mensagens}"></div>
-        <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="@{/}">Visão geral</a><span aria-hidden="true">›</span><span aria-current="page">Registrar presença</span></nav>
+        <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="@{/}">Início</a><span aria-hidden="true">›</span><span aria-current="page">Chamada completa</span></nav>
         <div class="page-header">
             <div>
                 <p class="eyebrow">Fluxo principal</p>
-                <h1>Registrar presença</h1>
-                <p class="muted">Você só precisa escolher o encontro, marcar os participantes e salvar.</p>
+                <h1>Chamada completa</h1>
+                <p class="muted">Versão com busca e observação por pessoa. Para a chamada do dia, use a <a th:href="@{/chamada}">chamada rápida</a>.</p>
             </div>
         </div>
 
         <ol class="workflow-progress" aria-label="Etapas do registro de presença">
-            <li th:classappend="${atividadeId != null} ? ' complete' : ' current'"><span>01</span>Atividade</li>
-            <li th:classappend="${atividadeId != null and encontroId == null} ? ' current' : (${encontroId != null} ? ' complete' : '')"><span>02</span>Encontro</li>
+            <li th:classappend="${atividadeId != null} ? ' complete' : ' current'"><span>01</span>Turma</li>
+            <li th:classappend="${atividadeId != null and encontroId == null} ? ' current' : (${encontroId != null} ? ' complete' : '')"><span>02</span>Aula</li>
             <li th:classappend="${encontroId != null} ? ' current' : ''"><span>03</span>Presenças</li>
             <li><span>04</span>Revisar</li>
             <li><span>05</span>Confirmar</li>
@@ -27,58 +27,58 @@
 
         <section class="success-summary" th:if="${resultadoPresenca != null}" aria-labelledby="presenca-salva-titulo">
             <span class="success-summary-icon"><span class="icon icon-check" aria-hidden="true"></span></span>
-            <div><h2 id="presenca-salva-titulo">Presença salva!</h2><p>Confira abaixo o resultado armazenado para este encontro.</p></div>
-            <dl class="success-counts"><div><dt>Presentes</dt><dd th:text="${resultadoPresenca.presentes()}">0</dd></div><div><dt>Ausentes</dt><dd th:text="${resultadoPresenca.ausentes()}">0</dd></div><div><dt>Justificadas</dt><dd th:text="${resultadoPresenca.justificadas()}">0</dd></div></dl>
-            <div class="button-row"><a class="button button-primary" th:href="@{/encontros/{id}(id=${encontroId})}">Ver encontro</a><a class="button button-soft" th:href="@{/presencas/registrar}">Registrar outra presença</a></div>
+            <div><h2 id="presenca-salva-titulo">Presença salva!</h2><p>Confira abaixo o resultado armazenado para esta aula.</p></div>
+            <dl class="success-counts"><div><dt>Presentes</dt><dd th:text="${resultadoPresenca.presentes()}">0</dd></div><div><dt>Faltas</dt><dd th:text="${resultadoPresenca.ausentes()}">0</dd></div><div><dt>Faltas avisadas</dt><dd th:text="${resultadoPresenca.justificadas()}">0</dd></div></dl>
+            <div class="button-row"><a class="button button-primary" th:href="@{/encontros/{id}(id=${encontroId})}">Ver aula</a><a class="button button-soft" th:href="@{/chamada(lista=1)}">Fazer outra chamada</a></div>
         </section>
 
-        <section class="workflow-grid" aria-label="Escolher atividade e encontro">
+        <section class="workflow-grid" aria-label="Escolher turma e aula">
             <form class="form-card workflow-step" method="get" th:action="@{/presencas/registrar}">
                 <span class="step-number" aria-hidden="true">1</span>
                 <div class="form-intro">
-                    <h2>Escolha a atividade</h2>
-                    <p class="muted">O sistema mostrará os encontros vinculados à atividade escolhida.</p>
+                    <h2>Escolha a turma</h2>
+                    <p class="muted">O sistema mostrará as aulas vinculadas à turma escolhida.</p>
                 </div>
                 <div class="field">
-                    <label for="atividadeId">Atividade</label>
+                    <label for="atividadeId">Turma</label>
                     <select id="atividadeId" name="atividadeId">
-                        <option value="">Escolha uma atividade</option>
+                        <option value="">Escolha uma turma</option>
                         <option th:each="atividade : ${atividades}" th:value="${atividade.id}" th:text="${atividade.nome}"
-                                th:selected="${atividadeId != null and atividade.id == atividadeId}">Atividade</option>
+                                th:selected="${atividadeId != null and atividade.id == atividadeId}">Turma</option>
                     </select>
                 </div>
                 <button class="button button-primary" type="submit">
-                    Ver encontros<span class="icon icon-arrow" aria-hidden="true"></span>
+                    Ver aulas<span class="icon icon-arrow" aria-hidden="true"></span>
                 </button>
             </form>
 
             <form class="form-card workflow-step" method="get" th:action="@{/presencas/registrar}" th:if="${atividadeId != null}">
                 <span class="step-number" aria-hidden="true">2</span>
                 <div class="form-intro">
-                    <h2>Escolha o encontro</h2>
+                    <h2>Escolha a aula</h2>
                     <p class="muted">Abra a data que receberá os registros de presença.</p>
                 </div>
                 <input type="hidden" name="atividadeId" th:value="${atividadeId}">
                 <div class="field">
-                    <label for="encontroId">Encontro</label>
+                    <label for="encontroId">Aula</label>
                     <select id="encontroId" name="encontroId">
-                        <option value="">Escolha um encontro</option>
+                        <option value="">Escolha uma aula</option>
                         <option th:each="encontroOpcao : ${encontros}" th:value="${encontroOpcao.id}"
                                 th:text="${encontroOpcao.data + ' - ' + encontroOpcao.status.descricao}"
-                                th:selected="${encontroId != null and encontroOpcao.id == encontroId}">Encontro</option>
+                                th:selected="${encontroId != null and encontroOpcao.id == encontroId}">Aula</option>
                     </select>
                 </div>
                 <button class="button button-primary" type="submit">
                     <span class="icon icon-list" aria-hidden="true"></span>Abrir lista de presença
                 </button>
-                <p class="field-help" th:if="${#lists.isEmpty(encontros)}">Ainda não há encontros para esta atividade.</p>
+                <p class="field-help" th:if="${#lists.isEmpty(encontros)}">Ainda não há aulas para esta turma.</p>
             </form>
         </section>
 
         <section class="form-card quick-meeting" th:if="${atividadeId != null}" aria-labelledby="encontro-rapido-titulo">
             <div class="form-intro">
-                <h2 id="encontro-rapido-titulo">Criar encontro rapidamente</h2>
-                <p class="muted">Use esta opção quando a atividade aconteceu em uma data ainda não cadastrada.</p>
+                <h2 id="encontro-rapido-titulo">Criar aula rapidamente</h2>
+                <p class="muted">Use esta opção quando a turma aconteceu em uma data ainda não cadastrada.</p>
             </div>
             <form method="post" th:action="@{/presencas/encontro-rapido}" class="filters">
                 <input type="hidden" name="atividadeId" th:value="${atividadeId}">
@@ -91,7 +91,7 @@
                     <input id="observacoesRapidas" name="observacoes" placeholder="Opcional">
                 </div>
                 <button class="button button-soft" type="submit">
-                    <span class="icon icon-plus" aria-hidden="true"></span>Criar encontro e registrar presença
+                    <span class="icon icon-plus" aria-hidden="true"></span>Criar aula e fazer chamada
                 </button>
             </form>
         </section>
@@ -102,8 +102,8 @@
                     <p class="eyebrow">Etapa 3</p>
                     <h2 id="chamada-titulo">Marque a presença</h2>
                     <p class="muted">
-                        <strong th:text="${encontro.atividade.nome}">Atividade</strong>
-                        · encontro de <span th:text="${encontro.data}">Data</span>
+                        <strong th:text="${encontro.atividade.nome}">Turma</strong>
+                        · aula de <span th:text="${encontro.data}">Data</span>
                     </p>
                 </div>
                 <div class="actions no-print">
@@ -119,13 +119,13 @@
             </div>
             <p class="bulk-help"><strong>Forma mais rápida:</strong> marque todos como presentes e depois altere somente quem faltou.</p>
 
-            <div class="alert alert-error" th:if="${encontro.status.name() == 'CANCELADO'}"><span class="icon icon-info" aria-hidden="true"></span><span>Este encontro está cancelado. A lista pode ser consultada, mas não pode ser alterada.</span></div>
+            <div class="alert alert-error" th:if="${encontro.status.name() == 'CANCELADO'}"><span class="icon icon-info" aria-hidden="true"></span><span>Esta aula está cancelada. A lista pode ser consultada, mas não pode ser alterada.</span></div>
 
             <div class="attendance-summary" aria-label="Resumo da presença">
                 <article class="metric metric-neutral"><span>Total registrado</span><strong th:text="${resumo.total()}">0</strong></article>
                 <article class="metric metric-success"><span>Presentes</span><strong th:text="${resumo.presentes()}">0</strong></article>
-                <article class="metric"><span>Ausentes</span><strong th:text="${resumo.ausentes()}">0</strong></article>
-                <article class="metric metric-warning"><span>Justificadas</span><strong th:text="${resumo.justificadas()}">0</strong></article>
+                <article class="metric"><span>Faltas</span><strong th:text="${resumo.ausentes()}">0</strong></article>
+                <article class="metric metric-warning"><span>Faltas avisadas</span><strong th:text="${resumo.justificadas()}">0</strong></article>
             </div>
 
             <form class="form-card filters filter-panel section-block no-print" method="get" th:action="@{/presencas/registrar}">
@@ -173,20 +173,20 @@
                     </div>
                     <div class="empty-state" th:if="${#lists.isEmpty(itens)}">
                         <strong>Nenhum participante encontrado</strong>
-                        <p>Revise o termo pesquisado ou limpe o filtro para ver a lista completa.</p>
+                        <p>A lista mostra só quem tem matrícula ativa nesta turma. Revise o termo pesquisado ou matricule participantes na página de cada pessoa.</p>
                     </div>
                 </div>
                 <div class="attendance-actions">
                     <dl class="command-summary" aria-live="polite" aria-label="Resumo atual da chamada">
                         <div><dt>Participantes</dt><dd data-attendance-count="total">0</dd></div>
                         <div><dt>Presentes</dt><dd data-attendance-count="presente">0</dd></div>
-                        <div><dt>Ausentes</dt><dd data-attendance-count="ausente">0</dd></div>
-                        <div><dt>Justificadas</dt><dd data-attendance-count="justificada">0</dd></div>
+                        <div><dt>Faltas</dt><dd data-attendance-count="ausente">0</dd></div>
+                        <div><dt>Faltas avisadas</dt><dd data-attendance-count="justificada">0</dd></div>
                     </dl>
                     <p class="muted"><span class="icon icon-info" aria-hidden="true"></span> Revise as marcações antes de continuar.</p>
                     <div class="button-row">
                         <button class="button button-primary" type="submit"><span class="icon icon-check" aria-hidden="true"></span>Conferir presença</button>
-                        <a class="button button-soft" th:href="@{/encontros/{id}(id=${encontroId})}">Ver encontro</a>
+                        <a class="button button-soft" th:href="@{/encontros/{id}(id=${encontroId})}">Ver aula</a>
                     </div>
                 </div>
             </form>

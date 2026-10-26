@@ -8,17 +8,17 @@
     <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
     <main id="conteudo" class="content" tabindex="-1">
         <div th:replace="~{fragments/mensagens :: mensagens}"></div>
-        <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="@{/}">Visão geral</a><span aria-hidden="true">›</span><span aria-current="page">Encontros</span></nav>
+        <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="@{/}">Início</a><span aria-hidden="true">›</span><span aria-current="page">Aulas</span></nav>
         <div class="page-header">
             <div>
                 <p class="eyebrow">Agenda operacional</p>
-                <h1>Encontros</h1>
-                <p class="muted">Consulte os encontros, acompanhe seus status e abra a lista de presença.</p>
+                <h1>Aulas</h1>
+                <p class="muted">Consulte as aulas, acompanhe seus status e abra a lista de presença.</p>
             </div>
-            <a class="button button-primary" th:href="@{/encontros/novo}"><span class="icon icon-plus" aria-hidden="true"></span>Cadastrar encontro</a>
+            <a class="button button-primary" th:href="@{/encontros/novo}"><span class="icon icon-plus" aria-hidden="true"></span>Cadastrar aula</a>
         </div>
 
-        <section class="metric-grid module-metrics" aria-label="Resumo de encontros">
+        <section class="metric-grid module-metrics" aria-label="Resumo de aulas">
             <a class="metric" th:href="@{/encontros(inicio=${inicioMes},fim=${fimMes})}"><span>Neste mês</span><strong th:text="${encontrosNoMes}">0</strong></a>
             <a class="metric metric-success" th:href="@{/encontros(status='REALIZADO')}"><span>Realizados</span><strong th:text="${encontrosRealizados}">0</strong></a>
             <a class="metric metric-warning" th:href="@{/encontros(status='PLANEJADO')}"><span>Planejados</span><strong th:text="${encontrosPlanejados}">0</strong></a>
@@ -27,31 +27,31 @@
 
         <form class="form-card filters filter-panel" method="get" th:action="@{/encontros}">
             <div class="field field-medium">
-                <label for="atividadeId">Filtrar por atividade</label>
+                <label for="atividadeId">Filtrar por turma</label>
                 <select id="atividadeId" name="atividadeId">
-                    <option value="">Todas as atividades</option>
+                    <option value="">Todas as turmas</option>
                     <option th:each="atividade : ${atividades}" th:value="${atividade.id}" th:text="${atividade.nome}"
-                            th:selected="${atividadeId != null and atividade.id == atividadeId}">Atividade</option>
+                            th:selected="${atividadeId != null and atividade.id == atividadeId}">Turma</option>
                 </select>
             </div>
             <div class="field field-medium"><label for="status">Status</label><select id="status" name="status"><option value="">Todos</option><option th:each="opcao : ${statusEncontro}" th:value="${opcao}" th:text="${opcao.descricao}" th:selected="${status == opcao}">Status</option></select></div>
             <div class="field field-compact"><label for="inicio">De</label><input id="inicio" type="date" name="inicio" th:value="${inicio}"></div>
             <div class="field field-compact"><label for="fim">Até</label><input id="fim" type="date" name="fim" th:value="${fim}"></div>
-            <div class="field field-wide"><label for="busca">Buscar atividade</label><input id="busca" name="busca" th:value="${busca}" placeholder="Parte do nome da atividade"></div>
+            <div class="field field-wide"><label for="busca">Buscar turma</label><input id="busca" name="busca" th:value="${busca}" placeholder="Parte do nome da turma"></div>
             <button class="button button-primary" type="submit"><span class="icon icon-filter" aria-hidden="true"></span>Filtrar</button>
             <a class="button button-soft" th:href="@{/encontros}" th:if="${atividadeId != null or status != null or inicio != null or fim != null or (busca != null and !#strings.isEmpty(busca))}"><span class="icon icon-reset" aria-hidden="true"></span>Limpar filtros</a>
         </form>
 
-        <div class="results-summary section-block" aria-live="polite"><strong th:text="${totalResultados == 1 ? '1 encontro encontrado' : totalResultados + ' encontros encontrados'}">0 encontros encontrados</strong></div>
+        <div class="results-summary section-block" aria-live="polite"><strong th:text="${totalResultados == 1 ? '1 aula encontrada' : totalResultados + ' aulas encontradas'}">0 aulas encontradas</strong></div>
 
         <section class="table-card data-surface" th:if="${!#lists.isEmpty(encontros)}">
             <div class="table-wrapper">
                 <table class="mobile-card-table">
-                    <caption>Lista de encontros</caption>
+                    <caption>Lista de aulas</caption>
                     <thead>
                     <tr>
                         <th scope="col">Data</th>
-                        <th scope="col">Atividade</th>
+                        <th scope="col">Turma</th>
                         <th scope="col">Status</th>
                         <th scope="col">Ações</th>
                     </tr>
@@ -59,12 +59,12 @@
                     <tbody>
                     <tr th:each="encontro : ${encontros}">
                         <td class="table-primary" data-label="Data" th:text="${encontro.data}">2026-01-01</td>
-                        <td data-label="Atividade" th:text="${encontro.atividade.nome}">Atividade</td>
+                        <td data-label="Turma" th:text="${encontro.atividade.nome}">Turma</td>
                         <td data-label="Status"><span th:class="${encontro.status.name() == 'REALIZADO'} ? 'status-pill status-on' : (${encontro.status.name() == 'CANCELADO'} ? 'status-pill status-off' : 'status-pill status-warning')" th:text="${encontro.status.descricao}">Realizado</span></td>
                         <td class="table-actions" data-label="Ações">
-                            <a th:href="@{/encontros/{id}(id=${encontro.id})}">Ver encontro</a>
+                            <a th:href="@{/encontros/{id}(id=${encontro.id})}">Ver aula</a>
                             <a th:href="@{/encontros/{id}/editar(id=${encontro.id})}"><span class="icon icon-edit" aria-hidden="true"></span>Editar</a>
-                            <a th:href="@{/presencas/registrar(atividadeId=${encontro.atividade.id}, encontroId=${encontro.id})}">Registrar presença</a>
+                            <a th:href="@{/presencas/registrar(atividadeId=${encontro.atividade.id}, encontroId=${encontro.id})}">Fazer chamada</a>
                             <a class="danger-link" th:href="@{/encontros/{id}/excluir(id=${encontro.id})}">Remover ou cancelar</a>
                         </td>
                     </tr>
@@ -74,9 +74,9 @@
         </section>
         <div class="empty-state" th:if="${#lists.isEmpty(encontros)}">
             <span class="icon icon-calendar" aria-hidden="true"></span>
-            <strong>Nenhum encontro encontrado</strong>
-            <p th:text="${atividadeId != null ? 'Esta atividade ainda não possui encontros. Limpe o filtro ou crie uma nova data.' : 'Crie o primeiro encontro para preparar a lista de presença.'}">Crie o primeiro encontro.</p>
-            <a class="button button-primary" th:href="@{/encontros/novo(atividadeId=${atividadeId})}"><span class="icon icon-plus" aria-hidden="true"></span>Criar encontro</a>
+            <strong>Nenhuma aula encontrada</strong>
+            <p th:text="${atividadeId != null ? 'Esta turma ainda não possui aulas. Limpe o filtro ou crie uma nova data.' : 'Crie a primeira aula para preparar a lista de presença.'}">Crie a primeira aula.</p>
+            <a class="button button-primary" th:href="@{/encontros/novo(atividadeId=${atividadeId})}"><span class="icon icon-plus" aria-hidden="true"></span>Criar aula</a>
         </div>
         <footer th:replace="~{fragments/footer :: footer}"></footer>
     </main>

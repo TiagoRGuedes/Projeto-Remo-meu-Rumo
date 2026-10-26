@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head(${'Chamada · ' + chamada.turma})}"></head>
+<body th:class="${temaClasses}">
+<a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+<header th:replace="~{fragments/header :: header}"></header>
+<div class="app-shell">
+    <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
+    <main id="conteudo" class="content chamada" tabindex="-1">
+        <div th:replace="~{fragments/mensagens :: mensagens}"></div>
+        <a class="back-link" th:href="@{/chamada(lista=1)}"><span class="icon icon-back" aria-hidden="true"></span>Chamadas</a>
+        <div class="chamada-topo">
+            <p class="chamada-quando" th:text="${chamada.quando + ' · ' + chamada.grade}">Qui, 24/09 · TER/QUI · 14:00</p>
+            <h1 th:text="${'Chamada · ' + chamada.turma}">Chamada · Turma</h1>
+            <p class="muted" th:text="${chamada.total + (chamada.total == 1 ? ' participante' : ' participantes')}">14 participantes</p>
+        </div>
+
+        <div class="chamada-registrada" th:if="${chamada.registrada and !modoCorrecao}" role="status">
+            <span class="icon icon-check" aria-hidden="true"></span>
+            <div>
+                <strong th:text="${'Chamada registrada às ' + #temporals.format(chamada.registradaEm, 'HH:mm')}">Chamada registrada às 14:52</strong>
+                <span th:text="${chamada.presentes + (chamada.presentes == 1 ? ' presente · ' : ' presentes · ') + chamada.faltas + (chamada.faltas == 1 ? ' falta · ' : ' faltas · ') + chamada.avisadas + (chamada.avisadas == 1 ? ' falta avisada' : ' faltas avisadas')}">Resumo</span>
+            </div>
+            <a class="button button-soft" th:href="@{/chamada/{id}(id=${chamada.turmaId}, data=${chamada.data}, corrigir=1)}">Corrigir chamada</a>
+        </div>
+
+        <div class="empty-state" th:if="${chamada.total == 0}">
+            <strong>Ninguém matriculado nesta turma nesta data.</strong>
+            <p>Matricule participantes pela página de cada pessoa.</p>
+        </div>
+
+        <form class="chamada-form" method="post" th:if="${chamada.total > 0}"
+              th:action="@{/chamada/{id}(id=${chamada.turmaId})}"
+              th:attr="data-chamada=${chamada.turmaId + '-' + chamada.data},data-somente-leitura=${!modoCorrecao}">
+            <input type="hidden" name="data" th:value="${chamada.data}">
+            <div class="chamada-progresso" th:if="${modoCorrecao}">
+                <p><strong data-marcados th:text="${chamada.marcados}">0</strong> de <span th:text="${chamada.total}">14</span> marcados</p>
+                <div class="chamada-progresso-barra" aria-hidden="true"><span data-progresso></span></div>
+                <button class="button button-soft" type="button" data-todos-presentes>Marcar vazios como presentes</button>
+            </div>
+            <ul class="chamada-lista">
+                <li class="chamada-linha" th:each="linha : ${chamada.linhas}"
+                    th:attr="data-participante=${linha.participanteId()},data-status=${linha.codigoStatus}"
+                    th:classappend="${linha.emRisco()} ? 'em-risco' : ''">
+                    <span class="chamada-avatar" aria-hidden="true" th:text="${linha.iniciais()}">AB</span>
+                    <span class="chamada-nome">
+                        <strong th:text="${linha.nome()}">Nome</strong>
+                        <small th:text="${linha.resumoFaltas}">Sem faltas no mês</small>
+                    </span>
+                    <fieldset class="chamada-opcoes" th:disabled="${!modoCorrecao}">
+                        <legend class="sr-only" th:text="${'Presença de ' + linha.nome()}">Presença</legend>
+                        <label class="opcao-presente"><input type="radio" th:name="${'status_' + linha.participanteId()}" value="PRESENTE" th:checked="${linha.codigoStatus == 'PRESENTE'}"><span>Presente</span></label>
+                        <label class="opcao-falta"><input type="radio" th:name="${'status_' + linha.participanteId()}" value="AUSENTE" th:checked="${linha.codigoStatus == 'AUSENTE'}"><span>Falta</span></label>
+                        <label class="opcao-avisada"><input type="radio" th:name="${'status_' + linha.participanteId()}" value="JUSTIFICADA" th:checked="${linha.codigoStatus == 'JUSTIFICADA'}"><span>Falta avisada</span></label>
+                    </fieldset>
+                </li>
+            </ul>
+            <div class="chamada-rodape" th:if="${modoCorrecao}">
+                <p class="chamada-contagem" aria-live="polite">
+                    <span><strong data-conta="PRESENTE">0</strong> presentes</span>
+                    <span><strong data-conta="AUSENTE">0</strong> faltas</span>
+                    <span><strong data-conta="JUSTIFICADA">0</strong> avisadas</span>
+                </p>
+                <button class="button button-primary chamada-salvar" type="submit" data-salvar>Salvar chamada</button>
+            </div>
+        </form>
+        <p class="muted chamada-dica" th:if="${modoCorrecao and chamada.total > 0}">Toque no nome para alternar: Presente → Falta → Falta avisada. As marcações ficam guardadas neste aparelho até você salvar.</p>
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
+    </main>
+</div>
+<script defer th:src="@{/js/chamada.js}"></script>
+</body>
+</html>

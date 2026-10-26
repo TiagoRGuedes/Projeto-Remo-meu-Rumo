@@ -7,13 +7,13 @@
 <div class="app-shell">
     <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
     <main id="conteudo" class="content" tabindex="-1">
-        <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="@{/}">Visão geral</a><span aria-hidden="true">›</span><a th:href="@{/atividades}">Atividades</a><span aria-hidden="true">›</span><span aria-current="page" th:text="${modoEdicao ? 'Editar' : 'Cadastrar'}">Cadastrar</span></nav>
-        <a class="back-link" th:href="${modoEdicao} ? @{/atividades/{id}(id=${atividade.id})} : @{/atividades}"><span class="icon icon-back" aria-hidden="true"></span>Voltar para atividades</a>
+        <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="@{/}">Início</a><span aria-hidden="true">›</span><a th:href="@{/atividades}">Turmas</a><span aria-hidden="true">›</span><span aria-current="page" th:text="${modoEdicao ? 'Editar' : 'Cadastrar'}">Cadastrar</span></nav>
+        <a class="back-link" th:href="${modoEdicao} ? @{/atividades/{id}(id=${atividade.id})} : @{/atividades}"><span class="icon icon-back" aria-hidden="true"></span>Voltar para turmas</a>
         <div class="page-header">
             <div>
-                <p class="eyebrow">Atividades</p>
-                <h1 th:text="${modoEdicao} ? 'Editar atividade' : 'Cadastrar atividade'">Cadastrar atividade</h1>
-                <p class="muted">Informe um nome claro para facilitar a criação de encontros e listas de presença.</p>
+                <p class="eyebrow">Turmas</p>
+                <h1 th:text="${modoEdicao} ? 'Editar turma' : 'Cadastrar turma'">Cadastrar turma</h1>
+                <p class="muted">Informe um nome claro para facilitar a criação de aulas e listas de presença.</p>
             </div>
         </div>
 
@@ -29,6 +29,16 @@
                 <label for="descricao">Descrição</label>
                 <textarea id="descricao" th:field="*{descricao}" aria-describedby="ajuda-descricao"></textarea>
                 <p id="ajuda-descricao" class="field-help">Descreva brevemente o objetivo ou o grupo atendido.</p>
+            </div>
+            <fieldset class="field choice-group" aria-describedby="ajuda-dias">
+                <legend>Dias da semana</legend>
+                <label class="choice" th:each="dia : ${opcoesDiasSemana}"><input type="checkbox" th:field="*{diasSemana}" th:value="${dia}"> <span th:text="${dia.descricao}">Segunda</span></label>
+                <p id="ajuda-dias" class="field-help">Os dias definem a grade da turma e quais aulas são esperadas no mês.</p>
+            </fieldset>
+            <div class="field">
+                <label for="horario">Horário</label>
+                <input id="horario" type="time" th:field="*{horario}" aria-describedby="erro-horario" th:attr="aria-invalid=${#fields.hasErrors('horario')}">
+                <div id="erro-horario" class="field-error" th:if="${#fields.hasErrors('horario')}" th:errors="*{horario}">Erro</div>
             </div>
             <div class="button-row">
                 <button class="button button-primary" type="submit"><span class="icon icon-arrow" aria-hidden="true"></span><span th:text="${modoEdicao} ? 'Revisar alterações' : 'Revisar cadastro'">Revisar cadastro</span></button>
