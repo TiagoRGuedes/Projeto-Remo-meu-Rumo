@@ -40,7 +40,7 @@
                 <nav class="chips chips-rolagem" aria-label="Turma">
                     <a th:href="@{/frequencia(periodo=${anual} ? 'ano' : 'mes', mes=${mesReferencia})}" th:attr="aria-current=${turmaId == null} ? 'true' : null">Todas</a>
                     <a th:each="turma : ${turmasAtivas}" th:href="@{/frequencia(periodo=${anual} ? 'ano' : 'mes', mes=${mesReferencia}, turmaId=${turma.id})}"
-                       th:attr="aria-current=${turmaId == turma.id} ? 'true' : null" th:text="${turma.nome}">SEG · 08h</a>
+                       th:attr="aria-current=${turmaId == turma.id} ? 'true' : null" th:text="${turma.nome}">SEG · 9h</a>
                 </nav>
             </div>
 
@@ -64,7 +64,7 @@
                         <tr th:each="linha : ${linhasPainel}">
                             <td class="table-primary" data-label="Participante"><a th:href="@{/participantes/{id}(id=${linha.participanteId()}, mes=${mesReferencia})}" th:text="${linha.participante()}">Participante</a>
                                 <small class="nota-frequencia" th:if="${linha.observacao() != null}" th:text="${linha.observacao()}">Conta só as aulas desde o ingresso.</small></td>
-                            <td data-label="Turma"><span class="lista-turmas"><span class="turma-item" th:each="turma : ${linha.listaTurmas()}" th:text="${turma}">SEG · 08h</span></span></td>
+                            <td data-label="Turma"><span class="lista-turmas"><span class="turma-item" th:each="turma : ${linha.listaTurmas()}" th:text="${turma}">SEG · 9h</span></span></td>
                             <td class="num" data-label="Presenças" th:text="${linha.presencas()}">0</td>
                             <td class="num" data-label="Previstas" th:text="${linha.previstas()}">0</td>
                             <td class="num" data-label="Faltas"><span th:text="${linha.faltas()}">0</span><small class="muted" th:if="${linha.faltasAvisadas() > 0}" th:text="${' (' + linha.faltasAvisadas() + (linha.faltasAvisadas() == 1 ? ' avisada)' : ' avisadas)')}"></small></td>

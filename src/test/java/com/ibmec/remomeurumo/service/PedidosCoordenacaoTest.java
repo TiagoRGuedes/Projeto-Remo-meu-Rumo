@@ -48,8 +48,10 @@ class PedidosCoordenacaoTest {
     void listaDeTurmasTemDuasTurmasDeSabadoESemSabadoOnzeHoras() {
         List<String> nomes = TurmasOficiais.LISTA.stream().map(TurmasOficiais.Turma::nome).toList();
 
-        assertThat(nomes).contains("SEG · 08h", "TER/QUI · 08h", "SÁB · 09h", "SÁB · 10h30");
-        assertThat(nomes).doesNotContain("SÁB · 11h");
+        assertThat(nomes).hasSize(18);
+        assertThat(nomes).contains("SEG · 9h", "SEG · 10h", "SEG · 14h", "SEG · 16h", "TER · 9h", "QUA · 14h",
+                "QUI · 16h", "SÁB · 9h", "SÁB · 10h30");
+        assertThat(nomes).doesNotContain("SÁB · 11h", "SÁB · 14h", "SEX · 9h");
         assertThat(nomes).doesNotHaveDuplicates();
     }
 

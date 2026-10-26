@@ -45,10 +45,10 @@
                     <label th:each="turma : ${turmasAtivas}">
                         <input type="checkbox" name="turmaIds" th:value="${turma.id}"
                                th:checked="${turmasSelecionadas != null and #lists.contains(turmasSelecionadas, turma.id)}">
-                        <span th:text="${turma.rotulo}">SEG · 08h</span>
+                        <span th:text="${turma.rotulo}">SEG · 9h</span>
                     </label>
                 </div>
-                <p id="ajuda-turma" class="field-help">Marque todas as turmas que a pessoa vai frequentar, por exemplo SEG 08h e TER/QUI 08h. Ela aparece na chamada de cada uma. Pode deixar em branco e incluir depois.</p>
+                <p id="ajuda-turma" class="field-help">Marque todas as turmas que a pessoa vai frequentar, por exemplo SEG 9h e QUI 9h. Ela aparece na chamada de cada uma. Pode deixar em branco e incluir depois.</p>
             </fieldset>
             <div class="field">
                 <label for="tipoEscola">Escola</label>

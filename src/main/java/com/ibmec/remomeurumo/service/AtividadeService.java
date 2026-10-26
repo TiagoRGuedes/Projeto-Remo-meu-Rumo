@@ -48,19 +48,14 @@ public class AtividadeService {
     public List<Atividade> listar(String busca, String situacao) {
         boolean somenteAtivas = "ativas".equalsIgnoreCase(situacao);
         boolean somenteInativas = "inativas".equalsIgnoreCase(situacao);
-        if (temTexto(busca)) {
-            return atividadeRepository.findByNomeContainingIgnoreCaseOrderByNomeAsc(busca.trim()).stream()
-                    .filter(item -> !somenteAtivas || item.isAtivo())
-                    .filter(item -> !somenteInativas || !item.isAtivo())
-                    .toList();
-        }
-        if (somenteAtivas) {
-            return atividadeRepository.findByAtivoTrueOrderByNomeAsc();
-        }
-        if (somenteInativas) {
-            return atividadeRepository.findByAtivoFalseOrderByNomeAsc();
-        }
-        return atividadeRepository.findAll(Sort.by(Sort.Direction.ASC, "nome"));
+        List<Atividade> base = temTexto(busca)
+                ? atividadeRepository.findByNomeContainingIgnoreCaseOrderByNomeAsc(busca.trim())
+                : atividadeRepository.findAll(Sort.by(Sort.Direction.ASC, "nome"));
+        return base.stream()
+                .filter(item -> !somenteAtivas || item.isAtivo())
+                .filter(item -> !somenteInativas || !item.isAtivo())
+                .sorted(Atividade.ordemDaGrade())
+                .toList();
     }
 
     @Transactional(readOnly = true)

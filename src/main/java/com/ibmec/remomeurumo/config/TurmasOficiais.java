@@ -11,14 +11,22 @@ import com.ibmec.remomeurumo.model.DiaSemana;
 public final class TurmasOficiais {
 
     public static final List<Turma> LISTA = List.of(
-            new Turma(EnumSet.of(DiaSemana.SEGUNDA), LocalTime.of(8, 0)),
-            new Turma(EnumSet.of(DiaSemana.TERCA, DiaSemana.QUINTA), LocalTime.of(8, 0)),
-            new Turma(EnumSet.of(DiaSemana.SEGUNDA, DiaSemana.QUARTA), LocalTime.of(14, 0)),
-            new Turma(EnumSet.of(DiaSemana.TERCA, DiaSemana.QUINTA), LocalTime.of(14, 0)),
-            new Turma(EnumSet.of(DiaSemana.TERCA, DiaSemana.QUINTA), LocalTime.of(16, 0)),
+            new Turma(EnumSet.of(DiaSemana.SEGUNDA), LocalTime.of(9, 0)),
+            new Turma(EnumSet.of(DiaSemana.SEGUNDA), LocalTime.of(10, 0)),
+            new Turma(EnumSet.of(DiaSemana.SEGUNDA), LocalTime.of(14, 0)),
+            new Turma(EnumSet.of(DiaSemana.SEGUNDA), LocalTime.of(16, 0)),
+            new Turma(EnumSet.of(DiaSemana.TERCA), LocalTime.of(9, 0)),
+            new Turma(EnumSet.of(DiaSemana.TERCA), LocalTime.of(10, 0)),
+            new Turma(EnumSet.of(DiaSemana.TERCA), LocalTime.of(14, 0)),
+            new Turma(EnumSet.of(DiaSemana.TERCA), LocalTime.of(16, 0)),
+            new Turma(EnumSet.of(DiaSemana.QUARTA), LocalTime.of(9, 0)),
             new Turma(EnumSet.of(DiaSemana.QUARTA), LocalTime.of(10, 0)),
-            new Turma(EnumSet.of(DiaSemana.SEXTA), LocalTime.of(8, 0)),
-            new Turma(EnumSet.of(DiaSemana.SEXTA), LocalTime.of(15, 0)),
+            new Turma(EnumSet.of(DiaSemana.QUARTA), LocalTime.of(14, 0)),
+            new Turma(EnumSet.of(DiaSemana.QUARTA), LocalTime.of(16, 0)),
+            new Turma(EnumSet.of(DiaSemana.QUINTA), LocalTime.of(9, 0)),
+            new Turma(EnumSet.of(DiaSemana.QUINTA), LocalTime.of(10, 0)),
+            new Turma(EnumSet.of(DiaSemana.QUINTA), LocalTime.of(14, 0)),
+            new Turma(EnumSet.of(DiaSemana.QUINTA), LocalTime.of(16, 0)),
             new Turma(EnumSet.of(DiaSemana.SABADO), LocalTime.of(9, 0)),
             new Turma(EnumSet.of(DiaSemana.SABADO), LocalTime.of(10, 30)));
 

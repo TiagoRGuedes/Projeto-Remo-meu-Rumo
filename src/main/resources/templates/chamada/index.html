@@ -18,7 +18,7 @@
         <nav class="chips chips-rolagem" aria-label="Turmas">
             <a th:each="aba : ${abas}" th:href="@{/chamada/{id}(id=${aba.turmaId()}, data=${aba.data()})}"
                th:attr="aria-current=${false} ? 'true' : null"
-               th:text="${aba.turma()}">SEG · 08h</a>
+               th:text="${aba.turma()}">SEG · 9h</a>
         </nav>
 
         <section class="painel-card" aria-labelledby="hoje-titulo">

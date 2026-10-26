@@ -40,7 +40,7 @@ class WebControllerSmokeTest {
     void deveAbrirDetalhesEConfirmacoesSeguras() throws Exception {
         assertOkComTexto("/participantes/1", "Ana Souza");
         assertOkComTexto("/participantes/1/excluir", "não pode ser excluído");
-        assertOkComTexto("/atividades/1", "SEG · 08h");
+        assertOkComTexto("/atividades/1", "SEG · 9h");
         assertOkComTexto("/atividades/1/excluir", "não pode ser excluída");
         assertOkComTexto("/encontros/3", "Aula");
         assertOkComTexto("/encontros/3/excluir", "deve ser cancelada");

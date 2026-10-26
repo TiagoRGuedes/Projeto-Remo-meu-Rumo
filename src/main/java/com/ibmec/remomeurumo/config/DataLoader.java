@@ -194,10 +194,10 @@ public class DataLoader implements CommandLineRunner {
             List<Atividade> escolhidas = new ArrayList<>();
             escolhidas.add(turmas.get(indice % turmas.size()));
             if (indice % 4 == 0) {
-                escolhidas.add(turmas.get((indice + 1) % turmas.size()));
+                escolhidas.add(turmas.get((indice + 4) % turmas.size()));
             }
             if (indice % 9 == 0 && indice > 0) {
-                escolhidas.add(turmas.get((indice + 4) % turmas.size()));
+                escolhidas.add(turmas.get((indice + 8) % turmas.size()));
             }
             for (Atividade turma : escolhidas.stream().distinct().toList()) {
                 matriculaService.matricular(participante.getId(), turma.getId(), inicio);

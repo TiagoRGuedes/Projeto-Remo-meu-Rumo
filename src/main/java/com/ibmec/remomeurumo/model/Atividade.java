@@ -32,8 +32,8 @@ import jakarta.validation.constraints.Size;
 public class Atividade {
 
     private static final DateTimeFormatter HORARIO = DateTimeFormatter.ofPattern("HH:mm");
-    private static final DateTimeFormatter HORA_CHEIA = DateTimeFormatter.ofPattern("HH'h'");
-    private static final DateTimeFormatter HORA_QUEBRADA = DateTimeFormatter.ofPattern("HH'h'mm");
+    private static final DateTimeFormatter HORA_CHEIA = DateTimeFormatter.ofPattern("H'h'");
+    private static final DateTimeFormatter HORA_QUEBRADA = DateTimeFormatter.ofPattern("H'h'mm");
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -12,7 +12,7 @@
         <nav class="chips chips-rolagem" aria-label="Turmas">
             <a th:each="aba : ${abas}" th:href="@{/chamada/{id}(id=${aba.turmaId()}, data=${aba.data()})}"
                th:attr="aria-current=${chamada.turmaId == aba.turmaId()} ? 'true' : null"
-               th:text="${aba.turma()}">SEG · 08h</a>
+               th:text="${aba.turma()}">SEG · 9h</a>
         </nav>
         <div class="chamada-topo">
             <p class="chamada-quando" th:text="${chamada.quando + ' · ' + chamada.grade}">Qui, 24/09 · TER/QUI · 14:00</p>

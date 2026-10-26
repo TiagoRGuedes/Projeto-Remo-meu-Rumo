@@ -116,7 +116,7 @@
             <div class="section-header">
                 <div>
                     <h2 id="matriculas-titulo">Turmas</h2>
-                    <p class="muted">Turmas em que a presença desta pessoa é esperada. Uma pessoa pode estar em várias turmas, por exemplo SEG 08h e TER/QUI 08h.</p>
+                    <p class="muted">Turmas em que a presença desta pessoa é esperada. Uma pessoa pode estar em várias turmas, por exemplo SEG 9h e QUI 9h.</p>
                 </div>
             </div>
             <form class="form-card inline-form" method="post" th:action="@{/matriculas/nova}" th:if="${participante.ativo and !#lists.isEmpty(turmasDisponiveis)}">
