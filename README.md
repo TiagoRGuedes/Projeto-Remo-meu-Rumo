@@ -108,7 +108,12 @@ Ctrl + C
 - Tela Início com a frequência do mês contra a meta, quem precisa de contato, chamadas pendentes e frequência por turma.
 - Chamada pelo celular: abre na turma do horário atual, um toque por pessoa, um único Salvar e rascunho guardado no aparelho.
 - Vocabulário da ONG na interface: Turma, Aula, Presente, Falta e Falta avisada.
-- Turmas com grade (dias da semana e horário).
+- Turmas com grade (dias da semana e horário); escolha da turma já no cadastro do participante.
+- Troca de turma, com a frequência do mês contada só no período em que a pessoa esteve em cada turma.
+- Anexo de atestados e laudos (PDF ou foto), inclusive na chamada ao marcar falta avisada.
+- "Aula não aconteceu" com motivo (feriado, greve, condições climáticas ou outro): ninguém recebe falta.
+- Histórico com filtros rápidos (ingresso, saída, troca de turma, chamada, arquivo) e busca por data.
+- Nome da deficiência ou condição no cadastro, tratado como dado sensível.
 - Matrículas em uma ou mais turmas, com saída por motivo e retorno sem perder o histórico.
 - Frequência mensal por participante e por turma, com meta de 60% e alerta acima de 3 faltas no mês.
 - Exportação mensal em JSON para Power BI ou planilha, sem dados sensíveis.

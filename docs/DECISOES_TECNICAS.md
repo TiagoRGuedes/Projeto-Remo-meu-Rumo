@@ -56,6 +56,14 @@ A chamada rápida dispensa a tela de conferência: o botão Salvar só libera qu
 
 O sistema usa `pt-BR` fixo para datas e números, independentemente do idioma do navegador.
 
+## Períodos de matrícula
+
+Troca de turma e retorno criam uma nova matrícula em vez de reabrir a anterior. Assim, cada período tem início e fim, e a frequência mensal soma só as aulas dentro dos períodos. Na inicialização, o sistema remove a antiga restrição de matrícula única e converte colunas `ENUM` do H2 em texto, para que novos valores (como novas ações do Histórico) funcionem em bancos já existentes.
+
+## Anexos no banco
+
+Os arquivos ficam no próprio H2, até 5 MB cada, e só são servidos pela página do participante, sem cache. A listagem não carrega o conteúdo dos arquivos.
+
 ## Dados sensíveis
 
 Deficiência e referência de laudo ficam só no cadastro individual. Não aparecem na listagem da API, no Histórico nem na exportação.

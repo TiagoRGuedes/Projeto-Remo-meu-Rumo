@@ -54,6 +54,12 @@
 - `POST /matriculas/nova`
 - `POST /matriculas/{id}/encerrar`
 - `POST /matriculas/{id}/reativar`
+- `POST /matriculas/{id}/trocar`
+- `POST /participantes/{id}/anexos` (multipart)
+- `GET /anexos/{id}`
+- `POST /chamada/{turmaId}/nao-aconteceu`
+- `POST /chamada/{turmaId}/desfazer-nao-aconteceu`
+- `GET /historico?acao=INGRESSO|SAIDA|TROCA_TURMA|ARQUIVO` e `GET /historico?busca=15/09`
 
 ## API REST
 

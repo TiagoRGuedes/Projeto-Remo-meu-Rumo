@@ -37,6 +37,24 @@
 4. Informe a data.
 5. Salve.
 
+## Trocar de turma
+
+1. Abra o participante.
+2. Na matrícula ativa, clique em Trocar turma e escolha a nova turma.
+3. Revise e confirme. As presenças anteriores continuam no histórico; a frequência do mês conta cada turma só no período em que a pessoa esteve nela.
+
+## Anexar atestado ou laudo
+
+1. Abra o participante e vá até Atestados e laudos.
+2. Escolha o tipo e o arquivo (PDF ou foto, até 5 MB) e clique em Anexar arquivo.
+3. Na chamada, ao marcar Falta avisada, use Anexar atestado na linha da pessoa; o arquivo é enviado ao salvar.
+
+## Aula que não aconteceu
+
+1. Abra a chamada da aula.
+2. Toque em Aula não aconteceu e escolha o motivo (feriado, greve, condições climáticas ou outro).
+3. Confirme. A aula não conta na frequência de ninguém. Use Desfazer se foi engano.
+
 ## Fazer chamada
 
 1. Toque em Fazer chamada (botão vermelho no topo). O sistema abre a turma do horário atual; se não houver aula agora, mostra as aulas de hoje e as anteriores sem chamada.

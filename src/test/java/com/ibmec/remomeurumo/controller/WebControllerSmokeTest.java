@@ -75,9 +75,9 @@ class WebControllerSmokeTest {
 
     @Test
     void naoExpoeDadosSensiveisNaListagemNemNaExportacao() throws Exception {
-        assertThat(get("/api/participantes").body()).doesNotContain("possuiDeficiencia", "laudoReferencia");
+        assertThat(get("/api/participantes").body()).doesNotContain("possuiDeficiencia", "condicao");
         assertThat(get("/api/exportacao/frequencia-mensal").body())
-                .doesNotContain("deficiencia", "laudo", "nascimento");
+                .doesNotContain("deficiencia", "condicao", "nascimento");
     }
 
     @Test

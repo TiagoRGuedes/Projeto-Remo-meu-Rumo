@@ -8,7 +8,8 @@ public record LinhaChamada(
         String iniciais,
         long faltasNoMes,
         boolean emRisco,
-        StatusPresenca status) {
+        StatusPresenca status,
+        boolean temAtestado) {
 
     public String getResumoFaltas() {
         if (faltasNoMes == 0) {

@@ -13,6 +13,7 @@ import com.ibmec.remomeurumo.exception.RegraNegocioException;
 import com.ibmec.remomeurumo.model.AcaoHistorico;
 import com.ibmec.remomeurumo.model.ModuloHistorico;
 import com.ibmec.remomeurumo.model.Participante;
+import com.ibmec.remomeurumo.repository.AnexoRepository;
 import com.ibmec.remomeurumo.repository.MatriculaRepository;
 import com.ibmec.remomeurumo.repository.ParticipanteRepository;
 import com.ibmec.remomeurumo.repository.PresencaRepository;
@@ -23,12 +24,15 @@ public class ParticipanteService {
     private final ParticipanteRepository participanteRepository;
     private final PresencaRepository presencaRepository;
     private final MatriculaRepository matriculaRepository;
+    private final AnexoRepository anexoRepository;
     private final HistoricoOperacaoService historicoService;
 
     public ParticipanteService(ParticipanteRepository participanteRepository,
             PresencaRepository presencaRepository,
             MatriculaRepository matriculaRepository,
+            AnexoRepository anexoRepository,
             HistoricoOperacaoService historicoService) {
+        this.anexoRepository = anexoRepository;
         this.participanteRepository = participanteRepository;
         this.presencaRepository = presencaRepository;
         this.matriculaRepository = matriculaRepository;
@@ -74,7 +78,7 @@ public class ParticipanteService {
     public Participante cadastrar(Participante participante) {
         validar(participante);
         participante.setNome(participante.getNome().trim());
-        participante.setLaudoReferencia(textoOuNulo(participante.getLaudoReferencia()));
+        participante.setCondicao(textoOuNulo(participante.getCondicao()));
         Participante salvo = participanteRepository.save(participante);
         historicoService.registrar(ModuloHistorico.PARTICIPANTES, "Participante", salvo.getId(), salvo.getNome(),
                 AcaoHistorico.CRIACAO, "Participante cadastrado no sistema.");
@@ -91,7 +95,7 @@ public class ParticipanteService {
         participante.setDataNascimento(dados.getDataNascimento());
         participante.setTipoEscola(dados.getTipoEscola());
         participante.setPossuiDeficiencia(dados.getPossuiDeficiencia());
-        participante.setLaudoReferencia(textoOuNulo(dados.getLaudoReferencia()));
+        participante.setCondicao(textoOuNulo(dados.getCondicao()));
         participante.setObservacoes(dados.getObservacoes());
         Participante salvo = participanteRepository.save(participante);
         historicoService.registrar(ModuloHistorico.PARTICIPANTES, "Participante", salvo.getId(), salvo.getNome(),
@@ -128,7 +132,8 @@ public class ParticipanteService {
     @Transactional(readOnly = true)
     public boolean podeExcluir(Long id) {
         obter(id);
-        return !presencaRepository.existsByParticipanteId(id) && !matriculaRepository.existsByParticipanteId(id);
+        return !presencaRepository.existsByParticipanteId(id) && !matriculaRepository.existsByParticipanteId(id)
+                && !anexoRepository.existsByParticipanteId(id);
     }
 
     @Transactional(readOnly = true)
@@ -147,6 +152,10 @@ public class ParticipanteService {
         if (matriculaRepository.existsByParticipanteId(id)) {
             throw new RegraNegocioException(
                     "Este participante possui matrícula em uma turma e não pode ser excluído. Registre a saída ou desative o cadastro.");
+        }
+        if (anexoRepository.existsByParticipanteId(id)) {
+            throw new RegraNegocioException(
+                    "Este participante possui arquivos anexados e não pode ser excluído. Desative o cadastro para preservá-los.");
         }
         historicoService.registrar(ModuloHistorico.PARTICIPANTES, "Participante", participante.getId(),
                 participante.getNome(), AcaoHistorico.EXCLUSAO,
@@ -178,9 +187,9 @@ public class ParticipanteService {
             throw new RegraNegocioException("A data de nascimento deve ser anterior a hoje.");
         }
         if (!Boolean.TRUE.equals(participante.getPossuiDeficiencia())
-                && temTexto(participante.getLaudoReferencia())) {
+                && temTexto(participante.getCondicao())) {
             throw new RegraNegocioException(
-                    "A referência de laudo só se aplica a participantes registrados com deficiência (CD).");
+                    "O nome da deficiência ou condição só se aplica a quem foi registrado com deficiência ou condição (CD).");
         }
     }
 

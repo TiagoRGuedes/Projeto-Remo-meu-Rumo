@@ -14,7 +14,12 @@ public record Chamada(
         String quando,
         Long encontroId,
         LocalDateTime registradaEm,
+        String aulaNaoRealizada,
         List<LinhaChamada> linhas) {
+
+    public boolean isNaoRealizada() {
+        return aulaNaoRealizada != null;
+    }
 
     public int getTotal() {
         return linhas.size();

@@ -110,7 +110,14 @@ public class ConfirmacaoWebController {
     private Long executar(ConfirmacaoOperacao confirmacao, RedirectAttributes redirectAttributes) {
         Map<String, String> dados = confirmacao.dados();
         return switch (confirmacao.tipo()) {
-            case CRIAR_PARTICIPANTE -> participanteService.cadastrar(participanteDe(dados)).getId();
+            case CRIAR_PARTICIPANTE -> {
+                Long participanteId = participanteService.cadastrar(participanteDe(dados)).getId();
+                String turmaId = dados.get("turmaId");
+                if (turmaId != null && !turmaId.isBlank()) {
+                    matriculaService.matricular(participanteId, Long.valueOf(turmaId), LocalDate.now());
+                }
+                yield participanteId;
+            }
             case EDITAR_PARTICIPANTE -> participanteService.atualizar(confirmacao.entidadeId(),
                     participanteDe(dados)).getId();
             case ATIVAR_PARTICIPANTE -> {
@@ -154,6 +161,10 @@ public class ConfirmacaoWebController {
                     data(dados.get("dataSaida"))).getParticipante().getId();
             case REATIVAR_MATRICULA -> matriculaService.reativar(
                     confirmacao.entidadeId()).getParticipante().getId();
+            case TROCAR_TURMA -> matriculaService.trocarTurma(
+                    confirmacao.entidadeId(),
+                    Long.valueOf(dados.get("novaTurmaId")),
+                    data(dados.get("dataTroca"))).getParticipante().getId();
             case CRIAR_ENCONTRO -> encontroService.criar(
                     Long.valueOf(dados.get("atividadeId")),
                     LocalDate.parse(dados.get("data")),
@@ -198,7 +209,7 @@ public class ConfirmacaoWebController {
                 data(dados.get("dataNascimento")),
                 enumOuPadrao(dados.get("tipoEscola"), TipoEscola.class, TipoEscola.NAO_INFORMADO),
                 booleanOuNulo(dados.get("possuiDeficiencia")),
-                dados.get("laudoReferencia"),
+                dados.get("condicao"),
                 dados.get("observacoes"));
     }
 

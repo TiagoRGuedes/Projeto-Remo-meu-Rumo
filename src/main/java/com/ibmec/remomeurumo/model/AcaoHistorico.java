@@ -8,7 +8,11 @@ public enum AcaoHistorico {
     EXCLUSAO("Exclusão"),
     REGISTRO("Registro"),
     CORRECAO("Correção"),
-    CANCELAMENTO("Cancelamento");
+    CANCELAMENTO("Cancelamento"),
+    INGRESSO("Ingresso"),
+    SAIDA("Saída"),
+    TROCA_TURMA("Troca de turma"),
+    ARQUIVO("Arquivo anexado");
 
     private final String descricao;
 

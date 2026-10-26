@@ -39,6 +39,15 @@
                     <div id="erro-dataNascimento" class="field-error" th:if="${#fields.hasErrors('dataNascimento')}" th:errors="*{dataNascimento}">Erro</div>
                 </div>
             </div>
+            <div class="field" th:if="${!modoEdicao}">
+                <label for="turmaId">Turma</label>
+                <select id="turmaId" name="turmaId" aria-describedby="ajuda-turma">
+                    <option value="">Sem turma por enquanto</option>
+                    <option th:each="turma : ${turmasAtivas}" th:value="${turma.id}" th:text="${turma.nome + ' · ' + turma.gradeResumo}"
+                            th:selected="${turmaSelecionada != null and turma.id == turmaSelecionada}">Turma</option>
+                </select>
+                <p id="ajuda-turma" class="field-help">A pessoa já aparece na chamada dessa turma. Outras turmas podem ser incluídas depois, na página do participante.</p>
+            </div>
             <div class="field">
                 <label for="tipoEscola">Escola</label>
                 <select id="tipoEscola" th:field="*{tipoEscola}">
@@ -46,17 +55,17 @@
                 </select>
             </div>
             <fieldset class="field choice-group" aria-describedby="ajuda-deficiencia">
-                <legend>Possui deficiência?</legend>
+                <legend>Possui deficiência ou condição?</legend>
                 <label class="choice"><input type="radio" th:field="*{possuiDeficiencia}" value="true"> Sim</label>
                 <label class="choice"><input type="radio" th:field="*{possuiDeficiencia}" value="false"> Não</label>
                 <label class="choice"><input type="radio" name="possuiDeficiencia" value="" th:checked="*{possuiDeficiencia == null}"> Não informado</label>
                 <p id="ajuda-deficiencia" class="field-help">Dado sensível: aparece só no cadastro individual e não é exportado.</p>
             </fieldset>
             <div class="field">
-                <label for="laudoReferencia">Referência do laudo</label>
-                <input id="laudoReferencia" th:field="*{laudoReferencia}" maxlength="80" aria-describedby="ajuda-laudo erro-laudoReferencia" th:attr="aria-invalid=${#fields.hasErrors('laudoReferencia')}">
-                <p id="ajuda-laudo" class="field-help">Informe apenas um código ou a pasta onde o laudo está guardado, nunca o diagnóstico.</p>
-                <div id="erro-laudoReferencia" class="field-error" th:if="${#fields.hasErrors('laudoReferencia')}" th:errors="*{laudoReferencia}">Erro</div>
+                <label for="condicao">Nome da deficiência ou condição</label>
+                <input id="condicao" th:field="*{condicao}" maxlength="120" placeholder="Ex.: TEA (autismo), Síndrome de Down" aria-describedby="ajuda-condicao erro-condicao" th:attr="aria-invalid=${#fields.hasErrors('condicao')}">
+                <p id="ajuda-condicao" class="field-help">Dado sensível: só aparece na página da pessoa. O laudo pode ser anexado depois, na página do participante.</p>
+                <div id="erro-condicao" class="field-error" th:if="${#fields.hasErrors('condicao')}" th:errors="*{condicao}">Erro</div>
             </div>
             <div class="field">
                 <label for="observacoes">Observações</label>

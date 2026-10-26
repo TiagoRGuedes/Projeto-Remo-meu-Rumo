@@ -19,12 +19,12 @@ public record ParticipanteInput(
         LocalDate dataNascimento,
         TipoEscola tipoEscola,
         Boolean possuiDeficiencia,
-        @Size(max = 80, message = "A referência do laudo deve ter no máximo 80 caracteres.")
-        String laudoReferencia,
+        @Size(max = 120, message = "O nome da deficiência ou condição deve ter no máximo 120 caracteres.")
+        String condicao,
         @Size(max = 1000, message = "As observações devem ter no máximo 1000 caracteres.")
         String observacoes) {
 
     public Participante paraModelo() {
-        return new Participante(nome, sexo, dataNascimento, tipoEscola, possuiDeficiencia, laudoReferencia, observacoes);
+        return new Participante(nome, sexo, dataNascimento, tipoEscola, possuiDeficiencia, condicao, observacoes);
     }
 }

@@ -12,7 +12,8 @@ public record FrequenciaMensal(
         long faltasJustificadas,
         double percentual,
         boolean contatoNecessario,
-        boolean abaixoDaMeta) {
+        boolean abaixoDaMeta,
+        String observacao) {
 
     public long faltasNaoJustificadas() {
         return Math.max(0, faltas - faltasJustificadas);

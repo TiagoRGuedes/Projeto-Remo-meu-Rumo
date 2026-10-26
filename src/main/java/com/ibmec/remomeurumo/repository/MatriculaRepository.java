@@ -1,7 +1,6 @@
 package com.ibmec.remomeurumo.repository;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -12,9 +11,8 @@ import com.ibmec.remomeurumo.model.StatusMatricula;
 
 public interface MatriculaRepository extends JpaRepository<Matricula, Long> {
 
-    Optional<Matricula> findByParticipanteIdAndAtividadeId(Long participanteId, Long atividadeId);
-
-    boolean existsByParticipanteIdAndAtividadeId(Long participanteId, Long atividadeId);
+    boolean existsByParticipanteIdAndAtividadeIdAndStatus(Long participanteId, Long atividadeId,
+            StatusMatricula status);
 
     boolean existsByAtividadeId(Long atividadeId);
 
