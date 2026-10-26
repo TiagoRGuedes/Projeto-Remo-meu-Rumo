@@ -1,11 +1,14 @@
 package com.ibmec.remomeurumo.service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.ibmec.remomeurumo.dto.MovimentoMatricula;
 import com.ibmec.remomeurumo.exception.RecursoNaoEncontradoException;
 import com.ibmec.remomeurumo.exception.RegraNegocioException;
 import com.ibmec.remomeurumo.model.AcaoHistorico;
@@ -65,12 +68,36 @@ public class MatriculaService {
 
     @Transactional(readOnly = true)
     public List<Atividade> turmasDisponiveis(Long participanteId) {
-        List<Long> jaMatriculado = matriculaRepository.listarPorParticipante(participanteId).stream()
+        List<Long> matriculasAtivas = matriculaRepository.listarPorParticipante(participanteId).stream()
+                .filter(Matricula::isAtiva)
                 .map(matricula -> matricula.getAtividade().getId())
                 .toList();
         return atividadeRepository.findByAtivoTrueOrderByNomeAsc().stream()
-                .filter(atividade -> !jaMatriculado.contains(atividade.getId()))
+                .filter(atividade -> !matriculasAtivas.contains(atividade.getId()))
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<MovimentoMatricula> movimentos(Long participanteId) {
+        List<MovimentoMatricula> movimentos = new ArrayList<>();
+        for (Matricula matricula : matriculaRepository.listarPorParticipante(participanteId)) {
+            String turma = matricula.getAtividade().getNome();
+            movimentos.add(new MovimentoMatricula(matricula.getDataInicio(), "Ingresso",
+                    "Ingressou na turma " + turma + "."));
+            if (!matricula.isAtiva() && matricula.getDataSaida() != null) {
+                if (matricula.getMotivoSaida() == MotivoSaida.TROCA_DE_TURMA) {
+                    movimentos.add(new MovimentoMatricula(matricula.getDataSaida(), "Troca de turma",
+                            "Saiu de " + turma + (matricula.getObservacaoSaida() == null ? "."
+                                    : " " + matricula.getObservacaoSaida() + ".")));
+                } else {
+                    movimentos.add(new MovimentoMatricula(matricula.getDataSaida(), "Saída",
+                            "Saiu da turma " + turma + ". Motivo: " + matricula.getMotivoSaidaDescricao()
+                                    + (matricula.getObservacaoSaida() == null ? "." : " — " + matricula.getObservacaoSaida() + ".")));
+                }
+            }
+        }
+        movimentos.sort(Comparator.comparing(MovimentoMatricula::data).reversed());
+        return movimentos;
     }
 
     @Transactional(readOnly = true)
@@ -92,30 +119,11 @@ public class MatriculaService {
     public Matricula matricular(Long participanteId, Long turmaId, LocalDate dataInicio) {
         Participante participante = obterParticipante(participanteId);
         Atividade turma = obterTurma(turmaId);
-        if (!participante.isAtivo()) {
-            throw new RegraNegocioException(
-                    "Este participante está inativo. Ative o cadastro antes de matriculá-lo em uma turma.");
-        }
-        if (!turma.isAtivo()) {
-            throw new RegraNegocioException(
-                    "Esta turma está inativa e não recebe novas matrículas. Ative a turma antes de continuar.");
-        }
-
-        Matricula existente = matriculaRepository
-                .findByParticipanteIdAndAtividadeId(participanteId, turmaId)
-                .orElse(null);
-        if (existente != null) {
-            if (existente.isAtiva()) {
-                throw new RegraNegocioException("Já existe uma matrícula ativa de " + participante.getNome()
-                        + " na turma " + turma.getNome() + ".");
-            }
-            return reativar(existente.getId());
-        }
-
+        validarNovaMatricula(participante, turma);
         Matricula matricula = matriculaRepository.save(new Matricula(participante, turma, dataInicio));
         historicoService.registrar(ModuloHistorico.MATRICULAS, "Matrícula", participante.getId(),
-                participante.getNome(), AcaoHistorico.CRIACAO,
-                "Matrícula de " + participante.getNome() + " criada na turma " + turma.getNome() + ".",
+                participante.getNome(), AcaoHistorico.INGRESSO,
+                "Ingresso de " + participante.getNome() + " na turma " + turma.getNome() + ".",
                 null, descricaoMatricula(matricula));
         return matricula;
     }
@@ -133,7 +141,7 @@ public class MatriculaService {
         matricula.encerrar(motivoSaida, textoOuNulo(observacaoSaida), dataSaida);
         Matricula salva = matriculaRepository.save(matricula);
         historicoService.registrar(ModuloHistorico.MATRICULAS, "Matrícula", salva.getParticipante().getId(),
-                salva.getParticipante().getNome(), AcaoHistorico.DESATIVACAO,
+                salva.getParticipante().getNome(), AcaoHistorico.SAIDA,
                 "Saída de " + salva.getParticipante().getNome() + " da turma "
                         + salva.getAtividade().getNome() + " registrada. Motivo: "
                         + motivoSaida.getDescricao() + ".",
@@ -143,24 +151,63 @@ public class MatriculaService {
 
     @Transactional
     public Matricula reativar(Long matriculaId) {
-        Matricula matricula = obter(matriculaId);
-        if (matricula.isAtiva()) {
+        Matricula anterior = obter(matriculaId);
+        if (anterior.isAtiva()) {
             throw new RegraNegocioException("Esta matrícula já está ativa.");
         }
-        if (!matricula.getParticipante().isAtivo()) {
-            throw new RegraNegocioException(
-                    "Este participante está inativo. Ative o cadastro antes de reativar a matrícula.");
-        }
-        String anterior = descricaoMatricula(matricula);
-        matricula.reativar();
-        Matricula salva = matriculaRepository.save(matricula);
-        historicoService.registrar(ModuloHistorico.MATRICULAS, "Matrícula", salva.getParticipante().getId(),
-                salva.getParticipante().getNome(), AcaoHistorico.ATIVACAO,
-                "Retorno de " + salva.getParticipante().getNome() + " à turma "
-                        + salva.getAtividade().getNome()
+        Participante participante = anterior.getParticipante();
+        Atividade turma = anterior.getAtividade();
+        validarNovaMatricula(participante, turma);
+        Matricula retorno = matriculaRepository.save(new Matricula(participante, turma, LocalDate.now()));
+        historicoService.registrar(ModuloHistorico.MATRICULAS, "Matrícula", participante.getId(),
+                participante.getNome(), AcaoHistorico.INGRESSO,
+                "Retorno de " + participante.getNome() + " à turma " + turma.getNome()
                         + ". O histórico de presença anterior foi preservado.",
-                anterior, descricaoMatricula(salva));
-        return salva;
+                descricaoMatricula(anterior), descricaoMatricula(retorno));
+        return retorno;
+    }
+
+    @Transactional
+    public Matricula trocarTurma(Long matriculaId, Long novaTurmaId, LocalDate data) {
+        Matricula atual = obter(matriculaId);
+        if (!atual.isAtiva()) {
+            throw new RegraNegocioException("Só é possível trocar a turma de uma matrícula ativa.");
+        }
+        Atividade novaTurma = obterTurma(novaTurmaId);
+        if (novaTurma.getId().equals(atual.getAtividade().getId())) {
+            throw new RegraNegocioException("Escolha uma turma diferente da atual.");
+        }
+        Participante participante = atual.getParticipante();
+        validarNovaMatricula(participante, novaTurma);
+        LocalDate inicio = data == null ? LocalDate.now() : data;
+        String turmaAnterior = atual.getAtividade().getNome();
+        String antes = descricaoMatricula(atual);
+        LocalDate saida = inicio.minusDays(1).isBefore(atual.getDataInicio()) ? atual.getDataInicio() : inicio.minusDays(1);
+        atual.encerrar(MotivoSaida.TROCA_DE_TURMA, "para " + novaTurma.getNome(), saida);
+        matriculaRepository.save(atual);
+        Matricula nova = matriculaRepository.save(new Matricula(participante, novaTurma, inicio));
+        historicoService.registrar(ModuloHistorico.MATRICULAS, "Matrícula", participante.getId(),
+                participante.getNome(), AcaoHistorico.TROCA_TURMA,
+                "Troca de turma de " + participante.getNome() + ": " + turmaAnterior + " → "
+                        + novaTurma.getNome() + ". As presenças anteriores continuam no histórico.",
+                antes, descricaoMatricula(nova));
+        return nova;
+    }
+
+    private void validarNovaMatricula(Participante participante, Atividade turma) {
+        if (!participante.isAtivo()) {
+            throw new RegraNegocioException(
+                    "Este participante está inativo. Ative o cadastro antes de matriculá-lo em uma turma.");
+        }
+        if (!turma.isAtivo()) {
+            throw new RegraNegocioException(
+                    "Esta turma está inativa e não recebe novas matrículas. Ative a turma antes de continuar.");
+        }
+        if (matriculaRepository.existsByParticipanteIdAndAtividadeIdAndStatus(
+                participante.getId(), turma.getId(), StatusMatricula.ATIVA)) {
+            throw new RegraNegocioException("Já existe uma matrícula ativa de " + participante.getNome()
+                    + " na turma " + turma.getNome() + ".");
+        }
     }
 
     private Participante obterParticipante(Long participanteId) {

@@ -47,9 +47,9 @@ public class Participante {
 
     private Boolean possuiDeficiencia;
 
-    @Size(max = 80, message = "A referência do laudo deve ter no máximo 80 caracteres.")
-    @Column(length = 80)
-    private String laudoReferencia;
+    @Size(max = 120, message = "O nome da deficiência ou condição deve ter no máximo 120 caracteres.")
+    @Column(length = 120)
+    private String condicao;
 
     @Column(nullable = false)
     private boolean ativo = true;
@@ -74,13 +74,13 @@ public class Participante {
     }
 
     public Participante(String nome, Sexo sexo, LocalDate dataNascimento, TipoEscola tipoEscola,
-            Boolean possuiDeficiencia, String laudoReferencia, String observacoes) {
+            Boolean possuiDeficiencia, String condicao, String observacoes) {
         this.nome = nome;
         this.sexo = sexo == null ? Sexo.NAO_INFORMADO : sexo;
         this.dataNascimento = dataNascimento;
         this.tipoEscola = tipoEscola == null ? TipoEscola.NAO_INFORMADO : tipoEscola;
         this.possuiDeficiencia = possuiDeficiencia;
-        this.laudoReferencia = laudoReferencia;
+        this.condicao = condicao;
         this.observacoes = observacoes;
         this.ativo = true;
     }
@@ -133,12 +133,14 @@ public class Participante {
         if (possuiDeficiencia == null) {
             return "Não informado";
         }
-        return possuiDeficiencia ? "Com deficiência (CD)" : "Sem deficiência (SD)";
+        if (!possuiDeficiencia) {
+            return "Sem deficiência ou condição (SD)";
+        }
+        return condicao == null || condicao.isBlank() ? "Com deficiência ou condição (CD)" : condicao + " (CD)";
     }
 
-    public boolean isLaudoPendente() {
-        return Boolean.TRUE.equals(possuiDeficiencia)
-                && (laudoReferencia == null || laudoReferencia.isBlank());
+    public boolean isCondicaoPendente() {
+        return Boolean.TRUE.equals(possuiDeficiencia) && (condicao == null || condicao.isBlank());
     }
 
     public Long getId() {
@@ -189,12 +191,12 @@ public class Participante {
         this.possuiDeficiencia = possuiDeficiencia;
     }
 
-    public String getLaudoReferencia() {
-        return laudoReferencia;
+    public String getCondicao() {
+        return condicao;
     }
 
-    public void setLaudoReferencia(String laudoReferencia) {
-        this.laudoReferencia = laudoReferencia;
+    public void setCondicao(String condicao) {
+        this.condicao = condicao;
     }
 
     public boolean isAtivo() {

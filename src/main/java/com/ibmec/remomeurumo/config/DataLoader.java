@@ -20,6 +20,7 @@ import com.ibmec.remomeurumo.model.Atividade;
 import com.ibmec.remomeurumo.model.DiaSemana;
 import com.ibmec.remomeurumo.model.Encontro;
 import com.ibmec.remomeurumo.model.Matricula;
+import com.ibmec.remomeurumo.model.MotivoCancelamento;
 import com.ibmec.remomeurumo.model.MotivoSaida;
 import com.ibmec.remomeurumo.model.Participante;
 import com.ibmec.remomeurumo.model.Sexo;
@@ -69,6 +70,12 @@ public class DataLoader implements CommandLineRunner {
 
     private static final int SEMANAS_ANTERIORES = 9;
 
+    private static final List<Integer> TURMAS_ABERTAS = List.of(0, 1, 2, 3, 4, 6, 7, 8, 9);
+
+    private static final List<String> CONDICOES = List.of(
+            "TEA (autismo)", "Síndrome de Down", "Deficiência intelectual", "Paralisia cerebral", "TDAH",
+            "Deficiência auditiva", "Deficiência visual");
+
     public DataLoader(@Value("${app.dados-demonstracao:false}") boolean dadosDemonstracao,
             ParticipanteRepository participanteRepository,
             AtividadeRepository atividadeRepository,
@@ -108,6 +115,13 @@ public class DataLoader implements CommandLineRunner {
         for (int indice = 0; indice < turmas.size(); indice++) {
             Atividade turma = turmas.get(indice);
             List<Encontro> aulas = criarAulas(turma, inicioDados, hoje);
+            if (indice == 4) {
+                registrarAulaNaoRealizada(aulas, hoje, false, MotivoCancelamento.CONDICOES_CLIMATICAS,
+                        "Alerta de chuva forte da Defesa Civil.");
+            }
+            if (indice == 0) {
+                registrarAulaNaoRealizada(aulas, hoje, true, MotivoCancelamento.FERIADO, "Feriado municipal.");
+            }
             criarPresencas(aulas, matriculados.getOrDefault(turma.getId(), List.of()), indice == 1 || indice == 3);
         }
 
@@ -122,7 +136,22 @@ public class DataLoader implements CommandLineRunner {
                             MotivoSaida.DEDICACAO_OUTRA_ATIVIDADE, null, hoje.minusWeeks(3)));
             participanteService.desativar(participanteId);
         }
+        Matricula troca = matriculaService.listarPorParticipante(participantes.get(4).getId()).stream()
+                .filter(Matricula::isAtiva)
+                .findFirst()
+                .orElseThrow();
+        Atividade novaTurma = turmas.get(6).getId().equals(troca.getAtividade().getId()) ? turmas.get(7) : turmas.get(6);
+        matriculaService.trocarTurma(troca.getId(), novaTurma.getId(), hoje.minusDays(8));
         atividadeService.desativar(turmas.get(5).getId());
+    }
+
+    private void registrarAulaNaoRealizada(List<Encontro> aulas, LocalDate hoje, boolean futura,
+            MotivoCancelamento motivo, String justificativa) {
+        aulas.stream()
+                .filter(aula -> futura ? aula.getData().isAfter(hoje) : aula.getData().isBefore(hoje.minusDays(3)))
+                .reduce((primeira, segunda) -> futura ? primeira : segunda)
+                .ifPresent(aula -> encontroService.registrarAulaNaoRealizada(aula.getAtividade().getId(),
+                        aula.getData(), motivo, justificativa));
     }
 
     private boolean bancoVazio() {
@@ -139,14 +168,14 @@ public class DataLoader implements CommandLineRunner {
         TipoEscola[] escolas = {TipoEscola.PUBLICA, TipoEscola.PUBLICA, TipoEscola.PARTICULAR, TipoEscola.NAO_ESTUDA};
         return IntStream.range(0, NOMES_FICTICIOS.size())
                 .mapToObj(indice -> {
-                    boolean deficiencia = indice % 9 == 4;
+                    boolean deficiencia = indice % 5 == 4;
                     Participante participante = new Participante(
                             NOMES_FICTICIOS.get(indice),
                             indice % 2 == 0 ? Sexo.FEMININO : Sexo.MASCULINO,
                             hoje.minusYears(9L + indice % 10).minusDays(indice * 11L),
                             escolas[indice % escolas.length],
                             deficiencia,
-                            deficiencia && indice % 2 == 0 ? "PASTA-" + (100 + indice) : null,
+                            deficiencia && indice != 9 ? CONDICOES.get(indice % CONDICOES.size()) : null,
                             OBSERVACOES_FICTICIAS.get(indice % OBSERVACOES_FICTICIAS.size()));
                     participante.setDataCadastro(agora.minusDays(70L + indice * 2L));
                     participante.setDataAtualizacao(participante.getDataCadastro());
@@ -168,7 +197,15 @@ public class DataLoader implements CommandLineRunner {
                 turma("Remo adaptado", "Turma fictícia de remo adaptado.",
                         EnumSet.of(DiaSemana.QUARTA), LocalTime.of(9, 30)),
                 turma("Turma encerrada de exemplo", "Turma fictícia desativada para demonstrar preservação histórica.",
-                        EnumSet.of(DiaSemana.SABADO), LocalTime.of(8, 0)));
+                        EnumSet.of(DiaSemana.SABADO), LocalTime.of(8, 0)),
+                turma("Remo iniciação · fim de tarde", "Turma fictícia de iniciação no fim da tarde.",
+                        EnumSet.of(DiaSemana.TERCA, DiaSemana.QUINTA), LocalTime.of(16, 0)),
+                turma("Remo intermediário", "Turma fictícia para quem já domina a remada básica.",
+                        EnumSet.of(DiaSemana.SEGUNDA, DiaSemana.QUARTA), LocalTime.of(14, 0)),
+                turma("Remo de sexta · manhã", "Turma fictícia de sexta-feira pela manhã.",
+                        EnumSet.of(DiaSemana.SEXTA), LocalTime.of(8, 0)),
+                turma("Remo de sábado", "Turma fictícia de sábado pela manhã.",
+                        EnumSet.of(DiaSemana.SABADO), LocalTime.of(11, 0)));
     }
 
     private Atividade turma(String nome, String descricao, Set<DiaSemana> dias, LocalTime horario) {
@@ -181,7 +218,7 @@ public class DataLoader implements CommandLineRunner {
         for (int indice = 0; indice < participantes.size(); indice++) {
             Participante participante = participantes.get(indice);
             List<Atividade> escolhidas = new ArrayList<>();
-            escolhidas.add(turmas.get(indice % 5));
+            escolhidas.add(turmas.get(TURMAS_ABERTAS.get(indice % TURMAS_ABERTAS.size())));
             if (indice % 4 == 0) {
                 escolhidas.add(turmas.get(3));
             }

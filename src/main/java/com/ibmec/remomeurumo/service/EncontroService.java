@@ -13,7 +13,9 @@ import com.ibmec.remomeurumo.model.AcaoHistorico;
 import com.ibmec.remomeurumo.model.Atividade;
 import com.ibmec.remomeurumo.model.Encontro;
 import com.ibmec.remomeurumo.model.ModuloHistorico;
+import com.ibmec.remomeurumo.model.MotivoCancelamento;
 import com.ibmec.remomeurumo.model.StatusEncontro;
+import com.ibmec.remomeurumo.repository.AnexoRepository;
 import com.ibmec.remomeurumo.repository.AtividadeRepository;
 import com.ibmec.remomeurumo.repository.EncontroRepository;
 import com.ibmec.remomeurumo.repository.PresencaRepository;
@@ -24,12 +26,15 @@ public class EncontroService {
     private final EncontroRepository encontroRepository;
     private final AtividadeRepository atividadeRepository;
     private final PresencaRepository presencaRepository;
+    private final AnexoRepository anexoRepository;
     private final HistoricoOperacaoService historicoService;
 
     public EncontroService(EncontroRepository encontroRepository,
             AtividadeRepository atividadeRepository,
             PresencaRepository presencaRepository,
+            AnexoRepository anexoRepository,
             HistoricoOperacaoService historicoService) {
+        this.anexoRepository = anexoRepository;
         this.encontroRepository = encontroRepository;
         this.atividadeRepository = atividadeRepository;
         this.presencaRepository = presencaRepository;
@@ -102,6 +107,10 @@ public class EncontroService {
         encontro.setData(data);
         encontro.setObservacoes(observacoes);
         encontro.setStatus(status == null ? StatusEncontro.REALIZADO : status);
+        if (encontro.getStatus() != StatusEncontro.CANCELADO) {
+            encontro.setMotivoCancelamento(null);
+            encontro.setJustificativaCancelamento(null);
+        }
         Encontro salvo = encontroRepository.save(encontro);
         AcaoHistorico acao = statusAnterior != salvo.getStatus() && salvo.getStatus() == StatusEncontro.CANCELADO
                 ? AcaoHistorico.CANCELAMENTO : AcaoHistorico.EDICAO;
@@ -137,6 +146,7 @@ public class EncontroService {
         }
         historicoService.registrar(ModuloHistorico.ENCONTROS, "Aula", encontro.getId(), nome(encontro),
                 AcaoHistorico.EXCLUSAO, "Aula excluída definitivamente porque não possuía registros de presença.");
+        anexoRepository.desvincularAula(id);
         encontroRepository.delete(encontro);
     }
 
@@ -150,6 +160,52 @@ public class EncontroService {
         encontroRepository.save(encontro);
         historicoService.registrar(ModuloHistorico.ENCONTROS, "Aula", encontro.getId(), nome(encontro),
                 AcaoHistorico.CANCELAMENTO, "Aula cancelada. Os registros anteriores foram preservados.");
+    }
+
+    @Transactional
+    public Encontro registrarAulaNaoRealizada(Long atividadeId, LocalDate data, MotivoCancelamento motivo,
+            String justificativa) {
+        if (motivo == null) {
+            throw new RegraNegocioException("Escolha por que a aula não aconteceu.");
+        }
+        String texto = justificativa == null || justificativa.isBlank() ? null : justificativa.trim();
+        if (texto != null && texto.length() > 300) {
+            throw new RegraNegocioException("A justificativa deve ter no máximo 300 caracteres.");
+        }
+        Encontro encontro = encontroRepository.findByAtividadeIdAndData(atividadeId, data)
+                .orElseGet(() -> {
+                    Atividade atividade = obterAtividadeAtiva(atividadeId);
+                    validarData(data);
+                    return new Encontro(atividade, data, null);
+                });
+        StatusEncontro anterior = encontro.getId() == null ? null : encontro.getStatus();
+        encontro.setStatus(StatusEncontro.CANCELADO);
+        encontro.setMotivoCancelamento(motivo);
+        encontro.setJustificativaCancelamento(texto);
+        Encontro salvo = encontroRepository.save(encontro);
+        historicoService.registrar(ModuloHistorico.ENCONTROS, "Aula", salvo.getId(), nome(salvo),
+                AcaoHistorico.CANCELAMENTO, "Aula não aconteceu: " + salvo.getMotivoCancelamentoTexto()
+                        + ". Ela não conta na frequência de ninguém.",
+                anterior == null ? null : "Status: " + anterior.getDescricao(),
+                "Status: " + salvo.getStatus().getDescricao() + " | Motivo: " + salvo.getMotivoCancelamentoTexto());
+        return salvo;
+    }
+
+    @Transactional
+    public Encontro desfazerAulaNaoRealizada(Long id) {
+        Encontro encontro = obter(id);
+        if (encontro.getStatus() != StatusEncontro.CANCELADO) {
+            return encontro;
+        }
+        String motivoAnterior = encontro.getMotivoCancelamentoTexto();
+        encontro.setStatus(presencaRepository.existsByEncontroId(id) ? StatusEncontro.REALIZADO : StatusEncontro.PLANEJADO);
+        encontro.setMotivoCancelamento(null);
+        encontro.setJustificativaCancelamento(null);
+        Encontro salvo = encontroRepository.save(encontro);
+        historicoService.registrar(ModuloHistorico.ENCONTROS, "Aula", salvo.getId(), nome(salvo),
+                AcaoHistorico.EDICAO, "Registro de aula não realizada desfeito. A aula volta a contar na frequência.",
+                "Status: Cancelada | Motivo: " + motivoAnterior, "Status: " + salvo.getStatus().getDescricao());
+        return salvo;
     }
 
     @Transactional(readOnly = true)

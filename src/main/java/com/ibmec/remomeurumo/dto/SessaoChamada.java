@@ -22,6 +22,10 @@ public record SessaoChamada(
         return "Agora".equals(situacao);
     }
 
+    public boolean isNaoRealizada() {
+        return "Não aconteceu".equals(situacao);
+    }
+
     public boolean isPendente() {
         return "Pendente".equals(situacao);
     }

@@ -29,10 +29,12 @@ import com.ibmec.remomeurumo.model.Atividade;
 import com.ibmec.remomeurumo.model.DiaSemana;
 import com.ibmec.remomeurumo.model.Encontro;
 import com.ibmec.remomeurumo.model.Matricula;
+import com.ibmec.remomeurumo.model.MotivoCancelamento;
 import com.ibmec.remomeurumo.model.Participante;
 import com.ibmec.remomeurumo.model.Presenca;
 import com.ibmec.remomeurumo.model.StatusEncontro;
 import com.ibmec.remomeurumo.model.StatusPresenca;
+import com.ibmec.remomeurumo.repository.AnexoRepository;
 import com.ibmec.remomeurumo.repository.AtividadeRepository;
 import com.ibmec.remomeurumo.repository.EncontroRepository;
 import com.ibmec.remomeurumo.repository.MatriculaRepository;
@@ -53,6 +55,7 @@ public class ChamadaService {
     private final EncontroService encontroService;
     private final PresencaService presencaService;
     private final FrequenciaService frequenciaService;
+    private final AnexoRepository anexoRepository;
 
     public ChamadaService(AtividadeRepository atividadeRepository,
             EncontroRepository encontroRepository,
@@ -60,7 +63,9 @@ public class ChamadaService {
             PresencaRepository presencaRepository,
             EncontroService encontroService,
             PresencaService presencaService,
-            FrequenciaService frequenciaService) {
+            FrequenciaService frequenciaService,
+            AnexoRepository anexoRepository) {
+        this.anexoRepository = anexoRepository;
         this.atividadeRepository = atividadeRepository;
         this.encontroRepository = encontroRepository;
         this.matriculaRepository = matriculaRepository;
@@ -80,7 +85,12 @@ public class ChamadaService {
         for (Atividade turma : atividadeRepository.findByAtivoTrueOrderByNomeAsc()) {
             Encontro aula = aulasDeHoje.get(turma.getId());
             boolean temAulaNaGrade = turma.getDiasSemana().contains(DiaSemana.de(hoje.getDayOfWeek()));
-            if (aula == null && !temAulaNaGrade || aula != null && aula.getStatus() == StatusEncontro.CANCELADO) {
+            if (aula == null && !temAulaNaGrade) {
+                continue;
+            }
+            if (aula != null && aula.getStatus() == StatusEncontro.CANCELADO) {
+                sessoes.add(new SessaoChamada(turma.getId(), turma.getNome(), turma.getGradeResumo(), hoje, "Hoje",
+                        hora(turma), aula.getId(), contarMatriculados(turma.getId(), hoje), 0, "Não aconteceu"));
                 continue;
             }
             long participantes = contarMatriculados(turma.getId(), hoje);
@@ -127,9 +137,10 @@ public class ChamadaService {
         Atividade turma = obterTurma(turmaId);
         validarData(data);
         Optional<Encontro> aula = encontroRepository.findByAtividadeIdAndData(turmaId, data);
-        if (aula.isPresent() && aula.get().getStatus() == StatusEncontro.CANCELADO) {
-            throw new RegraNegocioException("Esta aula foi cancelada e não recebe chamada.");
-        }
+        String naoRealizada = aula.filter(encontro -> encontro.getStatus() == StatusEncontro.CANCELADO)
+                .map(encontro -> encontro.getMotivoCancelamentoTexto() == null ? "Aula cancelada"
+                        : encontro.getMotivoCancelamentoTexto())
+                .orElse(null);
         List<Presenca> presencas = aula
                 .map(encontro -> presencaRepository.findByEncontroIdOrderByParticipanteNomeAsc(encontro.getId()))
                 .orElse(List.of());
@@ -145,6 +156,8 @@ public class ChamadaService {
         presencas.forEach(presenca -> pessoas.putIfAbsent(presenca.getParticipante().getId(), presenca.getParticipante()));
 
         Map<Long, Long> faltas = frequenciaService.faltasAntesDe(turmaId, data);
+        List<Long> comAtestado = aula.map(encontro -> anexoRepository.participantesComAnexoNaAula(encontro.getId()))
+                .orElse(List.of());
         List<LinhaChamada> linhas = pessoas.values().stream()
                 .sorted(Comparator.comparing(Participante::getNome))
                 .map(pessoa -> {
@@ -152,7 +165,7 @@ public class ChamadaService {
                     Presenca presenca = porParticipante.get(pessoa.getId());
                     return new LinhaChamada(pessoa.getId(), pessoa.getNome(), iniciais(pessoa.getNome()),
                             faltasNoMes, faltasNoMes >= FrequenciaService.LIMITE_FALTAS_MES,
-                            presenca == null ? null : presenca.getStatus());
+                            presenca == null ? null : presenca.getStatus(), comAtestado.contains(pessoa.getId()));
                 })
                 .toList();
 
@@ -162,12 +175,15 @@ public class ChamadaService {
                 .max(Comparator.naturalOrder())
                 .orElse(null);
         return new Chamada(turma.getId(), turma.getNome(), turma.getGradeResumo(), data, quandoCompleto(data),
-                aula.map(Encontro::getId).orElse(null), registradaEm, linhas);
+                aula.map(Encontro::getId).orElse(null), registradaEm, naoRealizada, linhas);
     }
 
     @Transactional
     public ResultadoRegistroPresenca salvar(Long turmaId, LocalDate data, Map<Long, StatusPresenca> marcacoes) {
         Chamada chamada = montar(turmaId, data);
+        if (chamada.isNaoRealizada()) {
+            throw new RegraNegocioException("Esta aula foi registrada como não realizada. Desfaça esse registro para fazer a chamada.");
+        }
         if (chamada.linhas().isEmpty()) {
             throw new RegraNegocioException("Esta turma não tem participantes matriculados nesta data.");
         }
@@ -197,9 +213,25 @@ public class ChamadaService {
         return presencaService.registrarLote(encontroId, situacoes, Map.of());
     }
 
+    @Transactional
+    public void registrarAulaNaoRealizada(Long turmaId, LocalDate data, MotivoCancelamento motivo, String justificativa) {
+        obterTurma(turmaId);
+        validarData(data);
+        encontroService.registrarAulaNaoRealizada(turmaId, data, motivo, justificativa);
+    }
+
+    @Transactional
+    public void desfazerAulaNaoRealizada(Long turmaId, LocalDate data) {
+        Encontro aula = encontroRepository.findByAtividadeIdAndData(turmaId, data)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Aula não encontrada."));
+        encontroService.desfazerAulaNaoRealizada(aula.getId());
+    }
+
     private long contarMatriculados(Long turmaId, LocalDate data) {
         return matriculaRepository.listarPorTurma(turmaId).stream()
                 .filter(matricula -> matricula.vigenteEm(data) && matricula.getParticipante().isAtivo())
+                .map(matricula -> matricula.getParticipante().getId())
+                .distinct()
                 .count();
     }
 

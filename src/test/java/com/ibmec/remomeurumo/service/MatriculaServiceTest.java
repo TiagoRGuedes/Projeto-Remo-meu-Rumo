@@ -55,7 +55,7 @@ class MatriculaServiceTest {
     }
 
     @Test
-    void encerrarExigeMotivoEReativarPreservaAMesmaMatricula() {
+    void encerrarExigeMotivoERetornoAbreNovoPeriodoPreservandoOAnterior() {
         Participante participante = participanteService.cadastrar(new Participante("Saída e Retorno", ""));
         Atividade turma = turma("Turma Saída");
         Matricula matricula = matriculaService.matricular(participante.getId(), turma.getId(), LocalDate.now());
@@ -69,10 +69,15 @@ class MatriculaServiceTest {
         assertThat(encerrada.getStatus()).isEqualTo(StatusMatricula.ENCERRADA);
         assertThat(encerrada.getMotivoSaida()).isEqualTo(MotivoSaida.DEDICACAO_OUTRA_ATIVIDADE);
 
-        Matricula retorno = matriculaService.matricular(participante.getId(), turma.getId(), LocalDate.now());
-        assertThat(retorno.getId()).isEqualTo(matricula.getId());
+        Matricula retorno = matriculaService.reativar(matricula.getId());
+        assertThat(retorno.getId()).isNotEqualTo(matricula.getId());
         assertThat(retorno.isAtiva()).isTrue();
         assertThat(retorno.getMotivoSaida()).isNull();
+        assertThat(matriculaService.listarPorParticipante(participante.getId()))
+                .anySatisfy(anterior -> assertThat(anterior.getStatus()).isEqualTo(StatusMatricula.ENCERRADA));
+        assertThat(matriculaService.movimentos(participante.getId()))
+                .extracting(movimento -> movimento.tipo())
+                .contains("Ingresso", "Saída");
     }
 
     @Test

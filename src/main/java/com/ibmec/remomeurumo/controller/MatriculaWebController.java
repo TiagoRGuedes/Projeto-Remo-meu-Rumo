@@ -1,6 +1,7 @@
 package com.ibmec.remomeurumo.controller;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,8 @@ import jakarta.servlet.http.HttpSession;
 @Controller
 @RequestMapping("/matriculas")
 public class MatriculaWebController {
+
+    private static final DateTimeFormatter DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     private final MatriculaService matriculaService;
     private final ParticipanteService participanteService;
@@ -111,6 +114,36 @@ public class MatriculaWebController {
                 "/participantes/{id}",
                 "Saída registrada. O histórico de presença foi preservado.",
                 "Confirmar saída", true);
+        return "redirect:/confirmacoes/" + confirmacao.token();
+    }
+
+    @PostMapping("/{id}/trocar")
+    public String trocar(@PathVariable Long id, @RequestParam Long novaTurmaId, HttpSession session) {
+        Matricula matricula = matriculaService.obter(id);
+        Atividade novaTurma = atividadeService.obter(novaTurmaId);
+        LocalDate hoje = LocalDate.now();
+
+        Map<String, String> dados = new LinkedHashMap<>();
+        dados.put("novaTurmaId", novaTurmaId.toString());
+        dados.put("dataTroca", hoje.toString());
+
+        ConfirmacaoOperacao confirmacao = confirmacaoService.criar(session,
+                TipoOperacaoConfirmacao.TROCAR_TURMA, id, "Trocar turma",
+                "Trocar a turma de " + matricula.getParticipante().getNome() + "?",
+                "A pessoa sai da turma atual e entra na nova a partir de hoje.",
+                matricula.getParticipante().getNome(),
+                confirmacaoService.alteracoes(
+                        confirmacaoService.alteracao("Turma", matricula.getAtividade().getNome(), novaTurma.getNome()),
+                        confirmacaoService.alteracao("Grade", matricula.getAtividade().getGradeResumo(),
+                                novaTurma.getGradeResumo()),
+                        confirmacaoService.alteracao("A partir de", null, hoje.format(DATA))),
+                List.of("As presenças já registradas continuam no histórico.",
+                        "A partir de hoje a frequência conta as aulas da nova turma.",
+                        "A troca ficará registrada no Histórico."),
+                dados, null, "/participantes/" + matricula.getParticipante().getId(),
+                "/participantes/{id}",
+                "Turma trocada. A frequência deste mês conta cada turma só no período em que a pessoa esteve nela.",
+                "Confirmar troca", false);
         return "redirect:/confirmacoes/" + confirmacao.token();
     }
 

@@ -79,7 +79,8 @@
                         </thead>
                         <tbody>
                         <tr th:each="linha : ${linhasMensais}">
-                            <td class="table-primary"><a th:href="@{/participantes/{id}(id=${linha.participanteId()}, mes=${mesReferencia})}" th:text="${linha.participante()}">Participante</a></td>
+                            <td class="table-primary"><a th:href="@{/participantes/{id}(id=${linha.participanteId()}, mes=${mesReferencia})}" th:text="${linha.participante()}">Participante</a>
+                                <small class="nota-frequencia" th:if="${linha.observacao() != null}" th:text="${linha.observacao()}">Conta só as aulas desde o ingresso.</small></td>
                             <td th:text="${linha.presencas() + ' de ' + linha.aulasPrevistas()}">0 de 0</td>
                             <td th:text="${linha.faltas()}">0</td>
                             <td th:text="${linha.semAulasPrevistas()} ? 'Sem aulas' : ${#numbers.formatDecimal(linha.percentual(), 1, 1) + '%'}">0%</td>

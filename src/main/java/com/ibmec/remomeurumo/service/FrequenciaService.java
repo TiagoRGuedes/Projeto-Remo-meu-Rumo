@@ -2,6 +2,7 @@ package com.ibmec.remomeurumo.service;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -37,6 +38,8 @@ public class FrequenciaService {
 
     public static final double META_FREQUENCIA_MENSAL = 60.0;
 
+    private static final DateTimeFormatter DIA_MES = DateTimeFormatter.ofPattern("dd/MM");
+
     private final PresencaRepository presencaRepository;
     private final EncontroRepository encontroRepository;
     private final MatriculaRepository matriculaRepository;
@@ -62,15 +65,21 @@ public class FrequenciaService {
         LocalDate inicio = mes.atDay(1);
         LocalDate fim = limiteDoMes(mes);
 
-        List<FrequenciaMensal> porTurma = new ArrayList<>();
-        long totalPrevistas = 0;
-        long totalPresencas = 0;
-        long totalJustificadas = 0;
+        Map<Long, Periodos> porTurmaId = new LinkedHashMap<>();
         for (Matricula matricula : matriculaRepository.listarPorParticipante(participanteId)) {
             if (!matricula.vigenteNoPeriodo(inicio, fim)) {
                 continue;
             }
-            FrequenciaMensal linha = calcular(matricula, mes, inicio, fim);
+            FrequenciaMensal parcial = calcular(matricula, mes, inicio, fim);
+            porTurmaId.computeIfAbsent(matricula.getAtividade().getId(), id -> new Periodos(matricula.getAtividade()))
+                    .somar(matricula, parcial.aulasPrevistas(), parcial.presencas(), parcial.faltasJustificadas(), inicio, fim);
+        }
+        List<FrequenciaMensal> porTurma = new ArrayList<>();
+        long totalPrevistas = 0;
+        long totalPresencas = 0;
+        long totalJustificadas = 0;
+        for (Periodos periodos : porTurmaId.values()) {
+            FrequenciaMensal linha = periodos.montar(participanteId, participante.getNome(), mes);
             porTurma.add(linha);
             totalPrevistas += linha.aulasPrevistas();
             totalPresencas += linha.presencas();
@@ -156,7 +165,7 @@ public class FrequenciaService {
                 .listarPorTurmaNoPeriodo(turma.getId(), inicio, fim).stream()
                 .collect(Collectors.groupingBy(presenca -> presenca.getParticipante().getId()));
 
-        List<FrequenciaMensal> linhas = new ArrayList<>();
+        Map<Long, Periodos> porParticipante = new LinkedHashMap<>();
         for (Matricula matricula : matriculaRepository.listarPorTurma(turma.getId())) {
             if (!matricula.vigenteNoPeriodo(inicio, fim)) {
                 continue;
@@ -168,10 +177,13 @@ public class FrequenciaService {
                     .getOrDefault(matricula.getParticipante().getId(), List.of()).stream()
                     .filter(presenca -> dentro(presenca.getEncontro().getData(), de, ate))
                     .toList();
-            linhas.add(montar(matricula.getParticipante().getId(), matricula.getParticipante().getNome(),
-                    turma.getId(), turma.getNome(), mes, aulasPrevistas,
-                    contar(presencas, StatusPresenca.PRESENTE),
-                    contar(presencas, StatusPresenca.JUSTIFICADA)));
+            porParticipante.computeIfAbsent(matricula.getParticipante().getId(), id -> new Periodos(turma))
+                    .somar(matricula, aulasPrevistas, contar(presencas, StatusPresenca.PRESENTE),
+                            contar(presencas, StatusPresenca.JUSTIFICADA), inicio, fim);
+        }
+        List<FrequenciaMensal> linhas = new ArrayList<>();
+        for (Map.Entry<Long, Periodos> entrada : porParticipante.entrySet()) {
+            linhas.add(entrada.getValue().montar(entrada.getKey(), entrada.getValue().nomeParticipante, mes));
         }
         linhas.sort(Comparator.comparing(FrequenciaMensal::participante));
         return linhas;
@@ -198,6 +210,12 @@ public class FrequenciaService {
 
     private FrequenciaMensal montar(Long participanteId, String nomeParticipante, Long turmaId, String nomeTurma,
             YearMonth mes, long aulasPrevistas, long presencas, long justificadas) {
+        return montar(participanteId, nomeParticipante, turmaId, nomeTurma, mes, aulasPrevistas, presencas,
+                justificadas, null);
+    }
+
+    private FrequenciaMensal montar(Long participanteId, String nomeParticipante, Long turmaId, String nomeTurma,
+            YearMonth mes, long aulasPrevistas, long presencas, long justificadas, String observacao) {
         long presencasConsideradas = Math.min(presencas, aulasPrevistas);
         long faltas = Math.max(0, aulasPrevistas - presencasConsideradas);
         long justificadasConsideradas = Math.min(justificadas, faltas);
@@ -206,7 +224,7 @@ public class FrequenciaService {
         return new FrequenciaMensal(participanteId, nomeParticipante, turmaId, nomeTurma, mes.toString(),
                 aulasPrevistas, presencasConsideradas, faltas, justificadasConsideradas, percentual,
                 faltas > LIMITE_FALTAS_MES,
-                aulasPrevistas > 0 && percentual < META_FREQUENCIA_MENSAL);
+                aulasPrevistas > 0 && percentual < META_FREQUENCIA_MENSAL, observacao);
     }
 
     @Transactional(readOnly = true)
@@ -272,5 +290,49 @@ public class FrequenciaService {
 
     private double arredondar(double valor) {
         return Math.round(valor * 10.0) / 10.0;
+    }
+
+    private final class Periodos {
+
+        private final Atividade turma;
+        private String nomeParticipante;
+        private long aulasPrevistas;
+        private long presencas;
+        private long justificadas;
+        private LocalDate primeiroDia;
+        private LocalDate ultimoDia;
+        private boolean saiu = true;
+
+        private Periodos(Atividade turma) {
+            this.turma = turma;
+        }
+
+        private void somar(Matricula matricula, long aulas, long presentes, long avisadas,
+                LocalDate inicio, LocalDate fim) {
+            nomeParticipante = matricula.getParticipante().getNome();
+            aulasPrevistas += aulas;
+            presencas += presentes;
+            justificadas += avisadas;
+            LocalDate de = matricula.inicioNoPeriodo(inicio);
+            LocalDate ate = matricula.fimNoPeriodo(fim);
+            primeiroDia = primeiroDia == null || de.isBefore(primeiroDia) ? de : primeiroDia;
+            ultimoDia = ultimoDia == null || ate.isAfter(ultimoDia) ? ate : ultimoDia;
+            if (matricula.isAtiva()) {
+                saiu = false;
+            }
+        }
+
+        private FrequenciaMensal montar(Long participanteId, String nome, YearMonth mes) {
+            List<String> partes = new ArrayList<>();
+            if (primeiroDia.isAfter(mes.atDay(1))) {
+                partes.add("desde o ingresso em " + primeiroDia.format(DIA_MES));
+            }
+            if (saiu && ultimoDia.isBefore(mes.atEndOfMonth())) {
+                partes.add("até a saída em " + ultimoDia.format(DIA_MES));
+            }
+            String observacao = partes.isEmpty() ? null : "Conta só as aulas " + String.join(" e ", partes) + ".";
+            return FrequenciaService.this.montar(participanteId, nome, turma.getId(), turma.getNome(), mes,
+                    aulasPrevistas, presencas, justificadas, observacao);
+        }
     }
 }

@@ -39,9 +39,8 @@
                     <div><dt>Sexo</dt><dd th:text="${participante.sexo != null ? participante.sexo.descricao : 'Não informado'}">Não informado</dd></div>
                     <div><dt>Nascimento</dt><dd th:text="${participante.dataNascimento != null ? #temporals.format(participante.dataNascimento, 'dd/MM/yyyy') + ' · ' + participante.idade + ' anos' : 'Não informado'}">Não informado</dd></div>
                     <div><dt>Escola</dt><dd th:text="${participante.tipoEscola != null ? participante.tipoEscola.descricao : 'Não informado'}">Não informado</dd></div>
-                    <div><dt>Deficiência</dt><dd><span th:text="${participante.descricaoDeficiencia}">Não informado</span>
-                        <span class="status-pill status-warning-pill" th:if="${participante.laudoPendente}">Laudo pendente</span></dd></div>
-                    <div th:if="${participante.laudoReferencia != null}"><dt>Laudo</dt><dd th:text="${participante.laudoReferencia}">Referência</dd></div>
+                    <div><dt>Deficiência ou condição</dt><dd><span th:text="${participante.descricaoDeficiencia}">Não informado</span>
+                        <span class="status-pill status-warning-pill" th:if="${participante.condicaoPendente}">Condição não informada</span></dd></div>
                 </dl>
                 <p><strong>Observações:</strong> <span th:text="${#strings.isEmpty(participante.observacoes)} ? 'Sem observações' : ${participante.observacoes}">Sem observações</span></p>
                 <p class="muted">Desativar mantém todo o histórico e remove a pessoa das novas listas de presença.</p>
@@ -91,7 +90,8 @@
                         </thead>
                         <tbody>
                         <tr th:each="linha : ${frequenciaMensal.porTurma()}">
-                            <td class="table-primary"><a th:href="@{/atividades/{id}(id=${linha.turmaId()}, mes=${mesReferencia})}" th:text="${linha.turma()}">Turma</a></td>
+                            <td class="table-primary"><a th:href="@{/atividades/{id}(id=${linha.turmaId()}, mes=${mesReferencia})}" th:text="${linha.turma()}">Turma</a>
+                                <small class="nota-frequencia" th:if="${linha.observacao() != null}" th:text="${linha.observacao()}">Conta só as aulas desde o ingresso.</small></td>
                             <td th:text="${linha.aulasPrevistas()}">0</td>
                             <td th:text="${linha.presencas()}">0</td>
                             <td><span th:text="${linha.faltas()}">0</span><span class="muted" th:if="${linha.faltasJustificadas() > 0}" th:text="${' (' + linha.faltasJustificadas() + ' justificadas)'}"></span></td>
@@ -156,6 +156,17 @@
                                 <p class="muted" th:if="${!matricula.ativa}" th:text="${matricula.motivoSaidaDescricao + (matricula.dataSaida != null ? ' · saiu em ' + #temporals.format(matricula.dataSaida, 'dd/MM/yyyy') : '')}">Motivo</p>
                             </td>
                             <td>
+                                <details class="row-action row-action-neutra" th:if="${matricula.ativa and !#lists.isEmpty(turmasDisponiveis)}">
+                                    <summary>Trocar turma</summary>
+                                    <form method="post" th:action="@{/matriculas/{id}/trocar(id=${matricula.id})}">
+                                        <label th:for="${'nova-turma-' + matricula.id}">Nova turma</label>
+                                        <select th:id="${'nova-turma-' + matricula.id}" name="novaTurmaId" required>
+                                            <option th:each="turma : ${turmasDisponiveis}" th:value="${turma.id}" th:text="${turma.nome + ' · ' + turma.gradeResumo}">Turma</option>
+                                        </select>
+                                        <p class="field-help">As presenças já registradas continuam no histórico. A partir de hoje a frequência conta as aulas da nova turma.</p>
+                                        <button class="button button-primary" type="submit">Revisar troca</button>
+                                    </form>
+                                </details>
                                 <details class="row-action" th:if="${matricula.ativa}">
                                     <summary>Registrar saída</summary>
                                     <form method="post" th:action="@{/matriculas/{id}/encerrar(id=${matricula.id})}">
@@ -181,6 +192,40 @@
                 </div>
             </div>
         </section>
+
+        <div class="detail-grid section-block">
+            <section class="form-card" aria-labelledby="movimentos-titulo">
+                <h2 id="movimentos-titulo">Entradas e saídas</h2>
+                <ul class="lista-movimentos" th:if="${!#lists.isEmpty(movimentos)}">
+                    <li th:each="movimento : ${movimentos}">
+                        <time th:text="${#temporals.format(movimento.data(), 'dd/MM/yyyy')}">01/01/2026</time>
+                        <span><strong th:text="${movimento.tipo()}">Ingresso</strong><small th:text="${movimento.texto()}">Ingressou na turma.</small></span>
+                    </li>
+                </ul>
+                <p class="muted" th:if="${#lists.isEmpty(movimentos)}">Ainda sem matrícula.</p>
+                <a class="inline-action" th:href="@{/historico(busca=${participante.nome})}">Buscar no Histórico <span class="icon icon-arrow" aria-hidden="true"></span></a>
+            </section>
+            <section class="form-card" aria-labelledby="arquivos-titulo">
+                <h2 id="arquivos-titulo">Atestados e laudos</h2>
+                <p class="field-help">Dado sensível: só aparece nesta página. PDF ou foto, até 5 MB.</p>
+                <form class="form-anexo" method="post" enctype="multipart/form-data" th:action="@{/participantes/{id}/anexos(id=${participante.id})}">
+                    <label class="sr-only" for="tipo-anexo">Tipo de arquivo</label>
+                    <select id="tipo-anexo" name="tipo">
+                        <option th:each="tipo : ${tiposAnexo}" th:value="${tipo}" th:text="${tipo.descricao}">Atestado</option>
+                    </select>
+                    <label class="sr-only" for="arquivo">Arquivo</label>
+                    <input id="arquivo" type="file" name="arquivo" accept="application/pdf,image/*" required>
+                    <button class="button button-soft" type="submit">Anexar arquivo</button>
+                </form>
+                <ul class="lista-anexos" th:if="${!#lists.isEmpty(anexos)}">
+                    <li th:each="anexo : ${anexos}">
+                        <a th:href="@{/anexos/{id}(id=${anexo.id()})}" target="_blank" rel="noopener" th:text="${anexo.nomeArquivo()}">arquivo.pdf</a>
+                        <small th:text="${anexo.descricao}">Atestado · 01/01/2026</small>
+                    </li>
+                </ul>
+                <p class="muted" th:if="${#lists.isEmpty(anexos)}">Nenhum arquivo anexado.</p>
+            </section>
+        </div>
 
         <section class="section-block" aria-labelledby="historico-registro-titulo">
             <div class="section-header"><div><h2 id="historico-registro-titulo">Histórico deste registro</h2><p class="muted" th:text="${'Alterações administrativas de ' + participante.nome + '.'}">Alterações do cadastro.</p></div><a class="button button-soft" th:href="@{/historico(modulo='PARTICIPANTES', busca=${participante.nome})}">Ver no histórico completo</a></div>

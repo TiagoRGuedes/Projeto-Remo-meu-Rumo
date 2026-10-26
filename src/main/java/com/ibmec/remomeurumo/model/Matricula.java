@@ -15,15 +15,11 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 @Entity
-@Table(name = "matriculas", uniqueConstraints = {
-        @UniqueConstraint(name = "uk_matricula_participante_atividade",
-                columnNames = {"participante_id", "atividade_id"})
-})
+@Table(name = "matriculas")
 public class Matricula {
 
     @Id
