@@ -7,13 +7,13 @@
 <div class="app-shell">
     <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
     <main id="conteudo" class="content" tabindex="-1">
-        <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="@{/}">Visão geral</a><span aria-hidden="true">›</span><a th:href="@{/atividades}">Atividades</a><span aria-hidden="true">›</span><span aria-current="page" th:text="${modoEdicao ? 'Editar' : 'Cadastrar'}">Cadastrar</span></nav>
-        <a class="back-link" th:href="${modoEdicao} ? @{/atividades/{id}(id=${atividade.id})} : @{/atividades}"><span class="icon icon-back" aria-hidden="true"></span>Voltar para atividades</a>
+        <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="@{/}">Início</a><span aria-hidden="true">›</span><a th:href="@{/atividades}">Turmas</a><span aria-hidden="true">›</span><span aria-current="page" th:text="${modoEdicao ? 'Editar' : 'Cadastrar'}">Cadastrar</span></nav>
+        <a class="back-link" th:href="${modoEdicao} ? @{/atividades/{id}(id=${atividade.id})} : @{/atividades}"><span class="icon icon-back" aria-hidden="true"></span>Voltar para turmas</a>
         <div class="page-header">
             <div>
-                <p class="eyebrow">Atividades</p>
-                <h1 th:text="${modoEdicao} ? 'Editar atividade' : 'Cadastrar atividade'">Cadastrar atividade</h1>
-                <p class="muted">Informe um nome claro para facilitar a criação de encontros e listas de presença.</p>
+                <p class="eyebrow">Turmas</p>
+                <h1 th:text="${modoEdicao} ? 'Editar turma' : 'Cadastrar turma'">Cadastrar turma</h1>
+                <p class="muted">Informe um nome claro para facilitar a criação de aulas e listas de presença.</p>
             </div>
         </div>
 

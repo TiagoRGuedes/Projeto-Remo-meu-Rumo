@@ -8,26 +8,26 @@
     <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
     <main id="conteudo" class="content" tabindex="-1">
         <div th:replace="~{fragments/mensagens :: mensagens}"></div>
-        <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="@{/}">Visão geral</a><span aria-hidden="true">›</span><span aria-current="page">Atividades</span></nav>
+        <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="@{/}">Início</a><span aria-hidden="true">›</span><span aria-current="page">Turmas</span></nav>
         <div class="page-header">
             <div>
                 <p class="eyebrow">Operação</p>
-                <h1>Atividades</h1>
-                <p class="muted">Organize as atividades, turmas e grupos acompanhados pelo Instituto.</p>
+                <h1>Turmas</h1>
+                <p class="muted">Organize as turmas e grupos acompanhados pelo Instituto.</p>
             </div>
-            <a class="button button-primary" th:href="@{/atividades/nova}"><span class="icon icon-plus" aria-hidden="true"></span>Cadastrar atividade</a>
+            <a class="button button-primary" th:href="@{/atividades/nova}"><span class="icon icon-plus" aria-hidden="true"></span>Cadastrar turma</a>
         </div>
 
-        <section class="metric-grid module-metrics" aria-label="Resumo de atividades">
+        <section class="metric-grid module-metrics" aria-label="Resumo de turmas">
             <a class="metric" th:href="@{/atividades}"><span>Total</span><strong th:text="${totalAtividades}">0</strong></a>
             <a class="metric metric-success" th:href="@{/atividades(situacao='ativas')}"><span>Ativas</span><strong th:text="${atividadesAtivas}">0</strong></a>
             <a class="metric metric-neutral" th:href="@{/atividades(situacao='inativas')}"><span>Inativas</span><strong th:text="${atividadesInativas}">0</strong></a>
-            <article class="metric"><span>Encontros relacionados</span><strong th:text="${totalEncontros}">0</strong></article>
+            <article class="metric"><span>Aulas relacionadas</span><strong th:text="${totalEncontros}">0</strong></article>
         </section>
 
         <form class="form-card filters filter-panel" method="get" th:action="@{/atividades}">
             <div class="field field-wide">
-                <label for="busca">Buscar atividade</label>
+                <label for="busca">Buscar turma</label>
                 <input id="busca" name="busca" th:value="${busca}" placeholder="Exemplo: oficina">
             </div>
             <div class="field field-medium">
@@ -42,12 +42,12 @@
             <a class="button button-soft" th:href="@{/atividades}" th:if="${(busca != null and !#strings.isEmpty(busca)) or situacao != null}"><span class="icon icon-reset" aria-hidden="true"></span>Limpar filtros</a>
         </form>
 
-        <div class="results-summary section-block" aria-live="polite"><strong th:text="${totalResultados == 1 ? '1 atividade encontrada' : totalResultados + ' atividades encontradas'}">0 atividades encontradas</strong></div>
+        <div class="results-summary section-block" aria-live="polite"><strong th:text="${totalResultados == 1 ? '1 turma encontrada' : totalResultados + ' turmas encontradas'}">0 turmas encontradas</strong></div>
 
         <section class="table-card data-surface" th:if="${!#lists.isEmpty(atividades)}">
             <div class="table-wrapper">
                 <table class="mobile-card-table">
-                    <caption>Lista de atividades</caption>
+                    <caption>Lista de turmas</caption>
                     <thead>
                     <tr>
                         <th scope="col">Nome</th>
@@ -58,7 +58,7 @@
                     </thead>
                     <tbody>
                     <tr th:each="atividade : ${atividades}">
-                        <td class="table-primary" data-label="Atividade">
+                        <td class="table-primary" data-label="Turma">
                             <div class="data-identity">
                                 <span class="data-avatar data-avatar-activity"><span class="icon icon-activity" aria-hidden="true"></span></span>
                                 <span><strong th:text="${atividade.nome}">Nome</strong><small th:text="${atividade.gradeResumo}">Grade</small></span>
@@ -83,9 +83,9 @@
         </section>
         <div class="empty-state" th:if="${#lists.isEmpty(atividades)}">
             <span class="icon icon-activity" aria-hidden="true"></span>
-            <strong th:text="${busca != null and !#strings.isEmpty(busca) ? 'Nenhuma atividade encontrada' : 'Nenhuma atividade cadastrada'}">Nenhuma atividade cadastrada</strong>
-            <p th:text="${busca != null and !#strings.isEmpty(busca) ? 'Revise o nome pesquisado ou limpe o filtro.' : 'Comece cadastrando a primeira atividade.'}">Comece cadastrando a primeira atividade.</p>
-            <a class="button button-primary" th:if="${busca == null or #strings.isEmpty(busca)}" th:href="@{/atividades/nova}"><span class="icon icon-plus" aria-hidden="true"></span>Cadastrar atividade</a>
+            <strong th:text="${busca != null and !#strings.isEmpty(busca) ? 'Nenhuma turma encontrada' : 'Nenhuma turma cadastrada'}">Nenhuma turma cadastrada</strong>
+            <p th:text="${busca != null and !#strings.isEmpty(busca) ? 'Revise o nome pesquisado ou limpe o filtro.' : 'Comece cadastrando a primeira turma.'}">Comece cadastrando a primeira turma.</p>
+            <a class="button button-primary" th:if="${busca == null or #strings.isEmpty(busca)}" th:href="@{/atividades/nova}"><span class="icon icon-plus" aria-hidden="true"></span>Cadastrar turma</a>
             <a class="button button-soft" th:if="${busca != null and !#strings.isEmpty(busca)}" th:href="@{/atividades}">Limpar pesquisa</a>
         </div>
         <footer th:replace="~{fragments/footer :: footer}"></footer>

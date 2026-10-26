@@ -59,7 +59,7 @@ public class EncontroService {
     @Transactional(readOnly = true)
     public Encontro obter(Long id) {
         return encontroRepository.findById(id)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Encontro não encontrado."));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Aula não encontrada."));
     }
 
     @Transactional
@@ -72,13 +72,13 @@ public class EncontroService {
         Atividade atividade = obterAtividadeAtiva(atividadeId);
         validarData(data);
         encontroRepository.findByAtividadeIdAndData(atividadeId, data).ifPresent(encontro -> {
-            throw new RegraNegocioException("Já existe um encontro dessa atividade nessa data.");
+            throw new RegraNegocioException("Já existe uma aula dessa turma nessa data.");
         });
         Encontro novo = new Encontro(atividade, data, observacoes);
         novo.setStatus(status == null ? StatusEncontro.REALIZADO : status);
         Encontro salvo = encontroRepository.save(novo);
-        historicoService.registrar(ModuloHistorico.ENCONTROS, "Encontro", salvo.getId(), nome(salvo),
-                AcaoHistorico.CRIACAO, "Encontro criado com status "
+        historicoService.registrar(ModuloHistorico.ENCONTROS, "Aula", salvo.getId(), nome(salvo),
+                AcaoHistorico.CRIACAO, "Aula criada com status "
                         + salvo.getStatus().getDescricao().toLowerCase() + ".");
         return salvo;
     }
@@ -89,13 +89,13 @@ public class EncontroService {
         Atividade atividade = obterAtividadeAtiva(atividadeId);
         validarData(data);
         StatusEncontro statusAnterior = encontro.getStatus();
-        String detalhesAnteriores = "Atividade: " + encontro.getAtividade().getNome()
+        String detalhesAnteriores = "Turma: " + encontro.getAtividade().getNome()
                 + " | Data: " + encontro.getData() + " | Status: " + encontro.getStatus().getDescricao();
 
         encontroRepository.findByAtividadeIdAndData(atividadeId, data)
                 .filter(outro -> !outro.getId().equals(id))
                 .ifPresent(outro -> {
-                    throw new RegraNegocioException("Já existe um encontro dessa atividade nessa data.");
+                    throw new RegraNegocioException("Já existe uma aula dessa turma nessa data.");
                 });
 
         encontro.setAtividade(atividade);
@@ -106,12 +106,12 @@ public class EncontroService {
         AcaoHistorico acao = statusAnterior != salvo.getStatus() && salvo.getStatus() == StatusEncontro.CANCELADO
                 ? AcaoHistorico.CANCELAMENTO : AcaoHistorico.EDICAO;
         String descricao = statusAnterior == salvo.getStatus()
-                ? "Os dados do encontro foram atualizados."
-                : "Encontro atualizado e status alterado de " + statusAnterior.getDescricao()
+                ? "Os dados da aula foram atualizados."
+                : "Aula atualizada e status alterado de " + statusAnterior.getDescricao()
                         + " para " + salvo.getStatus().getDescricao() + ".";
-        historicoService.registrar(ModuloHistorico.ENCONTROS, "Encontro", salvo.getId(), nome(salvo),
+        historicoService.registrar(ModuloHistorico.ENCONTROS, "Aula", salvo.getId(), nome(salvo),
                 acao, descricao, detalhesAnteriores,
-                "Atividade: " + salvo.getAtividade().getNome() + " | Data: " + salvo.getData()
+                "Turma: " + salvo.getAtividade().getNome() + " | Data: " + salvo.getData()
                         + " | Status: " + salvo.getStatus().getDescricao());
         return salvo;
     }
@@ -133,10 +133,10 @@ public class EncontroService {
         Encontro encontro = obter(id);
         if (presencaRepository.existsByEncontroId(id)) {
             throw new RegraNegocioException(
-                    "Este encontro possui registros de presença e não pode ser excluído. Cancele-o para preservar o histórico.");
+                    "Esta aula possui registros de presença e não pode ser excluída. Cancele-a para preservar o histórico.");
         }
-        historicoService.registrar(ModuloHistorico.ENCONTROS, "Encontro", encontro.getId(), nome(encontro),
-                AcaoHistorico.EXCLUSAO, "Encontro excluído definitivamente porque não possuía registros de presença.");
+        historicoService.registrar(ModuloHistorico.ENCONTROS, "Aula", encontro.getId(), nome(encontro),
+                AcaoHistorico.EXCLUSAO, "Aula excluída definitivamente porque não possuía registros de presença.");
         encontroRepository.delete(encontro);
     }
 
@@ -148,8 +148,8 @@ public class EncontroService {
         }
         encontro.setStatus(StatusEncontro.CANCELADO);
         encontroRepository.save(encontro);
-        historicoService.registrar(ModuloHistorico.ENCONTROS, "Encontro", encontro.getId(), nome(encontro),
-                AcaoHistorico.CANCELAMENTO, "Encontro cancelado. Os registros anteriores foram preservados.");
+        historicoService.registrar(ModuloHistorico.ENCONTROS, "Aula", encontro.getId(), nome(encontro),
+                AcaoHistorico.CANCELAMENTO, "Aula cancelada. Os registros anteriores foram preservados.");
     }
 
     @Transactional(readOnly = true)
@@ -175,19 +175,19 @@ public class EncontroService {
 
     private Atividade obterAtividadeAtiva(Long atividadeId) {
         if (atividadeId == null) {
-            throw new RegraNegocioException("Informe a atividade.");
+            throw new RegraNegocioException("Informe a turma.");
         }
         Atividade atividade = atividadeRepository.findById(atividadeId)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Atividade não encontrada."));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Turma não encontrada."));
         if (!atividade.isAtivo()) {
-            throw new RegraNegocioException("Escolha uma atividade ativa para criar encontro.");
+            throw new RegraNegocioException("Escolha uma turma ativa para criar aula.");
         }
         return atividade;
     }
 
     private void validarData(LocalDate data) {
         if (data == null) {
-            throw new RegraNegocioException("Informe a data do encontro.");
+            throw new RegraNegocioException("Informe a data da aula.");
         }
     }
 

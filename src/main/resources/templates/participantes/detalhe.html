@@ -8,7 +8,7 @@
     <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
     <main id="conteudo" class="content" tabindex="-1">
         <div th:replace="~{fragments/mensagens :: mensagens}"></div>
-        <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="@{/}">Visão geral</a><span aria-hidden="true">›</span><a th:href="@{/participantes}">Participantes</a><span aria-hidden="true">›</span><span aria-current="page" th:text="${participante.nome}">Participante</span></nav>
+        <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="@{/}">Início</a><span aria-hidden="true">›</span><a th:href="@{/participantes}">Participantes</a><span aria-hidden="true">›</span><span aria-current="page" th:text="${participante.nome}">Participante</span></nav>
         <a class="back-link" th:href="@{/participantes}"><span class="icon icon-back" aria-hidden="true"></span>Voltar para participantes</a>
         <div class="page-header">
             <div>
@@ -201,7 +201,7 @@
                     <thead>
                     <tr>
                         <th scope="col">Data</th>
-                        <th scope="col">Atividade</th>
+                        <th scope="col">Turma</th>
                         <th scope="col">Presença</th>
                         <th scope="col">Observação</th>
                     </tr>
@@ -209,7 +209,7 @@
                     <tbody>
                     <tr th:each="presenca : ${historico}">
                         <td th:text="${presenca.encontro.data}">2026-01-01</td>
-                        <td class="table-primary"><a th:href="@{/encontros/{id}(id=${presenca.encontro.id})}" th:text="${presenca.encontro.atividade.nome}">Atividade</a></td>
+                        <td class="table-primary"><a th:href="@{/encontros/{id}(id=${presenca.encontro.id})}" th:text="${presenca.encontro.atividade.nome}">Turma</a></td>
                         <td th:text="${presenca.status.descricao}">Presente</td>
                         <td th:text="${presenca.observacoes} ?: 'Sem observação'">Sem observação</td>
                     </tr>

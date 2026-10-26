@@ -69,7 +69,7 @@ class ExclusaoSeguraServiceTest {
 
         assertThatThrownBy(() -> atividadeService.excluir(atividade.getId()))
                 .isInstanceOf(RegraNegocioException.class)
-                .hasMessageContaining("possui encontros");
+                .hasMessageContaining("possui aulas");
         assertThat(atividadeRepository.findById(atividade.getId())).isPresent();
     }
 

@@ -7,7 +7,7 @@
 <div class="app-shell">
     <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
     <main id="conteudo" class="content" tabindex="-1">
-        <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="@{/}">Visão geral</a><span>›</span><span aria-current="page">Frequência</span></nav>
+        <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="@{/}">Início</a><span>›</span><span aria-current="page">Frequência</span></nav>
         <div class="page-header">
             <div>
                 <p class="eyebrow">Acompanhamento</p>
@@ -103,7 +103,7 @@
             <article class="metric metric-featured"><span>Média geral</span><strong th:text="${#numbers.formatDecimal(resumoFrequencia.mediaGeral(), 1, 1)} + '%'">0%</strong></article>
             <article class="metric"><span>Participantes exibidos</span><strong th:text="${resumoFrequencia.participantesExibidos()}">0</strong></article>
             <article class="metric metric-success"><span>Presenças</span><strong th:text="${resumoFrequencia.presencas()}">0</strong></article>
-            <article class="metric metric-warning"><span>Ausências + justificadas</span><strong th:text="${resumoFrequencia.ausencias() + resumoFrequencia.justificadas()}">0</strong></article>
+            <article class="metric metric-warning"><span>Faltas + faltas avisadas</span><strong th:text="${resumoFrequencia.ausencias() + resumoFrequencia.justificadas()}">0</strong></article>
         </section>
 
         <form class="form-card filters filter-panel" method="get" th:action="@{/frequencia}">
@@ -120,11 +120,11 @@
                 </select>
             </div>
             <div class="field field-medium">
-                <label for="atividadeId">Atividade</label>
+                <label for="atividadeId">Turma</label>
                 <select id="atividadeId" name="atividadeId">
                     <option value="">Todas</option>
                     <option th:each="atividade : ${atividades}" th:value="${atividade.id}" th:text="${atividade.nome}"
-                            th:selected="${atividadeId != null and atividade.id == atividadeId}">Atividade</option>
+                            th:selected="${atividadeId != null and atividade.id == atividadeId}">Turma</option>
                 </select>
             </div>
             <div class="field field-compact">
@@ -154,20 +154,20 @@
                     <thead>
                     <tr>
                         <th scope="col">Participante</th>
-                        <th scope="col">Encontros</th>
+                        <th scope="col">Aulas</th>
                         <th scope="col">Presentes</th>
-                        <th scope="col">Ausentes</th>
-                        <th scope="col">Justificadas</th>
+                        <th scope="col">Faltas</th>
+                        <th scope="col">Faltas avisadas</th>
                         <th scope="col">Frequência</th>
                     </tr>
                     </thead>
                     <tbody>
                     <tr th:each="item : ${frequencias}">
                         <td class="table-primary" data-label="Participante" th:text="${item.nome()}">Nome</td>
-                        <td data-label="Encontros" th:text="${item.totalEncontros()}">0</td>
+                        <td data-label="Aulas" th:text="${item.totalEncontros()}">0</td>
                         <td data-label="Presentes" th:text="${item.presentes()}">0</td>
-                        <td data-label="Ausentes" th:text="${item.ausentes()}">0</td>
-                        <td data-label="Justificadas" th:text="${item.justificadas()}">0</td>
+                        <td data-label="Faltas" th:text="${item.ausentes()}">0</td>
+                        <td data-label="Faltas avisadas" th:text="${item.justificadas()}">0</td>
                         <td class="frequency-cell" data-label="Frequência">
                             <div class="frequency-value">
                                 <span th:text="${#numbers.formatDecimal(item.percentual(), 1, 1)} + '%'">0%</span>
@@ -192,7 +192,7 @@
                     <thead>
                     <tr>
                         <th scope="col">Participante</th>
-                        <th scope="col">Atividade</th>
+                        <th scope="col">Turma</th>
                         <th scope="col">Data</th>
                         <th scope="col">Presença</th>
                         <th scope="col">Observação</th>
@@ -201,7 +201,7 @@
                     <tbody>
                     <tr th:each="presenca : ${historico}">
                         <td class="table-primary" data-label="Participante" th:text="${presenca.participante.nome}">Participante</td>
-                        <td data-label="Atividade" th:text="${presenca.encontro.atividade.nome}">Atividade</td>
+                        <td data-label="Turma" th:text="${presenca.encontro.atividade.nome}">Turma</td>
                         <td data-label="Data" th:text="${presenca.encontro.data}">Data</td>
                         <td data-label="Presença"><span th:class="${presenca.status.name() == 'PRESENTE'} ? 'status-pill status-on' : (${presenca.status.name() == 'AUSENTE'} ? 'status-pill status-off' : 'status-pill status-warning')" th:text="${presenca.status.descricao}">Presente</span></td>
                         <td data-label="Observação" th:text="${presenca.observacoes} ?: 'Sem observação'">Sem observação</td>
@@ -214,7 +214,7 @@
             </div>
         </section>
 
-        <aside class="context-help section-block"><span class="icon icon-info" aria-hidden="true"></span><div><strong>Como a frequência é calculada?</strong><p>A frequência mostra quantos registros estão como Presente em relação a todos os registros encontrados. Ausências justificadas aparecem separadamente.</p></div></aside>
+        <aside class="context-help section-block"><span class="icon icon-info" aria-hidden="true"></span><div><strong>Como a frequência é calculada?</strong><p>A frequência mostra quantos registros estão como Presente em relação a todos os registros encontrados. Faltas faltas avisadas aparecem separadamente.</p></div></aside>
         <footer th:replace="~{fragments/footer :: footer}"></footer>
     </main>
 </div>

@@ -2,9 +2,9 @@ package com.ibmec.remomeurumo.model;
 
 public enum ModuloHistorico {
     PARTICIPANTES("Participantes"),
-    ATIVIDADES("Atividades"),
+    ATIVIDADES("Turmas"),
     MATRICULAS("Matrículas"),
-    ENCONTROS("Encontros"),
+    ENCONTROS("Aulas"),
     PRESENCAS("Presenças");
 
     private final String descricao;

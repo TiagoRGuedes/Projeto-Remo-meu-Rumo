@@ -42,8 +42,8 @@ class WebControllerSmokeTest {
         assertOkComTexto("/participantes/1/excluir", "não pode ser excluído");
         assertOkComTexto("/atividades/1", "Remo iniciação");
         assertOkComTexto("/atividades/1/excluir", "não pode ser excluída");
-        assertOkComTexto("/encontros/3", "Encontro");
-        assertOkComTexto("/encontros/3/excluir", "deve ser cancelado");
+        assertOkComTexto("/encontros/3", "Aula");
+        assertOkComTexto("/encontros/3/excluir", "deve ser cancelada");
         assertRedirect("/presencas/1/excluir", "/confirmacoes/");
     }
 

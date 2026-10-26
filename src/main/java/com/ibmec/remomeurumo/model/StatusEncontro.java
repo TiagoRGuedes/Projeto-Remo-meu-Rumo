@@ -1,9 +1,9 @@
 package com.ibmec.remomeurumo.model;
 
 public enum StatusEncontro {
-    PLANEJADO("Planejado"),
-    REALIZADO("Realizado"),
-    CANCELADO("Cancelado");
+    PLANEJADO("Planejada"),
+    REALIZADO("Realizada"),
+    CANCELADO("Cancelada");
 
     private final String descricao;
 

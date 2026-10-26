@@ -54,6 +54,6 @@ public class AtividadeApiController {
     @DeleteMapping("/{id}")
     public ApiMensagem desativar(@PathVariable Long id) {
         atividadeService.desativar(id);
-        return new ApiMensagem("Atividade desativada. Os encontros antigos continuam disponíveis.");
+        return new ApiMensagem("Turma desativada. As aulas antigas continuam disponíveis.");
     }
 }

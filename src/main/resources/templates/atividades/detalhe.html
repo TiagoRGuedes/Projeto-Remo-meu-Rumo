@@ -8,32 +8,32 @@
     <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
     <main id="conteudo" class="content" tabindex="-1">
         <div th:replace="~{fragments/mensagens :: mensagens}"></div>
-        <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="@{/}">Visão geral</a><span aria-hidden="true">›</span><a th:href="@{/atividades}">Atividades</a><span aria-hidden="true">›</span><span aria-current="page" th:text="${atividade.nome}">Atividade</span></nav>
-        <a class="back-link" th:href="@{/atividades}"><span class="icon icon-back" aria-hidden="true"></span>Voltar para atividades</a>
+        <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="@{/}">Início</a><span aria-hidden="true">›</span><a th:href="@{/atividades}">Turmas</a><span aria-hidden="true">›</span><span aria-current="page" th:text="${atividade.nome}">Turma</span></nav>
+        <a class="back-link" th:href="@{/atividades}"><span class="icon icon-back" aria-hidden="true"></span>Voltar para turmas</a>
         <div class="page-header">
             <div>
-                <p class="eyebrow">Atividade</p>
-                <h1 th:text="${atividade.nome}">Atividade</h1>
+                <p class="eyebrow">Turma</p>
+                <h1 th:text="${atividade.nome}">Turma</h1>
                 <p class="muted" th:text="${atividade.descricao} ?: 'Sem descrição cadastrada.'">Descrição</p>
                 <p class="grade-chip"><span class="icon icon-clock" aria-hidden="true"></span><span th:text="${atividade.gradeResumo}">TER/QUI · 14:00</span></p>
             </div>
             <div class="actions">
-                <a class="button button-primary" th:href="@{/atividades/{id}/editar(id=${atividade.id})}"><span class="icon icon-edit" aria-hidden="true"></span>Editar atividade</a>
-                <a class="button button-soft" th:href="@{/encontros/novo(atividadeId=${atividade.id})}"><span class="icon icon-plus" aria-hidden="true"></span>Criar encontro</a>
+                <a class="button button-primary" th:href="@{/atividades/{id}/editar(id=${atividade.id})}"><span class="icon icon-edit" aria-hidden="true"></span>Editar turma</a>
+                <a class="button button-soft" th:href="@{/encontros/novo(atividadeId=${atividade.id})}"><span class="icon icon-plus" aria-hidden="true"></span>Criar aula</a>
                 <form method="post" th:if="${atividade.ativo}" th:action="@{/atividades/{id}/desativar(id=${atividade.id})}">
-                    <button class="button button-danger" type="submit">Desativar atividade</button>
+                    <button class="button button-danger" type="submit">Desativar turma</button>
                 </form>
                 <form method="post" th:if="${!atividade.ativo}" th:action="@{/atividades/{id}/ativar(id=${atividade.id})}">
-                    <button class="button button-primary" type="submit">Ativar atividade</button>
+                    <button class="button button-primary" type="submit">Ativar turma</button>
                 </form>
-                <a class="button button-danger" th:href="@{/atividades/{id}/excluir(id=${atividade.id})}"><span class="icon icon-close" aria-hidden="true"></span>Excluir atividade</a>
+                <a class="button button-danger" th:href="@{/atividades/{id}/excluir(id=${atividade.id})}"><span class="icon icon-close" aria-hidden="true"></span>Excluir turma</a>
             </div>
         </div>
 
         <section class="detail-grid">
-            <article class="form-card"><h2>Situação da atividade</h2><p><span th:class="${atividade.ativo} ? 'status-pill status-on' : 'status-pill status-off'" th:text="${atividade.ativo} ? 'Ativa' : 'Inativa'">Ativa</span></p><p class="muted">Atividades inativas permanecem nos relatórios, mas não recebem novos encontros.</p></article>
-            <article class="form-card"><h2>Rede relacionada</h2><p><strong th:text="${matriculasAtivas + ' matrículas ativas'}">0 matrículas</strong></p><p><strong th:text="${totalEncontros + ' encontros'}">0 encontros</strong></p><p><strong th:text="${participantesRelacionados + ' participantes com registros'}">0 participantes</strong></p><div class="inline-links"><a class="inline-action" th:href="@{/encontros(atividadeId=${atividade.id})}">Ver encontros</a><a class="inline-action" th:href="@{/frequencia(atividadeId=${atividade.id})}">Ver frequência</a></div></article>
-            <article class="form-card"><h2>Exclusão segura</h2><p th:if="${podeExcluir}" class="status-message status-success"><span class="icon icon-check" aria-hidden="true"></span>Pode ser excluída porque ainda não possui encontros nem matrículas.</p><p th:if="${!podeExcluir}" class="status-message status-warning"><span class="icon icon-info" aria-hidden="true"></span>Desative esta atividade para preservar encontros e matrículas.</p></article>
+            <article class="form-card"><h2>Situação da turma</h2><p><span th:class="${atividade.ativo} ? 'status-pill status-on' : 'status-pill status-off'" th:text="${atividade.ativo} ? 'Ativa' : 'Inativa'">Ativa</span></p><p class="muted">Turmas inativas permanecem nos relatórios, mas não recebem novas aulas.</p></article>
+            <article class="form-card"><h2>Rede relacionada</h2><p><strong th:text="${matriculasAtivas + ' matrículas ativas'}">0 matrículas</strong></p><p><strong th:text="${totalEncontros + ' aulas'}">0 aulas</strong></p><p><strong th:text="${participantesRelacionados + ' participantes com registros'}">0 participantes</strong></p><div class="inline-links"><a class="inline-action" th:href="@{/encontros(atividadeId=${atividade.id})}">Ver aulas</a><a class="inline-action" th:href="@{/frequencia(atividadeId=${atividade.id})}">Ver frequência</a></div></article>
+            <article class="form-card"><h2>Exclusão segura</h2><p th:if="${podeExcluir}" class="status-message status-success"><span class="icon icon-check" aria-hidden="true"></span>Pode ser excluída porque ainda não possui aulas nem matrículas.</p><p th:if="${!podeExcluir}" class="status-message status-warning"><span class="icon icon-info" aria-hidden="true"></span>Desative esta turma para preservar aulas e matrículas.</p></article>
         </section>
 
         <section class="section-block" aria-labelledby="frequencia-turma-titulo">
@@ -119,7 +119,7 @@
         <section class="table-card section-block">
             <div class="table-wrapper">
                 <table>
-                    <caption>Encontros relacionados</caption>
+                    <caption>Aulas relacionadas</caption>
                     <thead>
                     <tr>
                         <th scope="col">Data</th>
@@ -135,20 +135,20 @@
                         <td th:text="${encontro.observacoes} ?: 'Sem observação'">Sem observação</td>
                         <td class="table-actions">
                             <a th:href="@{/encontros/{id}(id=${encontro.id})}">Visualizar</a>
-                            <a th:href="@{/presencas/registrar(atividadeId=${atividade.id}, encontroId=${encontro.id})}">Registrar presença</a>
+                            <a th:href="@{/presencas/registrar(atividadeId=${atividade.id}, encontroId=${encontro.id})}">Fazer chamada</a>
                         </td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(encontros)}">
-                        <td class="empty-cell" colspan="4">Ainda não há encontros para esta atividade.</td>
+                        <td class="empty-cell" colspan="4">Ainda não há aulas para esta turma.</td>
                     </tr>
                     </tbody>
                 </table>
             </div>
         </section>
         <section class="section-block" aria-labelledby="historico-atividade-titulo">
-            <div class="section-header"><div><h2 id="historico-atividade-titulo">Histórico deste registro</h2><p class="muted">Alterações administrativas desta atividade.</p></div><a class="button button-soft" th:href="@{/historico(modulo='ATIVIDADES', busca=${atividade.nome})}">Ver histórico completo</a></div>
+            <div class="section-header"><div><h2 id="historico-atividade-titulo">Histórico deste registro</h2><p class="muted">Alterações administrativas desta turma.</p></div><a class="button button-soft" th:href="@{/historico(modulo='ATIVIDADES', busca=${atividade.nome})}">Ver histórico completo</a></div>
             <div class="timeline timeline-compact" th:if="${!#lists.isEmpty(historicoAdministrativo)}"><article class="timeline-item" th:each="evento : ${historicoAdministrativo}"><time th:text="${evento.dataFormatada + ' · ' + evento.horaFormatada}">Data</time><strong th:text="${evento.acao.descricao}">Ação</strong><span th:text="${evento.descricao}">Descrição</span></article></div>
-            <div class="empty-state" th:if="${#lists.isEmpty(historicoAdministrativo)}">As próximas alterações desta atividade aparecerão aqui.</div>
+            <div class="empty-state" th:if="${#lists.isEmpty(historicoAdministrativo)}">As próximas alterações desta turma aparecerão aqui.</div>
         </section>
         <footer th:replace="~{fragments/footer :: footer}"></footer>
     </main>

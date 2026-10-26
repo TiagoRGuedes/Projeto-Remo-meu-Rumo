@@ -154,21 +154,21 @@ public class EncontroWebController {
             EncontroInput formNormalizado = new EncontroInput(
                     form.atividadeId(), form.data(), form.observacoes(), novoStatus);
             ConfirmacaoOperacao confirmacao = confirmacaoService.criar(session,
-                    TipoOperacaoConfirmacao.EDITAR_ENCONTRO, id, "Revisar encontro",
-                    "Atualizar este encontro?", "Confira atividade, data e status antes da gravação.",
+                    TipoOperacaoConfirmacao.EDITAR_ENCONTRO, id, "Revisar aula",
+                    "Atualizar esta aula?", "Confira turma, data e status antes da gravação.",
                     novaAtividade + " · " + form.data(),
                     confirmacaoService.alteracoes(
-                            confirmacaoService.alteracao("Atividade", atual.getAtividade().getNome(), novaAtividade),
+                            confirmacaoService.alteracao("Turma", atual.getAtividade().getNome(), novaAtividade),
                             confirmacaoService.alteracao("Data", atual.getData().toString(), form.data().toString()),
                             confirmacaoService.alteracao("Status", atual.getStatus().getDescricao(),
                                     novoStatus.getDescricao()),
                             confirmacaoService.alteracao("Observações", atual.getObservacoes(), form.observacoes())),
-                    List.of("O encontro será atualizado nas páginas da atividade e do dashboard.",
+                    List.of("A aula será atualizada nas páginas da turma e do dashboard.",
                             "Registros de presença existentes permanecerão vinculados.",
                             "A operação gerará um único evento no Histórico."),
                     dadosEncontro(formNormalizado), "/encontros/" + id + "/editar/corrigir",
                     "/encontros/" + id + "/editar", "/encontros/{id}",
-                    "Encontro atualizado em todas as páginas relacionadas.", "Confirmar alteração", false);
+                    "Aula atualizada em todas as páginas relacionadas.", "Confirmar alteração", false);
             return "redirect:/confirmacoes/" + confirmacao.token();
         } catch (RegraNegocioException ex) {
             bindingResult.reject("erroNegocio", ex.getMessage());
@@ -214,15 +214,15 @@ public class EncontroWebController {
         Encontro encontro = encontroService.obter(id);
         ConfirmacaoOperacao confirmacao = confirmacaoService.criar(session,
                 TipoOperacaoConfirmacao.CANCELAR_ENCONTRO, id, "Revisar impacto",
-                "Cancelar este encontro?", "O cancelamento interrompe novas presenças sem apagar registros.",
+                "Cancelar esta aula?", "O cancelamento interrompe novas presenças sem apagar registros.",
                 encontro.getAtividade().getNome() + " · " + encontro.getData(),
                 confirmacaoService.alteracoes(
                         confirmacaoService.alteracao("Status", encontro.getStatus().getDescricao(), "Cancelado")),
-                List.of("O encontro não aceitará novos registros de presença.",
+                List.of("A aula não aceitará novos registros de presença.",
                         "Presenças e relatórios existentes serão preservados.",
                         "O cancelamento ficará registrado no Histórico."),
                 Map.of(), null, "/encontros/" + id, "/encontros/{id}",
-                "Encontro cancelado. Presenças e relatórios anteriores foram preservados.",
+                "Aula cancelada. Presenças e relatórios anteriores foram preservados.",
                 "Confirmar cancelamento", true);
         return "redirect:/confirmacoes/" + confirmacao.token();
     }
@@ -256,38 +256,38 @@ public class EncontroWebController {
         String atividade = atividadeService.obter(form.atividadeId()).getNome();
         StatusEncontro status = form.status() == null ? StatusEncontro.REALIZADO : form.status();
         return confirmacaoService.criar(session,
-                TipoOperacaoConfirmacao.CRIAR_ENCONTRO, null, "Novo encontro", "Criar encontro?",
+                TipoOperacaoConfirmacao.CRIAR_ENCONTRO, null, "Nova aula", "Criar aula?",
                 "Confira a operação antes de disponibilizar a nova data.", atividade + " · " + form.data(),
                 confirmacaoService.alteracoes(
-                        confirmacaoService.alteracao("Atividade", null, atividade),
+                        confirmacaoService.alteracao("Turma", null, atividade),
                         confirmacaoService.alteracao("Data", null, form.data().toString()),
                         confirmacaoService.alteracao("Status inicial", null, status.getDescricao()),
                         confirmacaoService.alteracao("Observações", null, form.observacoes())),
-                List.of("O encontro aparecerá no dashboard e na atividade relacionada.",
+                List.of("A aula aparecerá no dashboard e na turma relacionada.",
                         "Ficará disponível no fluxo de presença quando permitido pelo status.",
                         "A criação será registrada no Histórico."),
                 dadosEncontro(new EncontroInput(form.atividadeId(), form.data(), form.observacoes(), status)),
                 urlCorrecao, urlCancelar, urlSucesso,
-                "Encontro criado e conectado ao dashboard, à atividade e ao Histórico.",
+                "Aula criada e conectada ao dashboard, à turma e ao Histórico.",
                 "Confirmar criação", false);
     }
 
     private ConfirmacaoOperacao prepararExclusao(Encontro encontro, HttpSession session) {
         if (!encontroService.podeExcluir(encontro.getId())) {
             throw new RegraNegocioException(
-                    "Este encontro possui registros de presença e deve ser cancelado para preservar o histórico.");
+                    "Esta aula possui registros de presença e deve ser cancelada para preservar o histórico.");
         }
         return confirmacaoService.criar(session,
                 TipoOperacaoConfirmacao.EXCLUIR_ENCONTRO, encontro.getId(), "Exclusão definitiva",
-                "Excluir este encontro?", "A exclusão é permitida porque não existem presenças vinculadas.",
+                "Excluir esta aula?", "A exclusão é permitida porque não existem presenças vinculadas.",
                 encontro.getAtividade().getNome() + " · " + encontro.getData(),
                 confirmacaoService.alteracoes(
-                        confirmacaoService.alteracao("Encontro", encontro.getData().toString(), "Será removido")),
-                List.of("O encontro será removido definitivamente.",
+                        confirmacaoService.alteracao("Aula", encontro.getData().toString(), "Será removida")),
+                List.of("A aula será removida definitivamente.",
                         "A exclusão ficará registrada no Histórico administrativo."),
                 Map.of(), null, "/encontros/" + encontro.getId(), "/encontros",
-                "Encontro excluído definitivamente. A operação ficou registrada no Histórico.",
-                "Excluir encontro", true);
+                "Aula excluída definitivamente. A operação ficou registrada no Histórico.",
+                "Excluir aula", true);
     }
 
     private Map<String, String> dadosEncontro(EncontroInput form) {

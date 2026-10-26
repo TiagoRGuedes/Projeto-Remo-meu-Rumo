@@ -102,20 +102,20 @@ public class AtividadeWebController {
         }
         try {
             ConfirmacaoOperacao confirmacao = confirmacaoService.criar(session,
-                    TipoOperacaoConfirmacao.CRIAR_ATIVIDADE, null, "Nova atividade",
-                    "Criar atividade?", "Confira os dados antes de disponibilizar a atividade para novos encontros.",
+                    TipoOperacaoConfirmacao.CRIAR_ATIVIDADE, null, "Nova turma",
+                    "Criar turma?", "Confira os dados antes de disponibilizar a turma para novas aulas.",
                     atividade.getNome(),
                     confirmacaoService.alteracoes(
                             confirmacaoService.alteracao("Nome", null, atividade.getNome()),
                             confirmacaoService.alteracao("Descrição", null, atividade.getDescricao()),
                             confirmacaoService.alteracao("Grade", null, atividade.getGradeResumo()),
                             confirmacaoService.alteracao("Situação inicial", null, "Ativa")),
-                    List.of("A atividade aparecerá na gestão e na busca global.",
-                            "Ficará disponível para matrículas e para a criação de encontros.",
+                    List.of("A turma aparecerá na gestão e na busca global.",
+                            "Ficará disponível para matrículas e para a criação de aulas.",
                             "A criação será registrada no Histórico do sistema."),
                     dadosAtividade(atividade), "/atividades/nova/corrigir", "/atividades/nova",
                     "/atividades/{id}",
-                    "Atividade cadastrada. Gestão, busca e Histórico foram atualizados.",
+                    "Turma cadastrada. Gestão, busca e Histórico foram atualizados.",
                     "Confirmar cadastro", false);
             return "redirect:/confirmacoes/" + confirmacao.token();
         } catch (RegraNegocioException ex) {
@@ -167,7 +167,7 @@ public class AtividadeWebController {
             Atividade atual = atividadeService.obter(id);
             ConfirmacaoOperacao confirmacao = confirmacaoService.criar(session,
                     TipoOperacaoConfirmacao.EDITAR_ATIVIDADE, id, "Revisar alteração",
-                    "Atualizar esta atividade?", "Compare os dados atuais com a nova versão.",
+                    "Atualizar esta turma?", "Compare os dados atuais com a nova versão.",
                     atividade.getNome(),
                     confirmacaoService.alteracoes(
                             confirmacaoService.alteracao("Nome", atual.getNome(), atividade.getNome()),
@@ -175,12 +175,12 @@ public class AtividadeWebController {
                             confirmacaoService.alteracao("Grade", atual.getGradeResumo(), atividade.getGradeResumo()),
                             confirmacaoService.alteracao("Situação", atual.isAtivo() ? "Ativa" : "Inativa",
                                     atual.isAtivo() ? "Ativa" : "Inativa")),
-                    List.of("O novo nome aparecerá nos encontros e relatórios relacionados.",
-                            "Os registros históricos continuarão vinculados à atividade.",
+                    List.of("O novo nome aparecerá nas aulas e relatórios relacionados.",
+                            "Os registros históricos continuarão vinculados à turma.",
                             "A edição será registrada no Histórico do sistema."),
                     dadosAtividade(atividade), "/atividades/" + id + "/editar/corrigir",
                     "/atividades/" + id + "/editar", "/atividades/{id}",
-                    "Atividade atualizada em todas as páginas relacionadas.", "Confirmar alteração", false);
+                    "Turma atualizada em todas as páginas relacionadas.", "Confirmar alteração", false);
             return "redirect:/confirmacoes/" + confirmacao.token();
         } catch (RegraNegocioException ex) {
             bindingResult.reject("erroNegocio", ex.getMessage());
@@ -194,13 +194,13 @@ public class AtividadeWebController {
         Atividade atividade = atividadeService.obter(id);
         ConfirmacaoOperacao confirmacao = confirmacaoService.criar(session,
                 TipoOperacaoConfirmacao.ATIVAR_ATIVIDADE, id, "Alterar situação",
-                "Ativar " + atividade.getNome() + "?", "A atividade voltará às novas operações.",
+                "Ativar " + atividade.getNome() + "?", "A turma voltará às novas operações.",
                 atividade.getNome(),
                 confirmacaoService.alteracoes(confirmacaoService.alteracao("Situação", "Inativa", "Ativa")),
-                List.of("Voltará a ser oferecida para novos encontros.", "Os encontros anteriores permanecerão disponíveis.",
+                List.of("Voltará a ser oferecida para novas aulas.", "As aulas anteriores permanecerão disponíveis.",
                         "A ativação ficará registrada no Histórico."),
                 Map.of(), null, "/atividades/" + id, "/atividades/{id}",
-                "Atividade ativada e disponível para novos encontros.", "Confirmar ativação", false);
+                "Turma ativada e disponível para novas aulas.", "Confirmar ativação", false);
         return "redirect:/confirmacoes/" + confirmacao.token();
     }
 
@@ -210,12 +210,12 @@ public class AtividadeWebController {
         ConfirmacaoOperacao confirmacao = confirmacaoService.criar(session,
                 TipoOperacaoConfirmacao.DESATIVAR_ATIVIDADE, id, "Revisar impacto",
                 "Desativar " + atividade.getNome() + "?",
-                "A atividade deixará as novas operações, sem perder sua trajetória.", atividade.getNome(),
+                "A turma deixará as novas operações, sem perder sua trajetória.", atividade.getNome(),
                 confirmacaoService.alteracoes(confirmacaoService.alteracao("Situação", "Ativa", "Inativa")),
-                List.of("Não será oferecida para novos encontros.", "Encontros e relatórios anteriores serão preservados.",
+                List.of("Não será oferecida para novas aulas.", "Aulas e relatórios anteriores serão preservados.",
                         "A desativação ficará registrada no Histórico."),
                 Map.of(), null, "/atividades/" + id, "/atividades/{id}",
-                "Atividade desativada. Encontros e relatórios anteriores foram preservados.",
+                "Turma desativada. Aulas e relatórios anteriores foram preservados.",
                 "Confirmar desativação", true);
         return "redirect:/confirmacoes/" + confirmacao.token();
     }
@@ -260,19 +260,19 @@ public class AtividadeWebController {
     private ConfirmacaoOperacao prepararExclusao(Atividade atividade, HttpSession session) {
         if (!atividadeService.podeExcluir(atividade.getId())) {
             throw new RegraNegocioException(
-                    "Esta atividade possui encontros ou matrículas e não pode ser excluída. Desative-a para preservar o histórico.");
+                    "Esta turma possui aulas ou matrículas e não pode ser excluída. Desative-a para preservar o histórico.");
         }
         return confirmacaoService.criar(session,
                 TipoOperacaoConfirmacao.EXCLUIR_ATIVIDADE, atividade.getId(), "Exclusão definitiva",
                 "Excluir " + atividade.getNome() + "?",
-                "A exclusão é permitida porque não existem encontros nem matrículas vinculados.", atividade.getNome(),
+                "A exclusão é permitida porque não existem aulas nem matrículas vinculadas.", atividade.getNome(),
                 confirmacaoService.alteracoes(
-                        confirmacaoService.alteracao("Atividade", atividade.getNome(), "Será removida")),
-                List.of("A atividade será removida definitivamente.",
+                        confirmacaoService.alteracao("Turma", atividade.getNome(), "Será removida")),
+                List.of("A turma será removida definitivamente.",
                         "A exclusão ficará registrada no Histórico administrativo."),
                 Map.of(), null, "/atividades/" + atividade.getId(), "/atividades",
-                "Atividade excluída definitivamente. A operação ficou registrada no Histórico.",
-                "Excluir atividade", true);
+                "Turma excluída definitivamente. A operação ficou registrada no Histórico.",
+                "Excluir turma", true);
     }
 
     private Map<String, String> dadosAtividade(Atividade atividade) {

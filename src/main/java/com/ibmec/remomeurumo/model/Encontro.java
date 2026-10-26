@@ -28,12 +28,12 @@ public class Encontro {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull(message = "Informe a atividade.")
+    @NotNull(message = "Informe a turma.")
     @ManyToOne(optional = false)
     @JoinColumn(name = "atividade_id", nullable = false)
     private Atividade atividade;
 
-    @NotNull(message = "Informe a data do encontro.")
+    @NotNull(message = "Informe a data da aula.")
     @Column(nullable = false)
     private LocalDate data;
 

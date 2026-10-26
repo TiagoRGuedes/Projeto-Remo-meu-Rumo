@@ -88,19 +88,19 @@ public class PresencaWebController {
             dados.put("observacoes", Objects.toString(observacoes, ""));
             dados.put("status", StatusEncontro.REALIZADO.name());
             ConfirmacaoOperacao confirmacao = confirmacaoService.criar(session,
-                    TipoOperacaoConfirmacao.CRIAR_ENCONTRO, null, "Encontro rápido",
-                    "Criar encontro e abrir a chamada?", "Confira a data antes de preparar a lista de presença.",
+                    TipoOperacaoConfirmacao.CRIAR_ENCONTRO, null, "Aula rápida",
+                    "Criar aula e abrir a chamada?", "Confira a data antes de preparar a lista de presença.",
                     atividade + " · " + data,
                     confirmacaoService.alteracoes(
-                            confirmacaoService.alteracao("Atividade", null, atividade),
+                            confirmacaoService.alteracao("Turma", null, atividade),
                             confirmacaoService.alteracao("Data", null, data.toString()),
                             confirmacaoService.alteracao("Status inicial", null, "Realizado")),
-                    List.of("O encontro aparecerá no dashboard e na atividade.",
+                    List.of("A aula aparecerá no dashboard e na turma.",
                             "A chamada será aberta após a confirmação.",
                             "A criação ficará registrada no Histórico."),
                     dados, "/encontros/novo/corrigir", "/presencas/registrar?atividadeId=" + atividadeId,
                     "/presencas/registrar?atividadeId=" + atividadeId + "&encontroId={id}",
-                    "Encontro criado. A lista de presença está pronta.", "Criar e abrir chamada", false);
+                    "Aula criada. A lista de presença está pronta.", "Criar e abrir chamada", false);
             return "redirect:/confirmacoes/" + confirmacao.token();
         } catch (RegraNegocioException ex) {
             redirectAttributes.addFlashAttribute("erro", ex.getMessage());
@@ -169,15 +169,15 @@ public class PresencaWebController {
                     confirmacaoService.alteracoes(
                             confirmacaoService.alteracao("Participantes", null, Long.toString(resumo.total())),
                             confirmacaoService.alteracao("Presentes", null, Long.toString(resumo.presentes())),
-                            confirmacaoService.alteracao("Ausentes", null, Long.toString(resumo.ausentes())),
-                            confirmacaoService.alteracao("Justificadas", null, Long.toString(resumo.justificadas()))),
-                    List.of("A chamada será vinculada ao encontro e aos participantes.",
+                            confirmacaoService.alteracao("Faltas", null, Long.toString(resumo.ausentes())),
+                            confirmacaoService.alteracao("Faltas avisadas", null, Long.toString(resumo.justificadas()))),
+                    List.of("A chamada será vinculada à aula e aos participantes.",
                             "Frequência, dashboard e relatórios serão recalculados pela mesma fonte de dados.",
                             "A operação gerará um único evento no Histórico."),
                     dados, "/presencas/revisar",
                     "/presencas/registrar?atividadeId=" + encontro.getAtividade().getId() + "&encontroId=" + encontroId,
                     "/presencas/registrar?atividadeId=" + encontro.getAtividade().getId() + "&encontroId={id}",
-                    "Presença confirmada. Encontro, frequência, dashboard, relatórios e Histórico foram atualizados.",
+                    "Presença confirmada. Aula, frequência, dashboard, relatórios e Histórico foram atualizados.",
                     "Confirmar presença", false);
             return "redirect:/confirmacoes/" + confirmacao.token();
         } catch (RegraNegocioException ex) {
@@ -235,7 +235,7 @@ public class PresencaWebController {
                 confirmacaoService.alteracoes(
                         confirmacaoService.alteracao("Situação", presenca.getStatus().getDescricao(), "Registro removido")),
                 List.of("O registro deixará os cálculos de frequência e relatórios.",
-                        "O encontro e o participante continuarão cadastrados.",
+                        "A aula e o participante continuarão cadastrados.",
                         "A situação anterior ficará registrada no Histórico."),
                 Map.of(), null, "/encontros/" + encontroId, "/encontros/{id}",
                 "Registro de presença excluído. Frequência, relatórios e Histórico foram atualizados.",

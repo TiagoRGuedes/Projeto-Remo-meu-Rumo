@@ -155,7 +155,7 @@ public class PresencaService {
             AcaoHistorico acao = novosRegistros > 0 ? AcaoHistorico.REGISTRO : AcaoHistorico.CORRECAO;
             String descricao = novosRegistros + (novosRegistros == 1 ? " nova presença" : " novas presenças")
                     + " e " + correcoes + (correcoes == 1 ? " correção foram confirmadas." : " correções foram confirmadas.");
-            historicoService.registrar(ModuloHistorico.PRESENCAS, "Encontro", encontro.getId(), referencia,
+            historicoService.registrar(ModuloHistorico.PRESENCAS, "Aula", encontro.getId(), referencia,
                     acao, descricao, resumoHistorico(resumoAnterior), resumoHistorico(resumo));
         }
         return new ResultadoRegistroPresenca(
@@ -174,10 +174,10 @@ public class PresencaService {
         }
         Encontro encontro = obterEncontroParaRegistro(encontroId);
         if (presencaRepository.existsByParticipanteIdAndEncontroId(participanteId, encontroId)) {
-            throw new RegraNegocioException("Já existe uma presença registrada para este participante nesse encontro.");
+            throw new RegraNegocioException("Já existe uma presença registrada para este participante nessa aula.");
         }
         Presenca salva = presencaRepository.save(new Presenca(participante, encontro, status, observacoes));
-        historicoService.registrar(ModuloHistorico.PRESENCAS, "Encontro", encontro.getId(), nomeEncontro(encontro),
+        historicoService.registrar(ModuloHistorico.PRESENCAS, "Aula", encontro.getId(), nomeEncontro(encontro),
                 AcaoHistorico.REGISTRO, "Presença de " + participante.getNome() + " registrada como "
                         + status.getDescricao().toLowerCase(Locale.ROOT) + ".");
         return salva;
@@ -195,7 +195,7 @@ public class PresencaService {
         Encontro encontro = presenca.getEncontro();
         String descricao = "Registro de " + presenca.getParticipante().getNome() + " excluído. Situação anterior: "
                 + presenca.getStatus().getDescricao() + ".";
-        historicoService.registrar(ModuloHistorico.PRESENCAS, "Encontro", encontro.getId(), nomeEncontro(encontro),
+        historicoService.registrar(ModuloHistorico.PRESENCAS, "Aula", encontro.getId(), nomeEncontro(encontro),
                 AcaoHistorico.EXCLUSAO, descricao,
                 "Participante: " + presenca.getParticipante().getNome()
                         + " | Situação: " + presenca.getStatus().getDescricao(),
@@ -274,17 +274,17 @@ public class PresencaService {
 
     private Encontro obterEncontro(Long encontroId) {
         if (encontroId == null) {
-            throw new RegraNegocioException("Escolha um encontro.");
+            throw new RegraNegocioException("Escolha uma aula.");
         }
         return encontroRepository.findById(encontroId)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Encontro não encontrado."));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Aula não encontrada."));
     }
 
     private Encontro obterEncontroParaRegistro(Long encontroId) {
         Encontro encontro = obterEncontro(encontroId);
         if (encontro.getStatus() == StatusEncontro.CANCELADO) {
             throw new RegraNegocioException(
-                    "Este encontro está cancelado e não pode receber novos registros. Escolha outro encontro.");
+                    "Esta aula está cancelada e não pode receber novos registros. Escolha outra aula.");
         }
         return encontro;
     }
@@ -301,7 +301,7 @@ public class PresencaService {
 
     private String resumoHistorico(RegistroPresencaResumo resumo) {
         return "Presentes: " + resumo.presentes()
-                + " | Ausentes: " + resumo.ausentes()
-                + " | Justificadas: " + resumo.justificadas();
+                + " | Faltas: " + resumo.ausentes()
+                + " | Faltas avisadas: " + resumo.justificadas();
     }
 }

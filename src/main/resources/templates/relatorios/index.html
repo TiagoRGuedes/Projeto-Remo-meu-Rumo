@@ -7,7 +7,7 @@
 <div class="app-shell">
     <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
     <main id="conteudo" class="content" tabindex="-1">
-        <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="@{/}">Visão geral</a><span aria-hidden="true">›</span><span aria-current="page">Relatórios</span></nav>
+        <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="@{/}">Início</a><span aria-hidden="true">›</span><span aria-current="page">Relatórios</span></nav>
         <div class="page-header">
             <div>
                 <p class="eyebrow">Análise e exportação</p>
@@ -20,14 +20,14 @@
         <form class="form-card filters filter-panel reporting-workspace" method="get" th:action="@{/relatorios}">
             <div class="filter-title">
                 <h2>Filtros do relatório</h2>
-                <p class="muted">Defina a atividade e o período antes de gerar ou exportar.</p>
+                <p class="muted">Defina a turma e o período antes de gerar ou exportar.</p>
             </div>
             <div class="field field-medium">
-                <label for="atividadeId">Atividade</label>
+                <label for="atividadeId">Turma</label>
                 <select id="atividadeId" name="atividadeId">
                     <option value="">Todas</option>
                     <option th:each="atividade : ${atividades}" th:value="${atividade.id}" th:text="${atividade.nome}"
-                            th:selected="${atividadeId != null and atividade.id == atividadeId}">Atividade</option>
+                            th:selected="${atividadeId != null and atividade.id == atividadeId}">Turma</option>
                 </select>
             </div>
             <div class="field field-compact">
@@ -45,9 +45,9 @@
 
         <section class="metric-grid module-metrics section-block" aria-label="Resumo do relatório atual">
             <article class="metric metric-featured"><span>Participantes analisados</span><strong th:text="${#lists.size(frequenciaParticipantes)}">0</strong></article>
-            <article class="metric"><span>Atividades analisadas</span><strong th:text="${#lists.size(frequenciaAtividades)}">0</strong></article>
+            <article class="metric"><span>Turmas analisadas</span><strong th:text="${#lists.size(frequenciaAtividades)}">0</strong></article>
             <article class="metric metric-success"><span>Cadastros disponíveis</span><strong th:text="${#lists.size(participantes)}">0</strong></article>
-            <article class="metric"><span>Encontros disponíveis</span><strong th:text="${#lists.size(encontros)}">0</strong></article>
+            <article class="metric"><span>Aulas disponíveis</span><strong th:text="${#lists.size(encontros)}">0</strong></article>
         </section>
 
         <div class="section-header section-header-flow report-results-header section-block">
@@ -63,14 +63,14 @@
                         <thead>
                         <tr>
                             <th scope="col">Nome</th>
-                            <th scope="col">Encontros</th>
+                            <th scope="col">Aulas</th>
                             <th scope="col">Frequência</th>
                         </tr>
                         </thead>
                         <tbody>
                         <tr th:each="item : ${frequenciaParticipantes}">
                             <td class="table-primary" data-label="Participante" th:text="${item.nome()}">Nome</td>
-                            <td data-label="Encontros" th:text="${item.totalEncontros()}">0</td>
+                            <td data-label="Aulas" th:text="${item.totalEncontros()}">0</td>
                             <td data-label="Frequência" th:text="${#numbers.formatDecimal(item.percentual(), 1, 1)} + '%'">0%</td>
                         </tr>
                         <tr th:if="${#lists.isEmpty(frequenciaParticipantes)}">
@@ -83,17 +83,17 @@
             <article class="table-card data-surface">
                 <div class="table-wrapper">
                     <table class="mobile-card-table">
-                        <caption>Frequência por atividade</caption>
+                        <caption>Frequência por turma</caption>
                         <thead>
                         <tr>
-                            <th scope="col">Atividade</th>
+                            <th scope="col">Turma</th>
                             <th scope="col">Registros</th>
                             <th scope="col">Frequência</th>
                         </tr>
                         </thead>
                         <tbody>
                         <tr th:each="item : ${frequenciaAtividades}">
-                            <td class="table-primary" data-label="Atividade" th:text="${item.nome()}">Atividade</td>
+                            <td class="table-primary" data-label="Turma" th:text="${item.nome()}">Turma</td>
                             <td data-label="Registros" th:text="${item.totalEncontros()}">0</td>
                             <td data-label="Frequência" th:text="${#numbers.formatDecimal(item.percentual(), 1, 1)} + '%'">0%</td>
                         </tr>
@@ -129,18 +129,18 @@
         <section class="table-card data-surface section-block">
             <div class="table-wrapper">
                 <table class="mobile-card-table">
-                    <caption>Exportação da presença por encontro</caption>
+                    <caption>Exportação da presença por aula</caption>
                     <thead>
                     <tr>
                         <th scope="col">Data</th>
-                        <th scope="col">Atividade</th>
+                        <th scope="col">Turma</th>
                         <th scope="col">CSV</th>
                     </tr>
                     </thead>
                     <tbody>
                     <tr th:each="encontro : ${encontros}">
                         <td class="table-primary" data-label="Data" th:text="${encontro.data}">Data</td>
-                        <td data-label="Atividade" th:text="${encontro.atividade.nome}">Atividade</td>
+                        <td data-label="Turma" th:text="${encontro.atividade.nome}">Turma</td>
                         <td data-label="Exportação"><a class="button button-link" th:href="@{/relatorios/encontro/{id}.csv(id=${encontro.id})}"><span class="icon icon-download" aria-hidden="true"></span>Exportar presença CSV</a></td>
                     </tr>
                     </tbody>

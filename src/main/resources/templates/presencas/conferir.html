@@ -7,16 +7,16 @@
 <div class="app-shell">
     <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
     <main id="conteudo" class="content" tabindex="-1">
-        <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="@{/}">Visão geral</a><span>›</span><a th:href="@{/presencas/registrar}">Registrar presença</a><span>›</span><span aria-current="page">Conferir</span></nav>
-        <div class="page-header"><div><p class="eyebrow">Etapa 4 de 5</p><h1>Revise a chamada</h1><p class="muted" th:text="${encontro.atividade.nome + ' · encontro de ' + encontro.data}">Atividade · data</p></div></div>
+        <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="@{/}">Início</a><span>›</span><a th:href="@{/presencas/registrar}">Fazer chamada</a><span>›</span><span aria-current="page">Conferir</span></nav>
+        <div class="page-header"><div><p class="eyebrow">Etapa 4 de 5</p><h1>Revise a chamada</h1><p class="muted" th:text="${encontro.atividade.nome + ' · aula de ' + encontro.data}">Turma · data</p></div></div>
 
         <ol class="workflow-progress" aria-label="Etapas do registro de presença">
-            <li class="complete"><span>01</span>Atividade</li><li class="complete"><span>02</span>Encontro</li><li class="complete"><span>03</span>Presenças</li><li class="current"><span>04</span>Revisar</li><li><span>05</span>Confirmar</li>
+            <li class="complete"><span>01</span>Turma</li><li class="complete"><span>02</span>Aula</li><li class="complete"><span>03</span>Presenças</li><li class="current"><span>04</span>Revisar</li><li><span>05</span>Confirmar</li>
         </ol>
 
         <section class="review-summary" aria-labelledby="resumo-conferencia-titulo">
             <div><p class="eyebrow">Resumo</p><h2 id="resumo-conferencia-titulo" th:text="${resumoConferencia.total() == 1 ? '1 participante' : resumoConferencia.total() + ' participantes'}">0 participantes</h2><p>Nada foi salvo. A confirmação final vem na próxima etapa.</p></div>
-            <dl class="success-counts"><div><dt>Presentes</dt><dd th:text="${resumoConferencia.presentes()}">0</dd></div><div><dt>Ausentes</dt><dd th:text="${resumoConferencia.ausentes()}">0</dd></div><div><dt>Justificadas</dt><dd th:text="${resumoConferencia.justificadas()}">0</dd></div></dl>
+            <dl class="success-counts"><div><dt>Presentes</dt><dd th:text="${resumoConferencia.presentes()}">0</dd></div><div><dt>Faltas</dt><dd th:text="${resumoConferencia.ausentes()}">0</dd></div><div><dt>Faltas avisadas</dt><dd th:text="${resumoConferencia.justificadas()}">0</dd></div></dl>
         </section>
 
         <form method="post" th:action="@{/presencas/registrar}" class="section-block">

@@ -2,8 +2,8 @@ package com.ibmec.remomeurumo.model;
 
 public enum StatusPresenca {
     PRESENTE("Presente"),
-    AUSENTE("Ausente"),
-    JUSTIFICADA("Justificada");
+    AUSENTE("Falta"),
+    JUSTIFICADA("Falta avisada");
 
     private final String descricao;
 

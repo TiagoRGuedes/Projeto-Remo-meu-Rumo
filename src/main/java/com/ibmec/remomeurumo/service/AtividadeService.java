@@ -71,7 +71,7 @@ public class AtividadeService {
     @Transactional(readOnly = true)
     public Atividade obter(Long id) {
         return atividadeRepository.findById(id)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Atividade não encontrada."));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Turma não encontrada."));
     }
 
     @Transactional
@@ -79,8 +79,8 @@ public class AtividadeService {
         validar(atividade);
         atividade.setNome(atividade.getNome().trim());
         Atividade salva = atividadeRepository.save(atividade);
-        historicoService.registrar(ModuloHistorico.ATIVIDADES, "Atividade", salva.getId(), salva.getNome(),
-                AcaoHistorico.CRIACAO, "Atividade cadastrada no sistema. Grade: " + salva.getGradeResumo() + ".");
+        historicoService.registrar(ModuloHistorico.ATIVIDADES, "Turma", salva.getId(), salva.getNome(),
+                AcaoHistorico.CRIACAO, "Turma cadastrada no sistema. Grade: " + salva.getGradeResumo() + ".");
         return salva;
     }
 
@@ -94,8 +94,8 @@ public class AtividadeService {
         atividade.setDiasSemana(dados.getDiasSemana());
         atividade.setHorario(dados.getHorario());
         Atividade salva = atividadeRepository.save(atividade);
-        historicoService.registrar(ModuloHistorico.ATIVIDADES, "Atividade", salva.getId(), salva.getNome(),
-                AcaoHistorico.EDICAO, "Os dados da atividade foram atualizados.",
+        historicoService.registrar(ModuloHistorico.ATIVIDADES, "Turma", salva.getId(), salva.getNome(),
+                AcaoHistorico.EDICAO, "Os dados da turma foram atualizados.",
                 detalhesAnteriores, resumoAtividade(salva));
         return salva;
     }
@@ -108,8 +108,8 @@ public class AtividadeService {
         }
         atividade.ativar();
         atividadeRepository.save(atividade);
-        historicoService.registrar(ModuloHistorico.ATIVIDADES, "Atividade", atividade.getId(), atividade.getNome(),
-                AcaoHistorico.ATIVACAO, "Atividade ativada para novos encontros.");
+        historicoService.registrar(ModuloHistorico.ATIVIDADES, "Turma", atividade.getId(), atividade.getNome(),
+                AcaoHistorico.ATIVACAO, "Turma ativada para novas aulas.");
     }
 
     @Transactional
@@ -120,8 +120,8 @@ public class AtividadeService {
         }
         atividade.desativar();
         atividadeRepository.save(atividade);
-        historicoService.registrar(ModuloHistorico.ATIVIDADES, "Atividade", atividade.getId(), atividade.getNome(),
-                AcaoHistorico.DESATIVACAO, "Atividade desativada. Os encontros anteriores foram preservados.");
+        historicoService.registrar(ModuloHistorico.ATIVIDADES, "Turma", atividade.getId(), atividade.getNome(),
+                AcaoHistorico.DESATIVACAO, "Turma desativada. As aulas anteriores foram preservadas.");
     }
 
     @Transactional(readOnly = true)
@@ -141,14 +141,14 @@ public class AtividadeService {
         Atividade atividade = obter(id);
         if (encontroRepository.existsByAtividadeId(id)) {
             throw new RegraNegocioException(
-                    "Esta atividade possui encontros e não pode ser excluída. Desative-a para preservar o histórico.");
+                    "Esta turma possui aulas e não pode ser excluída. Desative-a para preservar o histórico.");
         }
         if (matriculaRepository.existsByAtividadeId(id)) {
             throw new RegraNegocioException(
                     "Esta turma possui matrículas e não pode ser excluída. Desative-a para preservar o histórico.");
         }
-        historicoService.registrar(ModuloHistorico.ATIVIDADES, "Atividade", atividade.getId(), atividade.getNome(),
-                AcaoHistorico.EXCLUSAO, "Atividade excluída definitivamente porque não possuía encontros.");
+        historicoService.registrar(ModuloHistorico.ATIVIDADES, "Turma", atividade.getId(), atividade.getNome(),
+                AcaoHistorico.EXCLUSAO, "Turma excluída definitivamente porque não possuía aulas.");
         atividadeRepository.delete(atividade);
     }
 
@@ -164,7 +164,7 @@ public class AtividadeService {
 
     private void validar(Atividade atividade) {
         if (atividade == null || !temTexto(atividade.getNome())) {
-            throw new RegraNegocioException("Informe o nome da atividade.");
+            throw new RegraNegocioException("Informe o nome da turma.");
         }
     }
 

@@ -36,7 +36,7 @@ public class Atividade {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Informe o nome da atividade.")
+    @NotBlank(message = "Informe o nome da turma.")
     @Size(max = 120, message = "O nome deve ter no máximo 120 caracteres.")
     @Column(nullable = false, length = 120)
     private String nome;

@@ -4,7 +4,7 @@
 <body th:class="${temaClasses}">
 <a class="skip-link" href="#conteudo">Pular para o conteúdo</a><header th:replace="~{fragments/header :: header}"></header>
 <div class="app-shell"><nav th:replace="~{fragments/sidebar :: sidebar}"></nav><main id="conteudo" class="content" tabindex="-1">
-    <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="@{/}">Visão geral</a><span>›</span><a th:href="@{/participantes}">Participantes</a><span>›</span><a th:href="@{/participantes/{id}(id=${participante.id})}" th:text="${participante.nome}">Participante</a><span>›</span><span aria-current="page">Excluir</span></nav>
+    <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="@{/}">Início</a><span>›</span><a th:href="@{/participantes}">Participantes</a><span>›</span><a th:href="@{/participantes/{id}(id=${participante.id})}" th:text="${participante.nome}">Participante</a><span>›</span><span aria-current="page">Excluir</span></nav>
     <a class="back-link" th:href="@{/participantes/{id}(id=${participante.id})}"><span class="icon icon-back" aria-hidden="true"></span>Voltar sem excluir</a>
     <section class="confirmation-panel" th:classappend="${podeExcluir} ? '' : ' confirmation-blocked'">
         <span class="confirmation-icon"><span class="icon" th:classappend="${podeExcluir} ? ' icon-info' : ' icon-shield'" aria-hidden="true"></span></span>
