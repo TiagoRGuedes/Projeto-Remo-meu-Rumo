@@ -57,7 +57,7 @@ public class PresencaWebController {
 
     @GetMapping
     public String presencas() {
-        return "redirect:/presencas/registrar";
+        return "redirect:/chamada";
     }
 
     @GetMapping("/registrar")
@@ -65,7 +65,11 @@ public class PresencaWebController {
             @RequestParam(required = false) Long encontroId,
             @RequestParam(required = false) String busca,
             @RequestParam(required = false) String marcar,
+            @RequestParam(required = false) String completa,
             Model model) {
+        if (atividadeId == null && encontroId == null && busca == null && completa == null) {
+            return "redirect:/chamada";
+        }
         preencherPagina(atividadeId, encontroId, busca, marcar, null, model);
         return "presencas/registrar";
     }

@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Chamada')}"></head>
+<body th:class="${temaClasses}">
+<a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+<header th:replace="~{fragments/header :: header}"></header>
+<div class="app-shell">
+    <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
+    <main id="conteudo" class="content" tabindex="-1">
+        <div th:replace="~{fragments/mensagens :: mensagens}"></div>
+        <div class="page-header">
+            <div>
+                <h1>Chamada</h1>
+                <p class="muted">Escolha a aula. A lista mostra só quem está matriculado na turma.</p>
+            </div>
+        </div>
+
+        <section class="painel-card" aria-labelledby="hoje-titulo">
+            <div class="painel-card-topo"><h2 id="hoje-titulo">Hoje</h2></div>
+            <ul class="lista-chamadas" th:if="${!#lists.isEmpty(sessoesDeHoje)}">
+                <li th:each="sessao : ${sessoesDeHoje}">
+                    <a th:href="@{/chamada/{id}(id=${sessao.turmaId()}, data=${sessao.data()})}">
+                        <span class="lista-chamadas-hora" th:text="${sessao.hora()}">14h00</span>
+                        <span class="lista-chamadas-turma">
+                            <strong th:text="${sessao.turma()}">Turma</strong>
+                            <small th:text="${sessao.participantes() + ' participantes · ' + sessao.grade()}">8 participantes</small>
+                        </span>
+                        <span class="tag-sessao" th:classappend="${'tag-' + #strings.toLowerCase(#strings.replace(sessao.situacao(), ' ', '-'))}" th:text="${sessao.situacao()}">Agora</span>
+                    </a>
+                </li>
+            </ul>
+            <p class="painel-vazio" th:if="${#lists.isEmpty(sessoesDeHoje)}">Nenhuma aula na grade de hoje.</p>
+        </section>
+
+        <section class="painel-card section-block" aria-labelledby="pendentes-titulo">
+            <div class="painel-card-topo"><h2 id="pendentes-titulo">Aulas anteriores sem chamada</h2></div>
+            <ul class="lista-chamadas" th:if="${!#lists.isEmpty(pendentes)}">
+                <li th:each="sessao : ${pendentes}">
+                    <a th:href="@{/chamada/{id}(id=${sessao.turmaId()}, data=${sessao.data()})}">
+                        <span class="lista-chamadas-hora" th:text="${sessao.quando()}">Ontem</span>
+                        <span class="lista-chamadas-turma">
+                            <strong th:text="${sessao.turma()}">Turma</strong>
+                            <small th:text="${sessao.participantes() + ' participantes · ' + sessao.grade()}">8 participantes</small>
+                        </span>
+                        <span class="tag-sessao tag-pendente">Pendente</span>
+                    </a>
+                </li>
+            </ul>
+            <p class="painel-vazio" th:if="${#lists.isEmpty(pendentes)}">Nenhuma chamada atrasada nos últimos 14 dias.</p>
+        </section>
+
+        <section class="painel-card section-block" aria-labelledby="outra-titulo">
+            <div class="painel-card-topo"><h2 id="outra-titulo">Outra data</h2></div>
+            <form class="inline-form" method="get" th:action="@{/chamada/escolher}">
+                <div class="field">
+                    <label for="turmaId">Turma</label>
+                    <select id="turmaId" name="turmaId" required>
+                        <option th:each="turma : ${turmas}" th:value="${turma.id}" th:text="${turma.nome + ' · ' + turma.gradeResumo}">Turma</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="data">Data da aula</label>
+                    <input id="data" type="date" name="data" th:value="${hoje}" th:max="${hoje}" required>
+                </div>
+                <button class="button button-primary" type="submit">Abrir chamada</button>
+            </form>
+            <p class="muted">Precisa da tela antiga, com busca e observação por pessoa? Use a <a th:href="@{/presencas/registrar(completa=1)}">chamada completa</a>.</p>
+        </section>
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
+    </main>
+</div>
+</body>
+</html>

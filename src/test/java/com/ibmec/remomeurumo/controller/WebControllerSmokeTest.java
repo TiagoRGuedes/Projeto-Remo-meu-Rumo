@@ -25,7 +25,9 @@ class WebControllerSmokeTest {
         assertOk("/participantes");
         assertOk("/atividades");
         assertOk("/encontros");
-        assertOk("/presencas/registrar");
+        assertRedirect("/presencas/registrar", "/chamada");
+        assertOk("/presencas/registrar?completa=1");
+        assertOk("/chamada?lista=1");
         assertOk("/frequencia");
         assertOk("/relatorios");
         assertOk("/historico");
@@ -93,6 +95,25 @@ class WebControllerSmokeTest {
         assertOkComTexto("/atividades/1", "Matrículas da turma");
         assertOkComTexto("/frequencia", "Frequência mensal por turma");
         assertOkComTexto("/frequencia?atividadeId=1", "Participantes da turma no mês");
+    }
+
+    @Test
+    void inicioMostraPrioridadesDoMes() throws Exception {
+        HttpResponse<String> response = get("/");
+
+        assertThat(response.statusCode()).isEqualTo(200);
+        assertThat(response.body()).contains("Frequência do mês", "Precisam de contato", "Chamadas pendentes",
+                "Frequência por turma", "Fazer chamada");
+        assertThat(response.body()).doesNotContain("Centro de operações", "Pulso da operação");
+    }
+
+    @Test
+    void chamadaDeUmaTurmaAbreComMatriculados() throws Exception {
+        HttpResponse<String> response = get("/chamada/1?data=" + java.time.LocalDate.now().minusDays(1));
+
+        assertThat(response.statusCode()).isIn(200, 302);
+        HttpResponse<String> lista = get("/chamada?lista=1");
+        assertThat(lista.body()).contains("Aulas anteriores sem chamada", "Outra data");
     }
 
     @Test

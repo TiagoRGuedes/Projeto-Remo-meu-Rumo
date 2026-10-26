@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -131,9 +132,24 @@ public class FrequenciaService {
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Turma não encontrada."));
     }
 
+    @Transactional(readOnly = true)
+    public Map<Long, Long> faltasAntesDe(Long turmaId, LocalDate data) {
+        YearMonth mes = YearMonth.from(data);
+        Map<Long, Long> faltas = new LinkedHashMap<>();
+        if (data.getDayOfMonth() == 1) {
+            return faltas;
+        }
+        for (FrequenciaMensal linha : linhasDoPeriodo(obterTurma(turmaId), mes, mes.atDay(1), data.minusDays(1))) {
+            faltas.put(linha.participanteId(), linha.faltas());
+        }
+        return faltas;
+    }
+
     private List<FrequenciaMensal> linhasMensaisDaTurma(Atividade turma, YearMonth mes) {
-        LocalDate inicio = mes.atDay(1);
-        LocalDate fim = limiteDoMes(mes);
+        return linhasDoPeriodo(turma, mes, mes.atDay(1), limiteDoMes(mes));
+    }
+
+    private List<FrequenciaMensal> linhasDoPeriodo(Atividade turma, YearMonth mes, LocalDate inicio, LocalDate fim) {
         List<Encontro> aulas = encontroRepository.findByAtividadeIdAndStatusNotAndDataBetweenOrderByDataAsc(
                 turma.getId(), StatusEncontro.CANCELADO, inicio, fim);
         Map<Long, List<Presenca>> presencasPorParticipante = presencaRepository
