@@ -78,4 +78,33 @@ public interface PresencaRepository extends JpaRepository<Presenca, Long> {
             where p.encontro.atividade.id = :atividadeId
             """)
     long contarParticipantesPorAtividade(@Param("atividadeId") Long atividadeId);
+
+    @Query("""
+            select p from Presenca p
+            join fetch p.participante participante
+            join fetch p.encontro encontro
+            where encontro.atividade.id = :atividadeId
+              and encontro.status <> com.ibmec.remomeurumo.model.StatusEncontro.CANCELADO
+              and encontro.data between :inicio and :fim
+            order by encontro.data asc, participante.nome asc
+            """)
+    List<Presenca> listarPorTurmaNoPeriodo(
+            @Param("atividadeId") Long atividadeId,
+            @Param("inicio") LocalDate inicio,
+            @Param("fim") LocalDate fim);
+
+    @Query("""
+            select count(p) from Presenca p
+            where p.participante.id = :participanteId
+              and p.encontro.atividade.id = :atividadeId
+              and p.status = :status
+              and p.encontro.status <> com.ibmec.remomeurumo.model.StatusEncontro.CANCELADO
+              and p.encontro.data between :inicio and :fim
+            """)
+    long contarPorParticipanteTurmaEStatus(
+            @Param("participanteId") Long participanteId,
+            @Param("atividadeId") Long atividadeId,
+            @Param("status") StatusPresenca status,
+            @Param("inicio") LocalDate inicio,
+            @Param("fim") LocalDate fim);
 }

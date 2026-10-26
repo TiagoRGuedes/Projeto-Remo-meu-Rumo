@@ -1,6 +1,8 @@
 package com.ibmec.remomeurumo.service;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -9,19 +11,168 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.ibmec.remomeurumo.dto.FrequenciaMensal;
+import com.ibmec.remomeurumo.dto.FrequenciaMensalParticipante;
 import com.ibmec.remomeurumo.dto.FrequenciaResumo;
 import com.ibmec.remomeurumo.dto.ResumoFrequenciaDashboard;
+import com.ibmec.remomeurumo.dto.ResumoMensalTurma;
+import com.ibmec.remomeurumo.exception.RecursoNaoEncontradoException;
+import com.ibmec.remomeurumo.model.Atividade;
+import com.ibmec.remomeurumo.model.Matricula;
 import com.ibmec.remomeurumo.model.Presenca;
+import com.ibmec.remomeurumo.model.StatusEncontro;
 import com.ibmec.remomeurumo.model.StatusPresenca;
+import com.ibmec.remomeurumo.repository.AtividadeRepository;
+import com.ibmec.remomeurumo.repository.EncontroRepository;
+import com.ibmec.remomeurumo.repository.MatriculaRepository;
+import com.ibmec.remomeurumo.repository.ParticipanteRepository;
 import com.ibmec.remomeurumo.repository.PresencaRepository;
 
 @Service
 public class FrequenciaService {
 
-    private final PresencaRepository presencaRepository;
+    public static final int LIMITE_FALTAS_MES = 3;
 
-    public FrequenciaService(PresencaRepository presencaRepository) {
+    public static final double META_FREQUENCIA_MENSAL = 60.0;
+
+    private final PresencaRepository presencaRepository;
+    private final EncontroRepository encontroRepository;
+    private final MatriculaRepository matriculaRepository;
+    private final ParticipanteRepository participanteRepository;
+    private final AtividadeRepository atividadeRepository;
+
+    public FrequenciaService(PresencaRepository presencaRepository,
+            EncontroRepository encontroRepository,
+            MatriculaRepository matriculaRepository,
+            ParticipanteRepository participanteRepository,
+            AtividadeRepository atividadeRepository) {
         this.presencaRepository = presencaRepository;
+        this.encontroRepository = encontroRepository;
+        this.matriculaRepository = matriculaRepository;
+        this.participanteRepository = participanteRepository;
+        this.atividadeRepository = atividadeRepository;
+    }
+
+    @Transactional(readOnly = true)
+    public FrequenciaMensalParticipante frequenciaMensalDoParticipante(Long participanteId, YearMonth mes) {
+        var participante = participanteRepository.findById(participanteId)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Participante não encontrado."));
+        LocalDate inicio = mes.atDay(1);
+        LocalDate fim = mes.atEndOfMonth();
+
+        List<FrequenciaMensal> porTurma = new ArrayList<>();
+        long totalPrevistas = 0;
+        long totalPresencas = 0;
+        long totalJustificadas = 0;
+        for (Matricula matricula : matriculaRepository.listarPorParticipante(participanteId)) {
+            if (!matricula.vigenteAPartirDe(inicio)) {
+                continue;
+            }
+            FrequenciaMensal linha = calcular(participanteId, participante.getNome(),
+                    matricula.getAtividade(), mes, inicio, fim);
+            porTurma.add(linha);
+            totalPrevistas += linha.aulasPrevistas();
+            totalPresencas += linha.presencas();
+            totalJustificadas += linha.faltasJustificadas();
+        }
+
+        FrequenciaMensal consolidado = montar(participanteId, participante.getNome(), null, null,
+                mes, totalPrevistas, totalPresencas, totalJustificadas);
+        return new FrequenciaMensalParticipante(consolidado, porTurma);
+    }
+
+    @Transactional(readOnly = true)
+    public ResumoMensalTurma resumoMensalDaTurma(Long turmaId, YearMonth mes) {
+        Atividade turma = atividadeRepository.findById(turmaId)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Turma não encontrada."));
+        List<FrequenciaMensal> linhas = linhasMensaisDaTurma(turma, mes);
+
+        long aulasPrevistas = linhas.isEmpty()
+                ? encontroRepository.countByAtividadeIdAndStatusNotAndDataBetween(
+                        turmaId, StatusEncontro.CANCELADO, mes.atDay(1), mes.atEndOfMonth())
+                : linhas.get(0).aulasPrevistas();
+        long presencasRegistradas = linhas.stream().mapToLong(FrequenciaMensal::presencas).sum();
+        long presencasEsperadas = aulasPrevistas * linhas.size();
+        double percentual = presencasEsperadas == 0 ? 0
+                : arredondar(presencasRegistradas * 100.0 / presencasEsperadas);
+        List<FrequenciaMensal> faltosos = linhas.stream()
+                .filter(FrequenciaMensal::contatoNecessario)
+                .sorted(Comparator.comparingLong(FrequenciaMensal::faltas).reversed()
+                        .thenComparing(FrequenciaMensal::participante))
+                .toList();
+
+        return new ResumoMensalTurma(turma.getId(), turma.getNome(), turma.getGradeResumo(), mes.toString(),
+                aulasPrevistas, linhas.size(), presencasEsperadas, presencasRegistradas, percentual,
+                presencasEsperadas > 0 && percentual < META_FREQUENCIA_MENSAL, faltosos);
+    }
+
+    @Transactional(readOnly = true)
+    public List<FrequenciaMensal> linhasMensaisDaTurma(Long turmaId, YearMonth mes) {
+        Atividade turma = atividadeRepository.findById(turmaId)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Turma não encontrada."));
+        return linhasMensaisDaTurma(turma, mes);
+    }
+
+    @Transactional(readOnly = true)
+    public List<FrequenciaMensal> faltososDaTurma(Long turmaId, YearMonth mes) {
+        return resumoMensalDaTurma(turmaId, mes).faltosos();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ResumoMensalTurma> resumoMensalDasTurmas(YearMonth mes) {
+        return atividadeRepository.findByAtivoTrueOrderByNomeAsc().stream()
+                .map(turma -> resumoMensalDaTurma(turma.getId(), mes))
+                .toList();
+    }
+
+    private List<FrequenciaMensal> linhasMensaisDaTurma(Atividade turma, YearMonth mes) {
+        LocalDate inicio = mes.atDay(1);
+        LocalDate fim = mes.atEndOfMonth();
+        long aulasPrevistas = encontroRepository.countByAtividadeIdAndStatusNotAndDataBetween(
+                turma.getId(), StatusEncontro.CANCELADO, inicio, fim);
+
+        Map<Long, List<Presenca>> presencasPorParticipante = presencaRepository
+                .listarPorTurmaNoPeriodo(turma.getId(), inicio, fim).stream()
+                .collect(Collectors.groupingBy(presenca -> presenca.getParticipante().getId()));
+
+        List<FrequenciaMensal> linhas = new ArrayList<>();
+        for (Matricula matricula : matriculaRepository.listarPorTurma(turma.getId())) {
+            if (!matricula.vigenteAPartirDe(inicio)) {
+                continue;
+            }
+            List<Presenca> presencas = presencasPorParticipante
+                    .getOrDefault(matricula.getParticipante().getId(), List.of());
+            linhas.add(montar(matricula.getParticipante().getId(), matricula.getParticipante().getNome(),
+                    turma.getId(), turma.getNome(), mes, aulasPrevistas,
+                    contar(presencas, StatusPresenca.PRESENTE),
+                    contar(presencas, StatusPresenca.JUSTIFICADA)));
+        }
+        return linhas;
+    }
+
+    private FrequenciaMensal calcular(Long participanteId, String nomeParticipante, Atividade turma,
+            YearMonth mes, LocalDate inicio, LocalDate fim) {
+        long aulasPrevistas = encontroRepository.countByAtividadeIdAndStatusNotAndDataBetween(
+                turma.getId(), StatusEncontro.CANCELADO, inicio, fim);
+        long presencas = presencaRepository.contarPorParticipanteTurmaEStatus(
+                participanteId, turma.getId(), StatusPresenca.PRESENTE, inicio, fim);
+        long justificadas = presencaRepository.contarPorParticipanteTurmaEStatus(
+                participanteId, turma.getId(), StatusPresenca.JUSTIFICADA, inicio, fim);
+        return montar(participanteId, nomeParticipante, turma.getId(), turma.getNome(),
+                mes, aulasPrevistas, presencas, justificadas);
+    }
+
+    private FrequenciaMensal montar(Long participanteId, String nomeParticipante, Long turmaId, String nomeTurma,
+            YearMonth mes, long aulasPrevistas, long presencas, long justificadas) {
+        long presencasConsideradas = Math.min(presencas, aulasPrevistas);
+        long faltas = Math.max(0, aulasPrevistas - presencasConsideradas);
+        long justificadasConsideradas = Math.min(justificadas, faltas);
+        double percentual = aulasPrevistas == 0 ? 0
+                : arredondar(presencasConsideradas * 100.0 / aulasPrevistas);
+        return new FrequenciaMensal(participanteId, nomeParticipante, turmaId, nomeTurma, mes.toString(),
+                aulasPrevistas, presencasConsideradas, faltas, justificadasConsideradas, percentual,
+                faltas > LIMITE_FALTAS_MES,
+                aulasPrevistas > 0 && percentual < META_FREQUENCIA_MENSAL);
     }
 
     @Transactional(readOnly = true)

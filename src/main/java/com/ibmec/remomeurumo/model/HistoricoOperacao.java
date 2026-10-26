@@ -127,6 +127,7 @@ public class HistoricoOperacao {
         return switch (modulo) {
             case PARTICIPANTES -> "/participantes/" + entidadeId;
             case ATIVIDADES -> "/atividades/" + entidadeId;
+            case MATRICULAS -> "/participantes/" + entidadeId;
             case ENCONTROS, PRESENCAS -> "/encontros/" + entidadeId;
         };
     }

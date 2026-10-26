@@ -13,20 +13,30 @@ import com.ibmec.remomeurumo.model.Atividade;
 import com.ibmec.remomeurumo.model.ModuloHistorico;
 import com.ibmec.remomeurumo.repository.AtividadeRepository;
 import com.ibmec.remomeurumo.repository.EncontroRepository;
+import com.ibmec.remomeurumo.repository.MatriculaRepository;
 
 @Service
 public class AtividadeService {
 
     private final AtividadeRepository atividadeRepository;
     private final EncontroRepository encontroRepository;
+    private final MatriculaRepository matriculaRepository;
     private final HistoricoOperacaoService historicoService;
 
     public AtividadeService(AtividadeRepository atividadeRepository,
             EncontroRepository encontroRepository,
+            MatriculaRepository matriculaRepository,
             HistoricoOperacaoService historicoService) {
         this.atividadeRepository = atividadeRepository;
         this.encontroRepository = encontroRepository;
+        this.matriculaRepository = matriculaRepository;
         this.historicoService = historicoService;
+    }
+
+    private String resumoAtividade(Atividade atividade) {
+        return "Nome: " + atividade.getNome()
+                + " | Grade: " + atividade.getGradeResumo()
+                + " | Situação: " + (atividade.isAtivo() ? "Ativa" : "Inativa");
     }
 
     @Transactional(readOnly = true)
@@ -70,7 +80,7 @@ public class AtividadeService {
         atividade.setNome(atividade.getNome().trim());
         Atividade salva = atividadeRepository.save(atividade);
         historicoService.registrar(ModuloHistorico.ATIVIDADES, "Atividade", salva.getId(), salva.getNome(),
-                AcaoHistorico.CRIACAO, "Atividade cadastrada no sistema.");
+                AcaoHistorico.CRIACAO, "Atividade cadastrada no sistema. Grade: " + salva.getGradeResumo() + ".");
         return salva;
     }
 
@@ -78,15 +88,15 @@ public class AtividadeService {
     public Atividade atualizar(Long id, Atividade dados) {
         validar(dados);
         Atividade atividade = obter(id);
-        String detalhesAnteriores = "Nome: " + atividade.getNome()
-                + " | Situação: " + (atividade.isAtivo() ? "Ativa" : "Inativa");
+        String detalhesAnteriores = resumoAtividade(atividade);
         atividade.setNome(dados.getNome().trim());
         atividade.setDescricao(dados.getDescricao());
+        atividade.setDiasSemana(dados.getDiasSemana());
+        atividade.setHorario(dados.getHorario());
         Atividade salva = atividadeRepository.save(atividade);
         historicoService.registrar(ModuloHistorico.ATIVIDADES, "Atividade", salva.getId(), salva.getNome(),
                 AcaoHistorico.EDICAO, "Os dados da atividade foram atualizados.",
-                detalhesAnteriores,
-                "Nome: " + salva.getNome() + " | Situação: " + (salva.isAtivo() ? "Ativa" : "Inativa"));
+                detalhesAnteriores, resumoAtividade(salva));
         return salva;
     }
 
@@ -117,7 +127,7 @@ public class AtividadeService {
     @Transactional(readOnly = true)
     public boolean podeExcluir(Long id) {
         obter(id);
-        return !encontroRepository.existsByAtividadeId(id);
+        return !encontroRepository.existsByAtividadeId(id) && !matriculaRepository.existsByAtividadeId(id);
     }
 
     @Transactional(readOnly = true)
@@ -132,6 +142,10 @@ public class AtividadeService {
         if (encontroRepository.existsByAtividadeId(id)) {
             throw new RegraNegocioException(
                     "Esta atividade possui encontros e não pode ser excluída. Desative-a para preservar o histórico.");
+        }
+        if (matriculaRepository.existsByAtividadeId(id)) {
+            throw new RegraNegocioException(
+                    "Esta turma possui matrículas e não pode ser excluída. Desative-a para preservar o histórico.");
         }
         historicoService.registrar(ModuloHistorico.ATIVIDADES, "Atividade", atividade.getId(), atividade.getNome(),
                 AcaoHistorico.EXCLUSAO, "Atividade excluída definitivamente porque não possuía encontros.");

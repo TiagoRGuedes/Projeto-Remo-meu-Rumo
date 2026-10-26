@@ -1,9 +1,13 @@
 package com.ibmec.remomeurumo.model;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Period;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -11,6 +15,7 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Size;
 
 @Entity
@@ -25,6 +30,23 @@ public class Participante {
     @Size(max = 120, message = "O nome deve ter no máximo 120 caracteres.")
     @Column(nullable = false, length = 120)
     private String nome;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private Sexo sexo = Sexo.NAO_INFORMADO;
+
+    @Past(message = "A data de nascimento deve ser anterior a hoje.")
+    private LocalDate dataNascimento;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private TipoEscola tipoEscola = TipoEscola.NAO_INFORMADO;
+
+    private Boolean possuiDeficiencia;
+
+    @Size(max = 80, message = "A referência do laudo deve ter no máximo 80 caracteres.")
+    @Column(length = 80)
+    private String laudoReferencia;
 
     @Column(nullable = false)
     private boolean ativo = true;
@@ -48,6 +70,18 @@ public class Participante {
         this.ativo = true;
     }
 
+    public Participante(String nome, Sexo sexo, LocalDate dataNascimento, TipoEscola tipoEscola,
+            Boolean possuiDeficiencia, String laudoReferencia, String observacoes) {
+        this.nome = nome;
+        this.sexo = sexo == null ? Sexo.NAO_INFORMADO : sexo;
+        this.dataNascimento = dataNascimento;
+        this.tipoEscola = tipoEscola == null ? TipoEscola.NAO_INFORMADO : tipoEscola;
+        this.possuiDeficiencia = possuiDeficiencia;
+        this.laudoReferencia = laudoReferencia;
+        this.observacoes = observacoes;
+        this.ativo = true;
+    }
+
     @PrePersist
     public void antesDeCadastrar() {
         LocalDateTime agora = LocalDateTime.now();
@@ -56,6 +90,12 @@ public class Participante {
         }
         if (this.dataAtualizacao == null) {
             this.dataAtualizacao = this.dataCadastro;
+        }
+        if (this.sexo == null) {
+            this.sexo = Sexo.NAO_INFORMADO;
+        }
+        if (this.tipoEscola == null) {
+            this.tipoEscola = TipoEscola.NAO_INFORMADO;
         }
     }
 
@@ -72,6 +112,32 @@ public class Participante {
         this.ativo = false;
     }
 
+    public Integer getIdade() {
+        if (dataNascimento == null) {
+            return null;
+        }
+        return Period.between(dataNascimento, LocalDate.now()).getYears();
+    }
+
+    public String getCodigoDeficiencia() {
+        if (possuiDeficiencia == null) {
+            return "—";
+        }
+        return possuiDeficiencia ? "CD" : "SD";
+    }
+
+    public String getDescricaoDeficiencia() {
+        if (possuiDeficiencia == null) {
+            return "Não informado";
+        }
+        return possuiDeficiencia ? "Com deficiência (CD)" : "Sem deficiência (SD)";
+    }
+
+    public boolean isLaudoPendente() {
+        return Boolean.TRUE.equals(possuiDeficiencia)
+                && (laudoReferencia == null || laudoReferencia.isBlank());
+    }
+
     public Long getId() {
         return id;
     }
@@ -86,6 +152,46 @@ public class Participante {
 
     public void setNome(String nome) {
         this.nome = nome;
+    }
+
+    public Sexo getSexo() {
+        return sexo;
+    }
+
+    public void setSexo(Sexo sexo) {
+        this.sexo = sexo;
+    }
+
+    public LocalDate getDataNascimento() {
+        return dataNascimento;
+    }
+
+    public void setDataNascimento(LocalDate dataNascimento) {
+        this.dataNascimento = dataNascimento;
+    }
+
+    public TipoEscola getTipoEscola() {
+        return tipoEscola;
+    }
+
+    public void setTipoEscola(TipoEscola tipoEscola) {
+        this.tipoEscola = tipoEscola;
+    }
+
+    public Boolean getPossuiDeficiencia() {
+        return possuiDeficiencia;
+    }
+
+    public void setPossuiDeficiencia(Boolean possuiDeficiencia) {
+        this.possuiDeficiencia = possuiDeficiencia;
+    }
+
+    public String getLaudoReferencia() {
+        return laudoReferencia;
+    }
+
+    public void setLaudoReferencia(String laudoReferencia) {
+        this.laudoReferencia = laudoReferencia;
     }
 
     public boolean isAtivo() {
