@@ -2,7 +2,13 @@
 
 ## Rotas web
 
-- `GET /`
+- `GET /?mes=AAAA-MM`
+- `GET /chamada` (abre a turma do horário atual ou a lista de chamadas)
+- `GET /chamada?lista=1`
+- `GET /chamada/escolher?turmaId={id}&data=AAAA-MM-DD`
+- `GET /chamada/{turmaId}?data=AAAA-MM-DD`
+- `POST /chamada/{turmaId}`
+- `GET /presencas/registrar?completa=1` (chamada completa; sem parâmetros redireciona para `/chamada`)
 - `GET /participantes`
 - `GET /participantes/novo`
 - `POST /participantes/novo`

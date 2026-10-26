@@ -105,9 +105,10 @@ public class DataLoader implements CommandLineRunner {
         List<Participante> participantes = criarParticipantes();
         List<Atividade> turmas = criarTurmas();
         Map<Long, List<Participante>> matriculados = criarMatriculas(turmas, participantes, inicioDados);
-        for (Atividade turma : turmas) {
+        for (int indice = 0; indice < turmas.size(); indice++) {
+            Atividade turma = turmas.get(indice);
             List<Encontro> aulas = criarAulas(turma, inicioDados, hoje);
-            criarPresencas(aulas, matriculados.getOrDefault(turma.getId(), List.of()));
+            criarPresencas(aulas, matriculados.getOrDefault(turma.getId(), List.of()), indice == 1 || indice == 3);
         }
 
         Matricula saida = matriculaService.listarPorParticipante(participantes.get(5).getId()).get(0);
@@ -220,12 +221,17 @@ public class DataLoader implements CommandLineRunner {
         return aulas;
     }
 
-    private void criarPresencas(List<Encontro> aulas, List<Participante> turma) {
+    private void criarPresencas(List<Encontro> aulas, List<Participante> turma, boolean deixarUltimaPendente) {
         LocalDate hoje = LocalDate.now();
+        Encontro ultimaRealizada = aulas.stream()
+                .filter(aula -> aula.getStatus() == StatusEncontro.REALIZADO && aula.getData().isBefore(hoje))
+                .reduce((primeira, segunda) -> segunda)
+                .orElse(null);
         int indiceAula = 0;
         for (Encontro aula : aulas) {
             indiceAula++;
-            if (aula.getStatus() != StatusEncontro.REALIZADO || aula.getData().equals(hoje)) {
+            if (aula.getStatus() != StatusEncontro.REALIZADO || aula.getData().equals(hoje)
+                    || deixarUltimaPendente && aula == ultimaRealizada) {
                 continue;
             }
             Map<Long, StatusPresenca> situacoes = new LinkedHashMap<>();

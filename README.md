@@ -105,6 +105,9 @@ Ctrl + C
 ## Funcionalidades
 
 - Cadastro, edição, busca e ativação/desativação de participantes, com sexo, nascimento, escola e deficiência.
+- Tela Início com a frequência do mês contra a meta, quem precisa de contato, chamadas pendentes e frequência por turma.
+- Chamada pelo celular: abre na turma do horário atual, um toque por pessoa, um único Salvar e rascunho guardado no aparelho.
+- Vocabulário da ONG na interface: Turma, Aula, Presente, Falta e Falta avisada.
 - Turmas com grade (dias da semana e horário).
 - Matrículas em uma ou mais turmas, com saída por motivo e retorno sem perder o histórico.
 - Frequência mensal por participante e por turma, com meta de 60% e alerta acima de 3 faltas no mês.

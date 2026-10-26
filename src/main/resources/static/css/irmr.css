@@ -5706,6 +5706,9 @@ body.reduzir-animacoes *::after {
     .chamada-opcoes span {
         justify-content: center;
         width: 100%;
+        padding: 0 .35rem;
+        font-size: .85rem;
+        white-space: nowrap;
     }
 
     .chamada-progresso {

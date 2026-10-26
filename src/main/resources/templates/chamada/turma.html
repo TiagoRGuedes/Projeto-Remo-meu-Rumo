@@ -19,7 +19,7 @@
             <span class="icon icon-check" aria-hidden="true"></span>
             <div>
                 <strong th:text="${'Chamada registrada às ' + #temporals.format(chamada.registradaEm, 'HH:mm')}">Chamada registrada às 14:52</strong>
-                <span th:text="${chamada.presentes + ' presentes · ' + chamada.faltas + ' faltas · ' + chamada.avisadas + ' faltas avisadas'}">Resumo</span>
+                <span th:text="${chamada.presentes + (chamada.presentes == 1 ? ' presente · ' : ' presentes · ') + chamada.faltas + (chamada.faltas == 1 ? ' falta · ' : ' faltas · ') + chamada.avisadas + (chamada.avisadas == 1 ? ' falta avisada' : ' faltas avisadas')}">Resumo</span>
             </div>
             <a class="button button-soft" th:href="@{/chamada/{id}(id=${chamada.turmaId}, data=${chamada.data}, corrigir=1)}">Corrigir chamada</a>
         </div>
