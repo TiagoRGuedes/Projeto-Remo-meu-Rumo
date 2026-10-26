@@ -74,6 +74,7 @@ public class MatriculaService {
                 .map(matricula -> matricula.getAtividade().getId())
                 .toList();
         return atividadeRepository.findByAtivoTrueOrderByNomeAsc().stream()
+                .sorted(Atividade.ordemDaGrade())
                 .filter(atividade -> !matriculasAtivas.contains(atividade.getId()))
                 .toList();
     }
@@ -85,10 +86,18 @@ public class MatriculaService {
         matriculas.sort(Comparator.comparing(Matricula::getId));
         for (Matricula matricula : matriculas) {
             String turma = matricula.getAtividade().getNome();
-            movimentos.add(new MovimentoMatricula(matricula.getDataInicio(), "Ingresso",
-                    "Ingressou na turma " + turma + "."));
+            boolean adicionada = matriculas.stream().anyMatch(outra -> outra != matricula
+                    && outra.getId() < matricula.getId() && outra.vigenteEm(matricula.getDataInicio()));
+            movimentos.add(adicionada
+                    ? new MovimentoMatricula(matricula.getDataInicio(), "Turma adicionada",
+                            "Passou a frequentar também a turma " + turma + ".")
+                    : new MovimentoMatricula(matricula.getDataInicio(), "Ingresso",
+                            "Ingressou na turma " + turma + "."));
             if (!matricula.isAtiva() && matricula.getDataSaida() != null) {
-                if (matricula.getMotivoSaida() == MotivoSaida.TROCA_DE_TURMA) {
+                if (matricula.getMotivoSaida() == MotivoSaida.TURMA_REMOVIDA) {
+                    movimentos.add(new MovimentoMatricula(matricula.getDataSaida(), "Turma removida",
+                            "Deixou a turma " + turma + " e continua nas outras."));
+                } else if (matricula.getMotivoSaida() == MotivoSaida.TROCA_DE_TURMA) {
                     movimentos.add(new MovimentoMatricula(matricula.getDataSaida(), "Troca de turma",
                             "Saiu de " + turma + (matricula.getObservacaoSaida() == null ? "."
                                     : " " + matricula.getObservacaoSaida() + ".")));
@@ -125,10 +134,13 @@ public class MatriculaService {
         Participante participante = obterParticipante(participanteId);
         Atividade turma = obterTurma(turmaId);
         validarNovaMatricula(participante, turma);
+        boolean jaTemTurma = !turmasAtivas(participante.getId()).isEmpty();
         Matricula matricula = matriculaRepository.save(new Matricula(participante, turma, dataInicio));
         historicoService.registrar(ModuloHistorico.MATRICULAS, "Matrícula", participante.getId(),
-                participante.getNome(), AcaoHistorico.INGRESSO,
-                "Ingresso de " + participante.getNome() + " na turma " + turma.getNome() + ".",
+                participante.getNome(), jaTemTurma ? AcaoHistorico.TURMA_ADICIONADA : AcaoHistorico.INGRESSO,
+                jaTemTurma
+                        ? "Turma " + turma.getNome() + " adicionada para " + participante.getNome() + "."
+                        : "Ingresso de " + participante.getNome() + " na turma " + turma.getNome() + ".",
                 null, descricaoMatricula(matricula));
         return matricula;
     }
@@ -152,6 +164,39 @@ public class MatriculaService {
                         + motivoSaida.getDescricao() + ".",
                 anterior, descricaoMatricula(salva));
         return salva;
+    }
+
+    @Transactional
+    public Matricula removerTurma(Long matriculaId, LocalDate data) {
+        Matricula matricula = obter(matriculaId);
+        if (!matricula.isAtiva()) {
+            throw new RegraNegocioException("Esta turma já foi removida ou encerrada.");
+        }
+        Participante participante = matricula.getParticipante();
+        if (turmasAtivas(participante.getId()).size() < 2) {
+            throw new RegraNegocioException("Esta é a única turma de " + participante.getNome()
+                    + ". Para tirá-la, use Registrar saída.");
+        }
+        LocalDate saida = data == null ? LocalDate.now() : data;
+        if (saida.isBefore(matricula.getDataInicio())) {
+            saida = matricula.getDataInicio();
+        }
+        String anterior = descricaoMatricula(matricula);
+        matricula.encerrar(MotivoSaida.TURMA_REMOVIDA, null, saida);
+        Matricula salva = matriculaRepository.save(matricula);
+        historicoService.registrar(ModuloHistorico.MATRICULAS, "Matrícula", participante.getId(),
+                participante.getNome(), AcaoHistorico.TURMA_REMOVIDA,
+                "Turma " + salva.getAtividade().getNome() + " removida de " + participante.getNome()
+                        + ". As presenças anteriores continuam no histórico.",
+                anterior, descricaoMatricula(salva));
+        return salva;
+    }
+
+    @Transactional(readOnly = true)
+    public List<Matricula> turmasAtivas(Long participanteId) {
+        return matriculaRepository.listarPorParticipante(participanteId).stream()
+                .filter(Matricula::isAtiva)
+                .toList();
     }
 
     @Transactional

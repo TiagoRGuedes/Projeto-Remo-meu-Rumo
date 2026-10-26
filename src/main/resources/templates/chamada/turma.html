@@ -9,6 +9,11 @@
     <main id="conteudo" class="content chamada" tabindex="-1">
         <div th:replace="~{fragments/mensagens :: mensagens}"></div>
         <a class="back-link" th:href="@{/chamada(lista=1)}"><span class="icon icon-back" aria-hidden="true"></span>Chamadas</a>
+        <nav class="chips chips-rolagem" aria-label="Turmas">
+            <a th:each="aba : ${abas}" th:href="@{/chamada/{id}(id=${aba.turmaId()}, data=${aba.data()})}"
+               th:attr="aria-current=${chamada.turmaId == aba.turmaId()} ? 'true' : null"
+               th:text="${aba.turma()}">SEG · 08h</a>
+        </nav>
         <div class="chamada-topo">
             <p class="chamada-quando" th:text="${chamada.quando + ' · ' + chamada.grade}">Qui, 24/09 · TER/QUI · 14:00</p>
             <h1 th:text="${'Chamada · ' + chamada.turma}">Chamada · Turma</h1>
@@ -17,17 +22,17 @@
 
         <div class="chamada-cancelada" th:if="${chamada.naoRealizada}" role="status">
             <div>
-                <strong th:text="${'Aula não aconteceu · ' + chamada.aulaNaoRealizada}">Aula não aconteceu · Feriado</strong>
-                <span>Não conta na frequência de ninguém.</span>
+                <strong th:text="${'Não aconteceu · ' + chamada.aulaNaoRealizada}">Não aconteceu · Feriado</strong>
+                <span>Esta aula não conta na frequência de ninguém.</span>
             </div>
             <form method="post" th:action="@{/chamada/{id}/desfazer-nao-aconteceu(id=${chamada.turmaId})}">
                 <input type="hidden" name="data" th:value="${chamada.data}">
-                <button class="button button-soft" type="submit">Desfazer</button>
+                <button class="button button-soft" type="submit"><span class="icon icon-reset" aria-hidden="true"></span>Desfazer</button>
             </form>
         </div>
 
         <details class="nao-aconteceu" th:if="${!chamada.naoRealizada}">
-            <summary>Aula não aconteceu</summary>
+            <summary><span class="icon icon-close" aria-hidden="true"></span>Aula não aconteceu</summary>
             <form method="post" th:action="@{/chamada/{id}/nao-aconteceu(id=${chamada.turmaId})}">
                 <input type="hidden" name="data" th:value="${chamada.data}">
                 <fieldset class="motivos-cancelamento">
@@ -36,8 +41,11 @@
                 </fieldset>
                 <label class="sr-only" for="justificativa">Observação</label>
                 <input id="justificativa" name="justificativa" maxlength="300" placeholder="Observação (opcional). Ex.: alerta de chuva forte da Defesa Civil">
-                <p class="field-help">A aula sai do cálculo de frequência da turma inteira. Ninguém recebe falta.</p>
-                <button class="button button-primary" type="submit">Confirmar</button>
+                <p class="field-help">A aula sai do cálculo de frequência da turma inteira. Ninguém recebe falta. Dá para desfazer depois.</p>
+                <div class="nao-aconteceu-botoes">
+                    <button class="button button-soft" type="button" data-fechar-detalhes>Voltar</button>
+                    <button class="button button-primary" type="submit">Confirmar</button>
+                </div>
             </form>
         </details>
 

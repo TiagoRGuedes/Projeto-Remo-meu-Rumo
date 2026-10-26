@@ -28,6 +28,7 @@ public class ExportacaoService {
     @Transactional(readOnly = true)
     public List<RegistroExportacao> frequenciaMensal(YearMonth mes) {
         Map<Long, Map<Long, FrequenciaMensal>> frequenciaPorTurma = new LinkedHashMap<>();
+        Map<Long, Map<Long, FrequenciaMensal>> anualPorTurma = new LinkedHashMap<>();
         List<RegistroExportacao> registros = new ArrayList<>();
         for (Matricula matricula : matriculaService.listarTodas()) {
             Atividade turma = matricula.getAtividade();
@@ -37,6 +38,9 @@ public class ExportacaoService {
             if (linha == null) {
                 continue;
             }
+            FrequenciaMensal anual = anualPorTurma.computeIfAbsent(turma.getId(),
+                    turmaId -> indexar(frequenciaService.linhasAnuaisDaTurma(turmaId, mes.getYear())))
+                    .get(matricula.getParticipante().getId());
             registros.add(new RegistroExportacao(
                     mes + "-" + matricula.getParticipante().getId() + "-" + turma.getId(),
                     matricula.getParticipante().getId(),
@@ -52,6 +56,8 @@ public class ExportacaoService {
                     linha.faltas(),
                     linha.faltasJustificadas(),
                     linha.percentual(),
+                    anual == null ? 0 : anual.presencas(),
+                    anual == null ? 0 : anual.aulasPrevistas(),
                     linha.contatoNecessario(),
                     linha.abaixoDaMeta()));
         }
@@ -59,8 +65,12 @@ public class ExportacaoService {
     }
 
     private Map<Long, FrequenciaMensal> indexarPorParticipante(Long turmaId, YearMonth mes) {
+        return indexar(frequenciaService.linhasMensaisDaTurma(turmaId, mes));
+    }
+
+    private Map<Long, FrequenciaMensal> indexar(List<FrequenciaMensal> linhasDaTurma) {
         Map<Long, FrequenciaMensal> indice = new LinkedHashMap<>();
-        for (FrequenciaMensal linha : frequenciaService.linhasMensaisDaTurma(turmaId, mes)) {
+        for (FrequenciaMensal linha : linhasDaTurma) {
             indice.put(linha.participanteId(), linha);
         }
         return indice;

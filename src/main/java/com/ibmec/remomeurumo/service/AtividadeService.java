@@ -65,7 +65,9 @@ public class AtividadeService {
 
     @Transactional(readOnly = true)
     public List<Atividade> listarAtivas() {
-        return atividadeRepository.findByAtivoTrueOrderByNomeAsc();
+        return atividadeRepository.findByAtivoTrueOrderByNomeAsc().stream()
+                .sorted(Atividade.ordemDaGrade())
+                .toList();
     }
 
     @Transactional(readOnly = true)

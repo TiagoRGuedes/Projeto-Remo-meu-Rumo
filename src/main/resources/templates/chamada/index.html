@@ -15,6 +15,12 @@
             </div>
         </div>
 
+        <nav class="chips chips-rolagem" aria-label="Turmas">
+            <a th:each="aba : ${abas}" th:href="@{/chamada/{id}(id=${aba.turmaId()}, data=${aba.data()})}"
+               th:attr="aria-current=${false} ? 'true' : null"
+               th:text="${aba.turma()}">SEG · 08h</a>
+        </nav>
+
         <section class="painel-card" aria-labelledby="hoje-titulo">
             <div class="painel-card-topo"><h2 id="hoje-titulo">Hoje</h2></div>
             <ul class="lista-chamadas" th:if="${!#lists.isEmpty(sessoesDeHoje)}">
@@ -55,7 +61,7 @@
                 <div class="field">
                     <label for="turmaId">Turma</label>
                     <select id="turmaId" name="turmaId" required>
-                        <option th:each="turma : ${turmas}" th:value="${turma.id}" th:text="${turma.nome + ' · ' + turma.gradeResumo}">Turma</option>
+                        <option th:each="turma : ${turmas}" th:value="${turma.id}" th:text="${turma.rotulo}">Turma</option>
                     </select>
                 </div>
                 <div class="field">

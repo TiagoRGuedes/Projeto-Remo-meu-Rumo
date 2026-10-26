@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.ibmec.remomeurumo.dto.ConfirmacaoOperacao;
 import com.ibmec.remomeurumo.dto.TipoOperacaoConfirmacao;
+import com.ibmec.remomeurumo.exception.RegraNegocioException;
 import com.ibmec.remomeurumo.model.Atividade;
 import com.ibmec.remomeurumo.model.Matricula;
 import com.ibmec.remomeurumo.model.MotivoSaida;
@@ -63,8 +64,8 @@ public class MatriculaWebController {
         dados.put("dataInicio", inicio.toString());
 
         ConfirmacaoOperacao confirmacao = confirmacaoService.criar(session,
-                TipoOperacaoConfirmacao.MATRICULAR_PARTICIPANTE, participanteId, "Nova matrícula",
-                "Matricular " + participante.getNome() + "?",
+                TipoOperacaoConfirmacao.MATRICULAR_PARTICIPANTE, participanteId, "Adicionar turma",
+                "Adicionar a turma " + turma.getNome() + " para " + participante.getNome() + "?",
                 "A matrícula define em qual turma a presença desta pessoa passa a ser esperada.",
                 participante.getNome(),
                 confirmacaoService.alteracoes(
@@ -75,8 +76,8 @@ public class MatriculaWebController {
                         "A frequência mensal dela será calculada sobre essas aulas.",
                         "A matrícula ficará registrada no Histórico."),
                 dados, null, "/participantes/" + participanteId, "/participantes/{id}",
-                "Matrícula criada. A frequência desta turma já considera o participante.",
-                "Confirmar matrícula", false);
+                "Turma adicionada. A pessoa já aparece na chamada dela e as aulas contam na frequência.",
+                "Confirmar turma", false);
         return "redirect:/confirmacoes/" + confirmacao.token();
     }
 
@@ -144,6 +145,36 @@ public class MatriculaWebController {
                 "/participantes/{id}",
                 "Turma trocada. A frequência deste mês conta cada turma só no período em que a pessoa esteve nela.",
                 "Confirmar troca", false);
+        return "redirect:/confirmacoes/" + confirmacao.token();
+    }
+
+    @PostMapping("/{id}/remover")
+    public String remover(@PathVariable Long id, HttpSession session) {
+        Matricula matricula = matriculaService.obter(id);
+        Participante participante = matricula.getParticipante();
+        if (matriculaService.turmasAtivas(participante.getId()).size() < 2) {
+            throw new RegraNegocioException("Esta é a única turma de " + participante.getNome()
+                    + ". Para tirá-la, use Registrar saída.");
+        }
+        LocalDate hoje = LocalDate.now();
+        Map<String, String> dados = new LinkedHashMap<>();
+        dados.put("dataRemocao", hoje.toString());
+
+        ConfirmacaoOperacao confirmacao = confirmacaoService.criar(session,
+                TipoOperacaoConfirmacao.REMOVER_TURMA, id, "Remover turma",
+                "Remover a turma " + matricula.getAtividade().getNome() + " de " + participante.getNome() + "?",
+                "A pessoa continua nas outras turmas. Só esta sai da lista dela.",
+                participante.getNome(),
+                confirmacaoService.alteracoes(
+                        confirmacaoService.alteracao("Turma", matricula.getAtividade().getNome(), "Removida"),
+                        confirmacaoService.alteracao("Data", null, hoje.format(DATA))),
+                List.of("As presenças já registradas nesta turma continuam no histórico.",
+                        "A partir de amanhã, as aulas desta turma deixam de contar na frequência da pessoa.",
+                        "A remoção ficará registrada em Entradas e saídas e no Histórico."),
+                dados, null, "/participantes/" + participante.getId(),
+                "/participantes/{id}",
+                "Turma removida. A pessoa continua nas outras turmas.",
+                "Confirmar remoção", true);
         return "redirect:/confirmacoes/" + confirmacao.token();
     }
 

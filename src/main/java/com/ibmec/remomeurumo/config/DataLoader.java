@@ -2,17 +2,15 @@ package com.ibmec.remomeurumo.config;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.IntStream;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,6 +37,7 @@ import com.ibmec.remomeurumo.service.ParticipanteService;
 import com.ibmec.remomeurumo.service.PresencaService;
 
 @Component
+@Order(10)
 public class DataLoader implements CommandLineRunner {
 
     private static final List<String> NOMES_FICTICIOS = List.of(
@@ -69,8 +68,6 @@ public class DataLoader implements CommandLineRunner {
     private final MatriculaService matriculaService;
 
     private static final int SEMANAS_ANTERIORES = 9;
-
-    private static final List<Integer> TURMAS_ABERTAS = List.of(0, 1, 2, 3, 4, 6, 7, 8, 9);
 
     private static final List<String> CONDICOES = List.of(
             "TEA (autismo)", "Síndrome de Down", "Deficiência intelectual", "Paralisia cerebral", "TDAH",
@@ -142,7 +139,6 @@ public class DataLoader implements CommandLineRunner {
                 .orElseThrow();
         Atividade novaTurma = turmas.get(6).getId().equals(troca.getAtividade().getId()) ? turmas.get(7) : turmas.get(6);
         matriculaService.trocarTurma(troca.getId(), novaTurma.getId(), hoje.minusDays(8));
-        atividadeService.desativar(turmas.get(5).getId());
     }
 
     private void registrarAulaNaoRealizada(List<Encontro> aulas, LocalDate hoje, boolean futura,
@@ -185,31 +181,9 @@ public class DataLoader implements CommandLineRunner {
     }
 
     private List<Atividade> criarTurmas() {
-        return List.of(
-                turma("Remo iniciação · manhã", "Turma fictícia de iniciação ao remo.",
-                        EnumSet.of(DiaSemana.TERCA, DiaSemana.QUINTA), LocalTime.of(9, 0)),
-                turma("Remo iniciação · tarde", "Turma fictícia de iniciação ao remo no contraturno.",
-                        EnumSet.of(DiaSemana.TERCA, DiaSemana.QUINTA), LocalTime.of(14, 0)),
-                turma("Técnica de remada", "Turma demonstrativa sem vínculo com a programação oficial.",
-                        EnumSet.of(DiaSemana.SEGUNDA, DiaSemana.QUARTA), LocalTime.of(15, 30)),
-                turma("Condicionamento", "Cenário fictício para testar frequência e relatórios.",
-                        EnumSet.of(DiaSemana.SEXTA), LocalTime.of(10, 0)),
-                turma("Remo adaptado", "Turma fictícia de remo adaptado.",
-                        EnumSet.of(DiaSemana.QUARTA), LocalTime.of(9, 30)),
-                turma("Turma encerrada de exemplo", "Turma fictícia desativada para demonstrar preservação histórica.",
-                        EnumSet.of(DiaSemana.SABADO), LocalTime.of(8, 0)),
-                turma("Remo iniciação · fim de tarde", "Turma fictícia de iniciação no fim da tarde.",
-                        EnumSet.of(DiaSemana.TERCA, DiaSemana.QUINTA), LocalTime.of(16, 0)),
-                turma("Remo intermediário", "Turma fictícia para quem já domina a remada básica.",
-                        EnumSet.of(DiaSemana.SEGUNDA, DiaSemana.QUARTA), LocalTime.of(14, 0)),
-                turma("Remo de sexta · manhã", "Turma fictícia de sexta-feira pela manhã.",
-                        EnumSet.of(DiaSemana.SEXTA), LocalTime.of(8, 0)),
-                turma("Remo de sábado", "Turma fictícia de sábado pela manhã.",
-                        EnumSet.of(DiaSemana.SABADO), LocalTime.of(11, 0)));
-    }
-
-    private Atividade turma(String nome, String descricao, Set<DiaSemana> dias, LocalTime horario) {
-        return atividadeService.cadastrar(new Atividade(nome, descricao, dias, horario));
+        return TurmasOficiais.LISTA.stream()
+                .map(turma -> atividadeService.cadastrar(turma.novaAtividade()))
+                .toList();
     }
 
     private Map<Long, List<Participante>> criarMatriculas(List<Atividade> turmas, List<Participante> participantes,
@@ -218,12 +192,12 @@ public class DataLoader implements CommandLineRunner {
         for (int indice = 0; indice < participantes.size(); indice++) {
             Participante participante = participantes.get(indice);
             List<Atividade> escolhidas = new ArrayList<>();
-            escolhidas.add(turmas.get(TURMAS_ABERTAS.get(indice % TURMAS_ABERTAS.size())));
+            escolhidas.add(turmas.get(indice % turmas.size()));
             if (indice % 4 == 0) {
-                escolhidas.add(turmas.get(3));
+                escolhidas.add(turmas.get((indice + 1) % turmas.size()));
             }
-            if (indice % 7 == 0) {
-                escolhidas.add(turmas.get(5));
+            if (indice % 9 == 0 && indice > 0) {
+                escolhidas.add(turmas.get((indice + 4) % turmas.size()));
             }
             for (Atividade turma : escolhidas.stream().distinct().toList()) {
                 matriculaService.matricular(participante.getId(), turma.getId(), inicio);

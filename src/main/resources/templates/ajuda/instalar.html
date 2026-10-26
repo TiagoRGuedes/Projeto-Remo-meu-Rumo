@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Instalar no celular')}"></head>
+<body th:class="${temaClasses}">
+<a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+<header th:replace="~{fragments/header :: header}"></header>
+<div class="app-shell">
+    <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
+    <main id="conteudo" class="content" tabindex="-1">
+        <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="@{/}">Início</a><span>›</span><a th:href="@{/ajuda}">Ajuda</a><span>›</span><span aria-current="page">Instalar no celular</span></nav>
+        <div class="page-header">
+            <div>
+                <p class="eyebrow">Ajuda</p>
+                <h1>Instalar no celular</h1>
+                <p class="muted">Com o app na tela inicial, a chamada abre com um toque, em tela cheia, sem procurar o site no navegador.</p>
+            </div>
+            <div class="actions">
+                <button class="button button-primary" type="button" data-instalar-agora hidden>Instalar agora</button>
+            </div>
+        </div>
+
+        <section class="passos-instalar">
+            <article class="form-card" aria-labelledby="android-titulo">
+                <h2 id="android-titulo">Android · Chrome</h2>
+                <ol>
+                    <li>
+                        <svg viewBox="0 0 96 160" role="img" aria-label="Site aberto no Chrome">
+                            <rect class="tela" x="4" y="4" width="88" height="152" rx="12"/>
+                            <rect class="barra" x="12" y="14" width="72" height="14" rx="7"/>
+                            <rect class="traco" x="18" y="40" width="60" height="6" rx="3"/>
+                            <rect class="traco" x="18" y="52" width="44" height="6" rx="3"/>
+                            <rect class="marca" x="18" y="68" width="60" height="20" rx="5"/>
+                        </svg>
+                        <p>Abra o sistema no <strong>Chrome</strong>.</p>
+                    </li>
+                    <li>
+                        <svg viewBox="0 0 96 160" role="img" aria-label="Menu de três pontos no canto superior direito">
+                            <rect class="tela" x="4" y="4" width="88" height="152" rx="12"/>
+                            <rect class="barra" x="12" y="14" width="56" height="14" rx="7"/>
+                            <circle class="marca" cx="80" cy="16" r="2.4"/>
+                            <circle class="marca" cx="80" cy="21" r="2.4"/>
+                            <circle class="marca" cx="80" cy="26" r="2.4"/>
+                            <circle class="destaque" cx="80" cy="21" r="9"/>
+                        </svg>
+                        <p>Toque no menu <strong>⋮</strong>, no canto de cima à direita.</p>
+                    </li>
+                    <li>
+                        <svg viewBox="0 0 96 160" role="img" aria-label="Opção Instalar app no menu">
+                            <rect class="tela" x="4" y="4" width="88" height="152" rx="12"/>
+                            <rect class="barra" x="30" y="14" width="58" height="96" rx="6"/>
+                            <rect class="traco" x="36" y="24" width="40" height="5" rx="2.5"/>
+                            <rect class="traco" x="36" y="38" width="44" height="5" rx="2.5"/>
+                            <rect class="marca" x="36" y="56" width="46" height="8" rx="3"/>
+                            <rect class="destaque" x="32" y="50" width="54" height="20" rx="5"/>
+                            <rect class="traco" x="36" y="78" width="38" height="5" rx="2.5"/>
+                        </svg>
+                        <p>Escolha <strong>"Instalar app"</strong> ou <strong>"Adicionar à tela inicial"</strong> e confirme.</p>
+                    </li>
+                    <li>
+                        <svg viewBox="0 0 96 160" role="img" aria-label="Ícone do Remo Meu Rumo na tela inicial">
+                            <rect class="tela" x="4" y="4" width="88" height="152" rx="12"/>
+                            <rect class="barra" x="16" y="24" width="18" height="18" rx="5"/>
+                            <rect class="barra" x="39" y="24" width="18" height="18" rx="5"/>
+                            <rect class="barra" x="62" y="24" width="18" height="18" rx="5"/>
+                            <rect class="marca" x="16" y="50" width="18" height="18" rx="5"/>
+                            <rect class="destaque" x="12" y="46" width="26" height="26" rx="7"/>
+                        </svg>
+                        <p>Pronto: o ícone <strong>Remo Meu Rumo</strong> aparece na tela inicial.</p>
+                    </li>
+                </ol>
+            </article>
+
+            <article class="form-card" aria-labelledby="iphone-titulo">
+                <h2 id="iphone-titulo">iPhone · Safari</h2>
+                <ol>
+                    <li>
+                        <svg viewBox="0 0 96 160" role="img" aria-label="Site aberto no Safari">
+                            <rect class="tela" x="4" y="4" width="88" height="152" rx="12"/>
+                            <rect class="traco" x="18" y="22" width="60" height="6" rx="3"/>
+                            <rect class="traco" x="18" y="34" width="44" height="6" rx="3"/>
+                            <rect class="marca" x="18" y="50" width="60" height="20" rx="5"/>
+                            <rect class="barra" x="4" y="132" width="88" height="24" rx="0"/>
+                        </svg>
+                        <p>Abra o sistema no <strong>Safari</strong>.</p>
+                    </li>
+                    <li>
+                        <svg viewBox="0 0 96 160" role="img" aria-label="Botão Compartilhar na barra de baixo">
+                            <rect class="tela" x="4" y="4" width="88" height="152" rx="12"/>
+                            <rect class="barra" x="4" y="132" width="88" height="24" rx="0"/>
+                            <rect class="marca" x="42" y="140" width="12" height="10" rx="2"/>
+                            <rect class="marca" x="47" y="134" width="2" height="10"/>
+                            <circle class="destaque" cx="48" cy="144" r="11"/>
+                        </svg>
+                        <p>Toque no botão <strong>Compartilhar</strong> (quadrado com seta para cima).</p>
+                    </li>
+                    <li>
+                        <svg viewBox="0 0 96 160" role="img" aria-label="Opção Adicionar à Tela de Início">
+                            <rect class="tela" x="4" y="4" width="88" height="152" rx="12"/>
+                            <rect class="barra" x="8" y="70" width="80" height="80" rx="8"/>
+                            <rect class="traco" x="16" y="80" width="50" height="5" rx="2.5"/>
+                            <rect class="marca" x="16" y="100" width="56" height="8" rx="3"/>
+                            <rect class="destaque" x="12" y="94" width="72" height="20" rx="5"/>
+                            <rect class="traco" x="16" y="124" width="44" height="5" rx="2.5"/>
+                        </svg>
+                        <p>Role a lista e toque em <strong>"Adicionar à Tela de Início"</strong>.</p>
+                    </li>
+                    <li>
+                        <svg viewBox="0 0 96 160" role="img" aria-label="Botão Adicionar no canto superior">
+                            <rect class="tela" x="4" y="4" width="88" height="152" rx="12"/>
+                            <rect class="marca" x="62" y="14" width="22" height="10" rx="3"/>
+                            <rect class="destaque" x="58" y="10" width="30" height="18" rx="5"/>
+                            <rect class="barra" x="16" y="40" width="22" height="22" rx="6"/>
+                            <rect class="traco" x="44" y="46" width="36" height="6" rx="3"/>
+                        </svg>
+                        <p>Toque em <strong>Adicionar</strong>. O ícone aparece na tela inicial.</p>
+                    </li>
+                </ol>
+            </article>
+        </section>
+
+        <aside class="context-help section-block"><span class="icon icon-info" aria-hidden="true"></span><div><strong>Precisa de internet?</strong><p>Sim. O app abre o mesmo sistema, com os mesmos dados; ele só fica mais fácil de abrir. Para remover, segure o ícone e escolha "Remover" ou "Desinstalar".</p></div></aside>
+        <footer th:replace="~{fragments/footer :: footer}"></footer>
+    </main>
+</div>
+</body>
+</html>

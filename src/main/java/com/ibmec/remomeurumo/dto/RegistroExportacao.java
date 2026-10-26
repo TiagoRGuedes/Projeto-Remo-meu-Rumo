@@ -15,6 +15,8 @@ public record RegistroExportacao(
         long faltas,
         long faltas_justificadas,
         double percentual_frequencia,
+        long presencas_ano,
+        long previstas_ano,
         boolean acima_limite_faltas,
         boolean abaixo_meta_mensal) {
 }

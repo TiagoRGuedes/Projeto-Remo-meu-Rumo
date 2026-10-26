@@ -3,6 +3,7 @@ package com.ibmec.remomeurumo.model;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -31,6 +32,8 @@ import jakarta.validation.constraints.Size;
 public class Atividade {
 
     private static final DateTimeFormatter HORARIO = DateTimeFormatter.ofPattern("HH:mm");
+    private static final DateTimeFormatter HORA_CHEIA = DateTimeFormatter.ofPattern("HH'h'");
+    private static final DateTimeFormatter HORA_QUEBRADA = DateTimeFormatter.ofPattern("HH'h'mm");
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -104,9 +107,32 @@ public class Atividade {
         return horario == null ? "" : horario.format(HORARIO);
     }
 
+    public String getHorarioCurto() {
+        if (horario == null) {
+            return "";
+        }
+        return horario.getMinute() == 0 ? horario.format(HORA_CHEIA) : horario.format(HORA_QUEBRADA);
+    }
+
+    public String getRotulo() {
+        String grade = getGradeResumo();
+        return nome == null || nome.equals(grade) || !isGradeDefinida() ? nome : nome + " · " + grade;
+    }
+
+    public static Comparator<Atividade> ordemDaGrade() {
+        return Comparator.comparingInt(Atividade::primeiroDia)
+                .thenComparing(atividade -> atividade.horario, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(atividade -> atividade.nome, Comparator.nullsLast(Comparator.naturalOrder()));
+    }
+
+    private int primeiroDia() {
+        return diasSemana == null || diasSemana.isEmpty() ? Integer.MAX_VALUE
+                : diasSemana.stream().mapToInt(Enum::ordinal).min().orElse(Integer.MAX_VALUE);
+    }
+
     public String getGradeResumo() {
         String dias = getDiasSemanaResumo();
-        String hora = getHorarioFormatado();
+        String hora = getHorarioCurto();
         if (dias.isBlank() && hora.isBlank()) {
             return "Grade não informada";
         }

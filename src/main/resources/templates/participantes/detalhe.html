@@ -73,6 +73,7 @@
                 <div class="month-stat"><span>Aulas previstas</span><strong th:text="${total.aulasPrevistas()}">0</strong></div>
                 <div class="month-stat"><span>Presenças</span><strong th:text="${total.presencas()}">0</strong></div>
                 <div class="month-stat"><span>Faltas</span><strong th:text="${total.faltas()}">0</strong></div>
+                <div class="month-stat"><span th:text="${'Presenças em ' + frequenciaAnual.mes()}">Presenças no ano</span><strong th:text="${frequenciaAnual.presencas() + ' de ' + frequenciaAnual.aulasPrevistas()}">0 de 0</strong></div>
             </div>
             <div class="table-card">
                 <div class="table-wrapper">
@@ -114,23 +115,23 @@
         <section class="section-block" aria-labelledby="matriculas-titulo">
             <div class="section-header">
                 <div>
-                    <h2 id="matriculas-titulo">Matrículas</h2>
-                    <p class="muted">Turmas em que a presença desta pessoa é esperada. Uma pessoa pode estar em várias turmas.</p>
+                    <h2 id="matriculas-titulo">Turmas</h2>
+                    <p class="muted">Turmas em que a presença desta pessoa é esperada. Uma pessoa pode estar em várias turmas, por exemplo SEG 08h e TER/QUI 08h.</p>
                 </div>
             </div>
             <form class="form-card inline-form" method="post" th:action="@{/matriculas/nova}" th:if="${participante.ativo and !#lists.isEmpty(turmasDisponiveis)}">
                 <input type="hidden" name="participanteId" th:value="${participante.id}">
                 <div class="field">
-                    <label for="turmaId">Turma</label>
+                    <label for="turmaId">Adicionar turma</label>
                     <select id="turmaId" name="turmaId" required>
-                        <option th:each="turma : ${turmasDisponiveis}" th:value="${turma.id}" th:text="${turma.nome + ' · ' + turma.gradeResumo}">Turma</option>
+                        <option th:each="turma : ${turmasDisponiveis}" th:value="${turma.id}" th:text="${turma.rotulo}">Turma</option>
                     </select>
                 </div>
                 <div class="field">
                     <label for="dataInicio">Início</label>
                     <input id="dataInicio" name="dataInicio" type="date" th:value="${hoje}">
                 </div>
-                <button class="button button-primary" type="submit"><span class="icon icon-plus" aria-hidden="true"></span>Matricular</button>
+                <button class="button button-primary" type="submit"><span class="icon icon-plus" aria-hidden="true"></span>Adicionar turma</button>
             </form>
             <p class="muted" th:if="${!participante.ativo}">Ative o cadastro para criar novas matrículas.</p>
             <div class="table-card">
@@ -161,12 +162,16 @@
                                     <form method="post" th:action="@{/matriculas/{id}/trocar(id=${matricula.id})}">
                                         <label th:for="${'nova-turma-' + matricula.id}">Nova turma</label>
                                         <select th:id="${'nova-turma-' + matricula.id}" name="novaTurmaId" required>
-                                            <option th:each="turma : ${turmasDisponiveis}" th:value="${turma.id}" th:text="${turma.nome + ' · ' + turma.gradeResumo}">Turma</option>
+                                            <option th:each="turma : ${turmasDisponiveis}" th:value="${turma.id}" th:text="${turma.rotulo}">Turma</option>
                                         </select>
                                         <p class="field-help">As presenças já registradas continuam no histórico. A partir de hoje a frequência conta as aulas da nova turma.</p>
                                         <button class="button button-primary" type="submit">Revisar troca</button>
                                     </form>
                                 </details>
+                                <form method="post" th:if="${matricula.ativa and totalTurmasAtivas > 1}" th:action="@{/matriculas/{id}/remover(id=${matricula.id})}">
+                                    <button class="button button-soft" type="submit">Remover</button>
+                                </form>
+                                <p class="muted turma-unica" th:if="${matricula.ativa and totalTurmasAtivas == 1}">É a única turma. Para tirá-la, use Registrar saída.</p>
                                 <details class="row-action" th:if="${matricula.ativa}">
                                     <summary>Registrar saída</summary>
                                     <form method="post" th:action="@{/matriculas/{id}/encerrar(id=${matricula.id})}">
@@ -185,7 +190,7 @@
                             </td>
                         </tr>
                         <tr th:if="${#lists.isEmpty(matriculas)}">
-                            <td class="empty-cell" colspan="5">Ainda sem matrícula. Use o formulário acima para incluir a pessoa em uma turma.</td>
+                            <td class="empty-cell" colspan="5">Ainda sem turma. Use "Adicionar turma" acima.</td>
                         </tr>
                         </tbody>
                     </table>

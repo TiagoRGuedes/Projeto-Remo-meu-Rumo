@@ -1,4 +1,17 @@
 document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll("[data-fechar-detalhes]").forEach((botao) => {
+        botao.addEventListener("click", () => {
+            const detalhes = botao.closest("details");
+            if (detalhes) {
+                detalhes.open = false;
+                const resumo = detalhes.querySelector("summary");
+                if (resumo) {
+                    resumo.focus();
+                }
+            }
+        });
+    });
+
     const form = document.querySelector("[data-chamada]");
     if (!form) {
         return;

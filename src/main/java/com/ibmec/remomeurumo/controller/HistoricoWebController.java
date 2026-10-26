@@ -2,7 +2,9 @@ package com.ibmec.remomeurumo.controller;
 
 import java.time.DateTimeException;
 import java.time.LocalDate;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,15 +22,21 @@ import com.ibmec.remomeurumo.service.HistoricoOperacaoService;
 @Controller
 public class HistoricoWebController {
 
+    private static final String GRUPO_TURMAS = "turmas";
+
     private static final Pattern DATA_BUSCA = Pattern.compile("(\\d{1,2})/(\\d{1,2})(?:/(\\d{4}))?");
 
     private static final List<TipoRapido> TIPOS_RAPIDOS = List.of(
-            new TipoRapido("Ingresso", null, AcaoHistorico.INGRESSO),
-            new TipoRapido("Saída", null, AcaoHistorico.SAIDA),
-            new TipoRapido("Troca de turma", null, AcaoHistorico.TROCA_TURMA),
-            new TipoRapido("Chamada", ModuloHistorico.PRESENCAS, null),
-            new TipoRapido("Aula não aconteceu", ModuloHistorico.ENCONTROS, AcaoHistorico.CANCELAMENTO),
-            new TipoRapido("Arquivo", null, AcaoHistorico.ARQUIVO));
+            new TipoRapido("Ingresso", null, AcaoHistorico.INGRESSO, null),
+            new TipoRapido("Saída", null, AcaoHistorico.SAIDA, null),
+            new TipoRapido("Troca de turma", null, AcaoHistorico.TROCA_TURMA, null),
+            new TipoRapido("Turma adicionada/removida", null, null, GRUPO_TURMAS),
+            new TipoRapido("Chamada", ModuloHistorico.PRESENCAS, null, null),
+            new TipoRapido("Aula não aconteceu", ModuloHistorico.ENCONTROS, AcaoHistorico.CANCELAMENTO, null),
+            new TipoRapido("Arquivo", null, AcaoHistorico.ARQUIVO, null));
+
+    private static final Set<AcaoHistorico> ACOES_TURMAS = EnumSet.of(
+            AcaoHistorico.TURMA_ADICIONADA, AcaoHistorico.TURMA_REMOVIDA);
 
     private final HistoricoOperacaoService historicoService;
 
@@ -43,6 +51,7 @@ public class HistoricoWebController {
             @RequestParam(required = false) ModuloHistorico modulo,
             @RequestParam(required = false) AcaoHistorico acao,
             @RequestParam(required = false) String busca,
+            @RequestParam(required = false) String grupo,
             Model model) {
         String termo = busca;
         LocalDate dataBuscada = dataDaBusca(busca);
@@ -52,6 +61,10 @@ public class HistoricoWebController {
             termo = null;
         }
         List<HistoricoOperacao> registros = historicoService.listar(inicio, fim, modulo, acao, termo);
+        String grupoAtivo = GRUPO_TURMAS.equals(grupo) && acao == null ? GRUPO_TURMAS : null;
+        if (grupoAtivo != null) {
+            registros = registros.stream().filter(registro -> ACOES_TURMAS.contains(registro.getAcao())).toList();
+        }
         model.addAttribute("indicadores", historicoService.carregarIndicadores());
         model.addAttribute("historicoPorData", historicoService.agruparPorData(registros));
         model.addAttribute("totalResultados", registros.size());
@@ -62,6 +75,7 @@ public class HistoricoWebController {
         model.addAttribute("modulo", modulo);
         model.addAttribute("acao", acao);
         model.addAttribute("busca", busca);
+        model.addAttribute("grupoFiltro", grupoAtivo);
         model.addAttribute("tiposRapidos", TIPOS_RAPIDOS);
         return "historico/index";
     }
@@ -82,6 +96,6 @@ public class HistoricoWebController {
         }
     }
 
-    public record TipoRapido(String rotulo, ModuloHistorico modulo, AcaoHistorico acao) {
+    public record TipoRapido(String rotulo, ModuloHistorico modulo, AcaoHistorico acao, String grupo) {
     }
 }

@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.ibmec.remomeurumo.dto.AbaChamada;
 import com.ibmec.remomeurumo.dto.Chamada;
 import com.ibmec.remomeurumo.dto.LinhaChamada;
 import com.ibmec.remomeurumo.dto.ResultadoRegistroPresenca;
@@ -125,6 +126,26 @@ public class ChamadaService {
         }
         sessoes.sort(Comparator.comparing(SessaoChamada::data).reversed());
         return sessoes;
+    }
+
+    @Transactional(readOnly = true)
+    public List<AbaChamada> abas() {
+        LocalDate hoje = LocalDate.now();
+        return atividadeRepository.findByAtivoTrueOrderByNomeAsc().stream()
+                .sorted(Atividade.ordemDaGrade())
+                .map(turma -> new AbaChamada(turma.getId(), turma.getNome(), ultimaAulaDaGrade(turma, hoje)))
+                .toList();
+    }
+
+    private LocalDate ultimaAulaDaGrade(Atividade turma, LocalDate hoje) {
+        if (turma.getDiasSemana() == null || turma.getDiasSemana().isEmpty()) {
+            return hoje;
+        }
+        LocalDate data = hoje;
+        while (!turma.getDiasSemana().contains(DiaSemana.de(data.getDayOfWeek()))) {
+            data = data.minusDays(1);
+        }
+        return data;
     }
 
     @Transactional(readOnly = true)

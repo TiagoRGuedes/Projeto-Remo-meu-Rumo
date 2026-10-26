@@ -61,7 +61,7 @@
                         <td class="table-primary" data-label="Turma">
                             <div class="data-identity">
                                 <span class="data-avatar data-avatar-activity"><span class="icon icon-activity" aria-hidden="true"></span></span>
-                                <span><strong th:text="${atividade.nome}">Nome</strong><small th:text="${atividade.gradeResumo}">Grade</small></span>
+                                <span><strong th:text="${atividade.nome}">Nome</strong><small th:if="${atividade.rotulo != atividade.nome}" th:text="${atividade.gradeResumo}">Grade</small></span>
                             </div>
                         </td>
                         <td data-label="Situação">

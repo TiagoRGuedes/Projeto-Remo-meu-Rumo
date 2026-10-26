@@ -26,8 +26,11 @@
         <a th:href="@{/acessibilidade}" th:classappend="${#strings.startsWith(rota, '/acessibilidade')} ? 'active' : ''" th:attr="aria-current=${#strings.startsWith(rota, '/acessibilidade')} ? 'page' : null">
             <span class="nav-node" aria-hidden="true"><span class="icon icon-accessibility"></span></span><span>Acessibilidade</span>
         </a>
-        <a th:href="@{/ajuda}" th:classappend="${#strings.startsWith(rota, '/ajuda')} ? 'active' : ''" th:attr="aria-current=${#strings.startsWith(rota, '/ajuda')} ? 'page' : null">
+        <a th:href="@{/ajuda}" th:classappend="${rota == '/ajuda'} ? 'active' : ''" th:attr="aria-current=${rota == '/ajuda'} ? 'page' : null">
             <span class="nav-node" aria-hidden="true"><span class="icon icon-help"></span></span><span>Ajuda</span>
+        </a>
+        <a class="nav-subitem" th:href="@{/ajuda/instalar}" th:classappend="${rota == '/ajuda/instalar'} ? 'active' : ''" th:attr="aria-current=${rota == '/ajuda/instalar'} ? 'page' : null">
+            <span class="nav-node" aria-hidden="true"><span class="icon icon-download"></span></span><span>Instalar no celular</span>
         </a>
     </div>
 </nav>

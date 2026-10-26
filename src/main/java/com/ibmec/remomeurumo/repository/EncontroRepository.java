@@ -45,6 +45,9 @@ public interface EncontroRepository extends JpaRepository<Encontro, Long> {
     List<Encontro> findByStatusNotAndDataBetweenOrderByDataAscAtividadeNomeAsc(
             StatusEncontro status, LocalDate inicio, LocalDate fim);
 
+    @Query("select min(e.data) from Encontro e")
+    LocalDate primeiraData();
+
     @Query("""
             select e from Encontro e
             join fetch e.atividade atividade

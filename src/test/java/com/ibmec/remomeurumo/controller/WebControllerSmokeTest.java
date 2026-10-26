@@ -40,7 +40,7 @@ class WebControllerSmokeTest {
     void deveAbrirDetalhesEConfirmacoesSeguras() throws Exception {
         assertOkComTexto("/participantes/1", "Ana Souza");
         assertOkComTexto("/participantes/1/excluir", "não pode ser excluído");
-        assertOkComTexto("/atividades/1", "Remo iniciação");
+        assertOkComTexto("/atividades/1", "SEG · 08h");
         assertOkComTexto("/atividades/1/excluir", "não pode ser excluída");
         assertOkComTexto("/encontros/3", "Aula");
         assertOkComTexto("/encontros/3/excluir", "deve ser cancelada");
@@ -90,11 +90,17 @@ class WebControllerSmokeTest {
 
     @Test
     void deveMostrarMatriculasEFrequenciaMensalNasTelas() throws Exception {
-        assertOkComTexto("/participantes/1", "Matrículas");
+        assertOkComTexto("/participantes/1", "Adicionar turma");
         assertOkComTexto("/participantes/1", "Frequência do mês");
         assertOkComTexto("/atividades/1", "Matrículas da turma");
-        assertOkComTexto("/frequencia", "Frequência mensal por turma");
-        assertOkComTexto("/frequencia?atividadeId=1", "Participantes da turma no mês");
+        assertOkComTexto("/frequencia", "Presenças no ano");
+        assertOkComTexto("/frequencia?turmaId=1", "Resumo por turma");
+        assertOkComTexto("/frequencia?periodo=ano", "Ano " + java.time.LocalDate.now().getYear());
+        assertOkComTexto("/frequencia/planilha.csv", "presencas_no_ano;previstas_no_ano");
+        assertOkComTexto("/api/exportacao/frequencia-mensal", "\"presencas_ano\"");
+        assertOkComTexto("/ajuda/instalar", "Adicionar à Tela de Início");
+        assertOkComTexto("/manifest.json", "\"standalone\"");
+        assertOk("/sw.js");
     }
 
     @Test

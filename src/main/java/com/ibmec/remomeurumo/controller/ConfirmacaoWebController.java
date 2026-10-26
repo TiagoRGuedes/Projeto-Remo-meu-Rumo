@@ -112,9 +112,11 @@ public class ConfirmacaoWebController {
         return switch (confirmacao.tipo()) {
             case CRIAR_PARTICIPANTE -> {
                 Long participanteId = participanteService.cadastrar(participanteDe(dados)).getId();
-                String turmaId = dados.get("turmaId");
-                if (turmaId != null && !turmaId.isBlank()) {
-                    matriculaService.matricular(participanteId, Long.valueOf(turmaId), LocalDate.now());
+                String turmaIds = dados.getOrDefault("turmaIds", "");
+                for (String turmaId : turmaIds.split(",")) {
+                    if (!turmaId.isBlank()) {
+                        matriculaService.matricular(participanteId, Long.valueOf(turmaId.trim()), LocalDate.now());
+                    }
                 }
                 yield participanteId;
             }
@@ -161,6 +163,9 @@ public class ConfirmacaoWebController {
                     data(dados.get("dataSaida"))).getParticipante().getId();
             case REATIVAR_MATRICULA -> matriculaService.reativar(
                     confirmacao.entidadeId()).getParticipante().getId();
+            case REMOVER_TURMA -> matriculaService.removerTurma(
+                    confirmacao.entidadeId(),
+                    data(dados.get("dataRemocao"))).getParticipante().getId();
             case TROCAR_TURMA -> matriculaService.trocarTurma(
                     confirmacao.entidadeId(),
                     Long.valueOf(dados.get("novaTurmaId")),

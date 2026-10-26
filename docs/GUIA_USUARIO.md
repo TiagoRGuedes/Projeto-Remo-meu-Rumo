@@ -107,3 +107,11 @@ A tela Início mostra a frequência do mês contra a meta de 60%, quem precisa d
 1. Abra Acessibilidade.
 2. Escolha tamanho de fonte, contraste, modo escuro ou redução de animações.
 3. Salve as preferências.
+
+## Pedidos da coordenação (turmas reais, várias turmas, total anual, celular)
+
+- **Turmas**: a grade oficial fica em um único arquivo, `src/main/java/com/ibmec/remomeurumo/config/TurmasOficiais.java`. Para mudar um horário, edite só essa lista; ao iniciar, o sistema cria as turmas que faltarem. No sábado há duas turmas: SÁB 09h e SÁB 10h30.
+- **Várias turmas**: no cadastro, marque todas as turmas da pessoa. Na página dela, use **Adicionar turma** ou **Remover** em cada turma. A última turma só sai por **Registrar saída**. Cada adição ou remoção aparece em "Entradas e saídas" e no Histórico (filtro "Turma adicionada/removida").
+- **Frequência**: as aulas previstas somam todas as turmas, cada uma contada a partir da entrada. A coluna **Presenças no ano** fica sempre visível, e o seletor **Mês / Ano** muda o período. Os meses aparecem sozinhos até o mês atual. A planilha (CSV) e a exportação para o REDCap trazem as presenças e as aulas previstas do ano.
+- **Aula não aconteceu**: funciona igual no computador e no celular, com motivo, observação, Confirmar/Voltar e Desfazer. A aula de hoje só entra na conta depois que a chamada é feita.
+- **Celular**: o sistema pode ser instalado como app. Veja Ajuda → Instalar no celular.

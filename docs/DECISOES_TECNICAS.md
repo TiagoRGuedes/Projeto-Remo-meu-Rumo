@@ -71,3 +71,11 @@ Deficiência e referência de laudo ficam só no cadastro individual. Não apare
 ## Total esperado no dashboard
 
 Como o modelo atual não possui uma lista histórica de inscritos por encontro, o total esperado usa o maior valor entre participantes atualmente ativos e registros existentes no encontro. Essa regra deve ser revisada se a ONG adotar turmas ou inscrições por atividade.
+
+## Turmas oficiais, várias turmas e PWA
+
+- `TurmasOficiais` é a fonte única da grade. `SincronizacaoTurmas` (`app.turmas-oficiais.criar`, ligado por padrão e desligado nos testes) cria as turmas que faltam, sem apagar nenhuma.
+- Remover uma turma encerra a matrícula com `MotivoSaida.TURMA_REMOVIDA` e registra `AcaoHistorico.TURMA_REMOVIDA`. Quando a pessoa já tem outra turma ativa, a nova matrícula registra `TURMA_ADICIONADA`.
+- Frequência por pessoa (`FrequenciaService.painelPorParticipante`): soma as matrículas no período, mensal ou anual. A aula de hoje sem nenhuma presença registrada ainda não conta.
+- O início do ano letivo para os chips de mês é `app.ano-letivo.mes-inicio`, com padrão 2 (fevereiro).
+- PWA: `static/manifest.json`, `static/sw.js` (service worker mínimo, só para permitir a instalação) e os ícones `img/brand/app-192.png` e `app-512.png`.

@@ -19,79 +19,101 @@
         <section class="section-block" aria-labelledby="mensal-titulo">
             <div class="section-header">
                 <div>
-                    <h2 id="mensal-titulo">Frequência mensal por turma</h2>
-                    <p class="muted" th:text="${'Presenças ÷ aulas previstas no mês. Aula sem registro conta como falta. Meta: ' + #numbers.formatDecimal(metaFrequencia, 1, 0) + '%. Mais de ' + limiteFaltas + ' faltas pedem contato com a família.'}">Regra mensal.</p>
+                    <h2 id="mensal-titulo" th:text="${'Frequência · ' + rotuloPeriodo}">Frequência · Outubro de 2026</h2>
+                    <p class="muted" th:text="${'Presenças ÷ aulas previstas de todas as turmas da pessoa, contadas só desde a entrada em cada uma. Aula que não aconteceu fica fora da conta. Meta: ' + #numbers.formatDecimal(metaFrequencia, 1, 0) + '%.' + (anual ? '' : ' Mais de ' + limiteFaltas + ' faltas no mês pedem contato com a família.')}">Regra.</p>
                 </div>
-                <form class="inline-filter" method="get" th:action="@{/frequencia}">
-                    <input type="hidden" name="atividadeId" th:value="${atividadeId}">
-                    <label for="mes">Mês</label>
-                    <input id="mes" name="mes" type="month" th:value="${mesReferencia}">
-                    <button class="button button-soft" type="submit">Ver mês</button>
-                    <a class="button button-soft" th:href="@{/api/exportacao/frequencia-mensal(mes=${mesReferencia})}"><span class="icon icon-download" aria-hidden="true"></span>Exportar (JSON)</a>
-                </form>
+                <div class="actions">
+                    <a class="button button-soft" th:href="@{/frequencia/planilha.csv(periodo=${anual} ? 'ano' : 'mes', mes=${mesReferencia}, turmaId=${turmaId})}"><span class="icon icon-download" aria-hidden="true"></span>Exportar planilha</a>
+                    <a class="button button-soft" th:href="@{/api/exportacao/frequencia-mensal(mes=${mesReferencia})}"><span class="icon icon-download" aria-hidden="true"></span>Exportar para o REDCap</a>
+                </div>
             </div>
+
+            <div class="filtros-frequencia">
+                <nav class="seletor-periodo" aria-label="Período">
+                    <a th:href="@{/frequencia(periodo='mes', mes=${mesReferencia}, turmaId=${turmaId})}" th:attr="aria-current=${!anual} ? 'true' : null">Mês</a>
+                    <a th:href="@{/frequencia(periodo='ano', mes=${mesReferencia}, turmaId=${turmaId})}" th:attr="aria-current=${anual} ? 'true' : null" th:text="${'Ano ' + anoAtual}">Ano 2026</a>
+                </nav>
+                <nav class="chips chips-rolagem" aria-label="Mês" th:if="${!anual}">
+                    <a th:each="item : ${mesesDisponiveis}" th:href="@{/frequencia(periodo='mes', mes=${item.valor()}, turmaId=${turmaId})}"
+                       th:attr="aria-current=${item.valor() == mesReferencia} ? 'true' : null" th:text="${item.rotulo()}">Out</a>
+                </nav>
+                <nav class="chips chips-rolagem" aria-label="Turma">
+                    <a th:href="@{/frequencia(periodo=${anual} ? 'ano' : 'mes', mes=${mesReferencia})}" th:attr="aria-current=${turmaId == null} ? 'true' : null">Todas</a>
+                    <a th:each="turma : ${turmasAtivas}" th:href="@{/frequencia(periodo=${anual} ? 'ano' : 'mes', mes=${mesReferencia}, turmaId=${turma.id})}"
+                       th:attr="aria-current=${turmaId == turma.id} ? 'true' : null" th:text="${turma.nome}">SEG · 08h</a>
+                </nav>
+            </div>
+
             <div class="table-card">
                 <div class="table-wrapper">
-                    <table>
-                        <caption class="sr-only">Resumo mensal por turma</caption>
-                        <thead>
-                        <tr>
-                            <th scope="col">Turma</th>
-                            <th scope="col">Grade</th>
-                            <th scope="col">Aulas previstas</th>
-                            <th scope="col">Matriculados</th>
-                            <th scope="col">Frequência</th>
-                            <th scope="col">Para contatar</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr th:each="resumo : ${resumosMensais}">
-                            <td class="table-primary"><a th:href="@{/frequencia(atividadeId=${resumo.turmaId()}, mes=${mesReferencia})}" th:text="${resumo.turma()}">Turma</a></td>
-                            <td th:text="${resumo.grade()}">Grade</td>
-                            <td th:text="${resumo.aulasPrevistas()}">0</td>
-                            <td th:text="${resumo.matriculasAtivas()}">0</td>
-                            <td><span th:text="${#numbers.formatDecimal(resumo.percentual(), 1, 1) + '%'}">0%</span>
-                                <span class="status-pill status-warning-pill" th:if="${resumo.abaixoDaMeta()}">Abaixo da meta</span></td>
-                            <td>
-                                <span th:if="${resumo.totalFaltosos() == 0}">—</span>
-                                <span class="status-pill status-off" th:if="${resumo.totalFaltosos() > 0}" th:text="${resumo.totalFaltosos() + (resumo.totalFaltosos() == 1 ? ' pessoa' : ' pessoas')}">0</span>
-                            </td>
-                        </tr>
-                        <tr th:if="${#lists.isEmpty(resumosMensais)}">
-                            <td class="empty-cell" colspan="6">Nenhuma turma ativa.</td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="table-card section-block" th:if="${atividadeId != null}">
-                <div class="table-wrapper">
-                    <table>
-                        <caption>Participantes da turma no mês</caption>
+                    <table class="mobile-card-table tabela-frequencia">
+                        <caption class="sr-only" th:text="${'Frequência por participante · ' + rotuloPeriodo}">Frequência por participante</caption>
                         <thead>
                         <tr>
                             <th scope="col">Participante</th>
-                            <th scope="col">Presenças</th>
-                            <th scope="col">Faltas</th>
+                            <th scope="col">Turma</th>
+                            <th scope="col" class="num">Presenças</th>
+                            <th scope="col" class="num">Previstas</th>
+                            <th scope="col" class="num">Faltas</th>
+                            <th scope="col" class="num coluna-ano">Presenças no ano</th>
                             <th scope="col">Frequência</th>
                             <th scope="col">Situação</th>
                         </tr>
                         </thead>
                         <tbody>
-                        <tr th:each="linha : ${linhasMensais}">
-                            <td class="table-primary"><a th:href="@{/participantes/{id}(id=${linha.participanteId()}, mes=${mesReferencia})}" th:text="${linha.participante()}">Participante</a>
+                        <tr th:each="linha : ${linhasPainel}">
+                            <td class="table-primary" data-label="Participante"><a th:href="@{/participantes/{id}(id=${linha.participanteId()}, mes=${mesReferencia})}" th:text="${linha.participante()}">Participante</a>
                                 <small class="nota-frequencia" th:if="${linha.observacao() != null}" th:text="${linha.observacao()}">Conta só as aulas desde o ingresso.</small></td>
-                            <td th:text="${linha.presencas() + ' de ' + linha.aulasPrevistas()}">0 de 0</td>
-                            <td th:text="${linha.faltas()}">0</td>
-                            <td th:text="${linha.semAulasPrevistas()} ? 'Sem aulas' : ${#numbers.formatDecimal(linha.percentual(), 1, 1) + '%'}">0%</td>
-                            <td>
+                            <td data-label="Turma"><span class="lista-turmas"><span class="turma-item" th:each="turma : ${linha.listaTurmas()}" th:text="${turma}">SEG · 08h</span></span></td>
+                            <td class="num" data-label="Presenças" th:text="${linha.presencas()}">0</td>
+                            <td class="num" data-label="Previstas" th:text="${linha.previstas()}">0</td>
+                            <td class="num" data-label="Faltas"><span th:text="${linha.faltas()}">0</span><small class="muted" th:if="${linha.faltasAvisadas() > 0}" th:text="${' (' + linha.faltasAvisadas() + (linha.faltasAvisadas() == 1 ? ' avisada)' : ' avisadas)')}"></small></td>
+                            <td class="num coluna-ano" data-label="Presenças no ano"><strong th:text="${linha.presencasAno()}">0</strong><small class="muted" th:text="${' de ' + linha.previstasAno()}"> de 0</small></td>
+                            <td class="frequency-cell" data-label="Frequência">
+                                <div class="frequency-value"><span th:text="${linha.semAulasPrevistas()} ? 'Sem aulas' : ${#numbers.formatDecimal(linha.percentual(), 1, 1) + '%'}">0%</span></div>
+                                <progress th:value="${linha.percentual()}" max="100" th:attr="aria-label=|Frequência de ${linha.participante()}: ${#numbers.formatDecimal(linha.percentual(), 1, 1)}%|">0%</progress>
+                            </td>
+                            <td data-label="Situação">
                                 <span class="status-pill status-off" th:if="${linha.contatoNecessario()}">Contatar família</span>
                                 <span class="status-pill status-warning-pill" th:if="${!linha.contatoNecessario() and linha.abaixoDaMeta()}">Abaixo da meta</span>
                                 <span class="status-pill status-on" th:if="${!linha.contatoNecessario() and !linha.abaixoDaMeta() and !linha.semAulasPrevistas()}">Em dia</span>
                             </td>
                         </tr>
-                        <tr th:if="${#lists.isEmpty(linhasMensais)}">
-                            <td class="empty-cell" colspan="5">Nenhuma matrícula vigente neste mês.</td>
+                        <tr th:if="${#lists.isEmpty(linhasPainel)}">
+                            <td class="empty-cell" colspan="8">Ninguém matriculado neste período.</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="table-card section-block">
+                <div class="table-wrapper">
+                    <table>
+                        <caption th:text="${'Resumo por turma · ' + rotuloPeriodo}">Resumo por turma</caption>
+                        <thead>
+                        <tr>
+                            <th scope="col">Turma</th>
+                            <th scope="col">Aulas previstas</th>
+                            <th scope="col">Matriculados</th>
+                            <th scope="col">Frequência</th>
+                            <th scope="col" th:if="${!anual}">Para contatar</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="resumo : ${resumosMensais}">
+                            <td class="table-primary"><a th:href="@{/frequencia(periodo=${anual} ? 'ano' : 'mes', mes=${mesReferencia}, turmaId=${resumo.turmaId()})}" th:text="${resumo.turma()}">Turma</a></td>
+                            <td th:text="${resumo.aulasPrevistas()}">0</td>
+                            <td th:text="${resumo.matriculasAtivas()}">0</td>
+                            <td><span th:text="${#numbers.formatDecimal(resumo.percentual(), 1, 1) + '%'}">0%</span>
+                                <span class="status-pill status-warning-pill" th:if="${resumo.abaixoDaMeta()}">Abaixo da meta</span></td>
+                            <td th:if="${!anual}">
+                                <span th:if="${resumo.totalFaltosos() == 0}">—</span>
+                                <span class="status-pill status-off" th:if="${resumo.totalFaltosos() > 0}" th:text="${resumo.totalFaltosos() + (resumo.totalFaltosos() == 1 ? ' pessoa' : ' pessoas')}">0</span>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(resumosMensais)}">
+                            <td class="empty-cell" colspan="5">Nenhuma turma ativa.</td>
                         </tr>
                         </tbody>
                     </table>
@@ -215,7 +237,7 @@
             </div>
         </section>
 
-        <aside class="context-help section-block"><span class="icon icon-info" aria-hidden="true"></span><div><strong>Como a frequência é calculada?</strong><p>A frequência mostra quantos registros estão como Presente em relação a todos os registros encontrados. Faltas faltas avisadas aparecem separadamente.</p></div></aside>
+        <aside class="context-help section-block"><span class="icon icon-info" aria-hidden="true"></span><div><strong>Como a frequência é calculada?</strong><p>No painel de cima, a frequência é presenças ÷ aulas previstas de todas as turmas da pessoa, desde a entrada em cada uma. Na visão "Ano", tudo soma os meses do ano. Nos registros por período, a conta é sobre os registros encontrados; faltas avisadas aparecem separadas.</p></div></aside>
         <footer th:replace="~{fragments/footer :: footer}"></footer>
     </main>
 </div>

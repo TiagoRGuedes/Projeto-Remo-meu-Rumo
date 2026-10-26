@@ -56,6 +56,7 @@ public class ChamadaWebController {
         model.addAttribute("sessoesDeHoje", chamadaService.sessoesDeHoje());
         model.addAttribute("pendentes", chamadaService.pendentes());
         model.addAttribute("turmas", atividadeService.listarAtivas());
+        model.addAttribute("abas", chamadaService.abas());
         model.addAttribute("hoje", LocalDate.now());
         return "chamada/index";
     }
@@ -77,6 +78,7 @@ public class ChamadaWebController {
             model.addAttribute("chamada", chamada);
             model.addAttribute("modoCorrecao", !chamada.isNaoRealizada() && (corrigir != null || !chamada.isRegistrada()));
             model.addAttribute("motivosCancelamento", MotivoCancelamento.values());
+            model.addAttribute("abas", chamadaService.abas());
             return "chamada/turma";
         } catch (RegraNegocioException ex) {
             redirectAttributes.addFlashAttribute("erro", ex.getMessage());

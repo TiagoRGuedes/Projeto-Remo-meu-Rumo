@@ -6,6 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -96,8 +97,9 @@ public class ParticipanteWebController {
     }
 
     @GetMapping("/novo")
-    public String novo(Model model) {
+    public String novo(@RequestParam(required = false) Long turmaId, Model model) {
         model.addAttribute("participante", new Participante());
+        model.addAttribute("turmasSelecionadas", turmaId == null ? List.of() : List.of(turmaId));
         model.addAttribute("modoEdicao", false);
         return "participantes/form";
     }
@@ -105,11 +107,12 @@ public class ParticipanteWebController {
     @PostMapping("/novo")
     public String cadastrar(@Valid @ModelAttribute("participante") Participante participante,
             BindingResult bindingResult,
-            @RequestParam(required = false) Long turmaId,
+            @RequestParam(required = false) List<Long> turmaIds,
             Model model,
             RedirectAttributes redirectAttributes,
             HttpSession session) {
-        model.addAttribute("turmaSelecionada", turmaId);
+        List<Long> turmas = turmaIds == null ? List.of() : turmaIds.stream().filter(Objects::nonNull).distinct().toList();
+        model.addAttribute("turmasSelecionadas", turmas);
         if (bindingResult.hasErrors()) {
             model.addAttribute("modoEdicao", false);
             return "participantes/form";
@@ -129,16 +132,21 @@ public class ParticipanteWebController {
                             confirmacaoService.alteracao("Data de nascimento", null, dataNascimento(participante)),
                             confirmacaoService.alteracao("Escola", null, descricaoEscola(participante)),
                             confirmacaoService.alteracao("Deficiência ou condição", null, participante.getDescricaoDeficiencia()),
-                            confirmacaoService.alteracao("Turma", null, turmaId == null ? "Sem turma por enquanto"
-                                    : atividadeService.obter(turmaId).getNome() + " · " + atividadeService.obter(turmaId).getGradeResumo()),
+                            confirmacaoService.alteracao(turmas.size() > 1 ? "Turmas" : "Turma", null,
+                                    turmas.isEmpty() ? "Sem turma por enquanto"
+                                            : turmas.stream().map(id -> atividadeService.obter(id).getNome())
+                                                    .collect(Collectors.joining(" · "))),
                             confirmacaoService.alteracao("Situação inicial", null, "Ativo"),
                             confirmacaoService.alteracao("Observações", null, participante.getObservacoes())),
                     List.of(
                             "A pessoa será adicionada à lista de participantes.",
-                            turmaId == null ? "Depois do cadastro, matricule a pessoa em uma ou mais turmas."
-                                    : "A pessoa entra na turma escolhida a partir de hoje e já aparece na chamada.",
+                            turmas.isEmpty() ? "Depois do cadastro, adicione a pessoa a uma ou mais turmas."
+                                    : turmas.size() == 1
+                                            ? "A pessoa entra na turma escolhida a partir de hoje e já aparece na chamada."
+                                            : "A pessoa entra nas " + turmas.size()
+                                                    + " turmas a partir de hoje e aparece na chamada de cada uma.",
                             "A criação será registrada no Histórico do sistema."),
-                    dadosNovoParticipante(participante, turmaId),
+                    dadosNovoParticipante(participante, turmas),
                     "/participantes/novo/corrigir",
                     "/participantes/novo",
                     "/participantes/{id}",
@@ -168,8 +176,10 @@ public class ParticipanteWebController {
         var referencia = MesReferencia.resolver(mes);
         model.addAttribute("mesReferencia", referencia.toString());
         model.addAttribute("frequenciaMensal", frequenciaService.frequenciaMensalDoParticipante(id, referencia));
+        model.addAttribute("frequenciaAnual", frequenciaService.frequenciaAnualDoParticipante(id, referencia.getYear()).consolidado());
         model.addAttribute("matriculas", matriculaService.listarPorParticipante(id));
         model.addAttribute("turmasDisponiveis", matriculaService.turmasDisponiveis(id));
+        model.addAttribute("totalTurmasAtivas", matriculaService.turmasAtivas(id).size());
         model.addAttribute("motivosSaida", MotivoSaida.paraSaida());
         model.addAttribute("movimentos", matriculaService.movimentos(id));
         model.addAttribute("anexos", anexoService.listarPorParticipante(id));
@@ -290,10 +300,10 @@ public class ParticipanteWebController {
 
     @PostMapping("/novo/corrigir")
     public String corrigirNovo(@ModelAttribute("participante") Participante participante,
-            @RequestParam String tokenConfirmacao, @RequestParam(required = false) Long turmaId,
+            @RequestParam String tokenConfirmacao, @RequestParam(required = false) List<Long> turmaIds,
             HttpSession session, Model model) {
         confirmacaoService.descartar(session, tokenConfirmacao);
-        model.addAttribute("turmaSelecionada", turmaId);
+        model.addAttribute("turmasSelecionadas", turmaIds == null ? List.of() : turmaIds);
         model.addAttribute("modoEdicao", false);
         return "participantes/form";
     }
@@ -326,9 +336,9 @@ public class ParticipanteWebController {
                 "Excluir participante", true);
     }
 
-    private Map<String, String> dadosNovoParticipante(Participante participante, Long turmaId) {
+    private Map<String, String> dadosNovoParticipante(Participante participante, List<Long> turmaIds) {
         Map<String, String> dados = dadosParticipante(participante);
-        dados.put("turmaId", turmaId == null ? "" : turmaId.toString());
+        dados.put("turmaIds", turmaIds.stream().map(String::valueOf).collect(Collectors.joining(",")));
         return dados;
     }
 

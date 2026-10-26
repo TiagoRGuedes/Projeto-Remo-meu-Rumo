@@ -27,10 +27,10 @@
         </section>
 
         <nav class="historico-tipos section-block" aria-label="Filtrar por tipo">
-            <a th:href="@{/historico(busca=${busca})}" th:attr="aria-current=${modulo == null and acao == null} ? 'true' : null">Todos</a>
+            <a th:href="@{/historico(busca=${busca})}" th:attr="aria-current=${modulo == null and acao == null and grupoFiltro == null} ? 'true' : null">Todos</a>
             <a th:each="tipo : ${tiposRapidos}"
-               th:href="@{/historico(modulo=${tipo.modulo()}, acao=${tipo.acao()}, busca=${busca})}"
-               th:attr="aria-current=${modulo == tipo.modulo() and acao == tipo.acao()} ? 'true' : null"
+               th:href="@{/historico(modulo=${tipo.modulo()}, acao=${tipo.acao()}, grupo=${tipo.grupo()}, busca=${busca})}"
+               th:attr="aria-current=${modulo == tipo.modulo() and acao == tipo.acao() and grupoFiltro == tipo.grupo()} ? 'true' : null"
                th:text="${tipo.rotulo()}">Ingresso</a>
         </nav>
 

@@ -39,15 +39,17 @@
                     <div id="erro-dataNascimento" class="field-error" th:if="${#fields.hasErrors('dataNascimento')}" th:errors="*{dataNascimento}">Erro</div>
                 </div>
             </div>
-            <div class="field" th:if="${!modoEdicao}">
-                <label for="turmaId">Turma</label>
-                <select id="turmaId" name="turmaId" aria-describedby="ajuda-turma">
-                    <option value="">Sem turma por enquanto</option>
-                    <option th:each="turma : ${turmasAtivas}" th:value="${turma.id}" th:text="${turma.nome + ' · ' + turma.gradeResumo}"
-                            th:selected="${turmaSelecionada != null and turma.id == turmaSelecionada}">Turma</option>
-                </select>
-                <p id="ajuda-turma" class="field-help">A pessoa já aparece na chamada dessa turma. Outras turmas podem ser incluídas depois, na página do participante.</p>
-            </div>
+            <fieldset class="field escolha-turmas" th:if="${!modoEdicao}" aria-describedby="ajuda-turma">
+                <legend>Turmas</legend>
+                <div class="chips-escolha">
+                    <label th:each="turma : ${turmasAtivas}">
+                        <input type="checkbox" name="turmaIds" th:value="${turma.id}"
+                               th:checked="${turmasSelecionadas != null and #lists.contains(turmasSelecionadas, turma.id)}">
+                        <span th:text="${turma.rotulo}">SEG · 08h</span>
+                    </label>
+                </div>
+                <p id="ajuda-turma" class="field-help">Marque todas as turmas que a pessoa vai frequentar, por exemplo SEG 08h e TER/QUI 08h. Ela aparece na chamada de cada uma. Pode deixar em branco e incluir depois.</p>
+            </fieldset>
             <div class="field">
                 <label for="tipoEscola">Escola</label>
                 <select id="tipoEscola" th:field="*{tipoEscola}">

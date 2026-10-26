@@ -1,5 +1,6 @@
 package com.ibmec.remomeurumo.repository;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -54,4 +55,7 @@ public interface MatriculaRepository extends JpaRepository<Matricula, Long> {
             order by participante.nome asc, atividade.nome asc
             """)
     List<Matricula> listarTodas();
+
+    @Query("select min(m.dataInicio) from Matricula m")
+    LocalDate primeiroInicio();
 }
