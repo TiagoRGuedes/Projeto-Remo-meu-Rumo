@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
 
+import org.springframework.format.annotation.DateTimeFormat;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -36,6 +38,7 @@ public class Participante {
     private Sexo sexo = Sexo.NAO_INFORMADO;
 
     @Past(message = "A data de nascimento deve ser anterior a hoje.")
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate dataNascimento;
 
     @Enumerated(EnumType.STRING)

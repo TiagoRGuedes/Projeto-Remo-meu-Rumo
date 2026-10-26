@@ -15,6 +15,7 @@
                 <p class="eyebrow">Atividade</p>
                 <h1 th:text="${atividade.nome}">Atividade</h1>
                 <p class="muted" th:text="${atividade.descricao} ?: 'Sem descrição cadastrada.'">Descrição</p>
+                <p class="grade-chip"><span class="icon icon-clock" aria-hidden="true"></span><span th:text="${atividade.gradeResumo}">TER/QUI · 14:00</span></p>
             </div>
             <div class="actions">
                 <a class="button button-primary" th:href="@{/atividades/{id}/editar(id=${atividade.id})}"><span class="icon icon-edit" aria-hidden="true"></span>Editar atividade</a>
@@ -31,11 +32,91 @@
 
         <section class="detail-grid">
             <article class="form-card"><h2>Situação da atividade</h2><p><span th:class="${atividade.ativo} ? 'status-pill status-on' : 'status-pill status-off'" th:text="${atividade.ativo} ? 'Ativa' : 'Inativa'">Ativa</span></p><p class="muted">Atividades inativas permanecem nos relatórios, mas não recebem novos encontros.</p></article>
-            <article class="form-card"><h2>Rede relacionada</h2><p><strong th:text="${totalEncontros + ' encontros'}">0 encontros</strong></p><p><strong th:text="${participantesRelacionados + ' participantes com registros'}">0 participantes</strong></p><div class="inline-links"><a class="inline-action" th:href="@{/encontros(atividadeId=${atividade.id})}">Ver encontros</a><a class="inline-action" th:href="@{/frequencia(atividadeId=${atividade.id})}">Ver frequência</a></div></article>
-            <article class="form-card"><h2>Exclusão segura</h2><p th:if="${podeExcluir}" class="status-message status-success"><span class="icon icon-check" aria-hidden="true"></span>Pode ser excluída porque ainda não possui encontros.</p><p th:if="${!podeExcluir}" class="status-message status-warning"><span class="icon icon-info" aria-hidden="true"></span>Desative esta atividade para preservar seus encontros.</p></article>
+            <article class="form-card"><h2>Rede relacionada</h2><p><strong th:text="${matriculasAtivas + ' matrículas ativas'}">0 matrículas</strong></p><p><strong th:text="${totalEncontros + ' encontros'}">0 encontros</strong></p><p><strong th:text="${participantesRelacionados + ' participantes com registros'}">0 participantes</strong></p><div class="inline-links"><a class="inline-action" th:href="@{/encontros(atividadeId=${atividade.id})}">Ver encontros</a><a class="inline-action" th:href="@{/frequencia(atividadeId=${atividade.id})}">Ver frequência</a></div></article>
+            <article class="form-card"><h2>Exclusão segura</h2><p th:if="${podeExcluir}" class="status-message status-success"><span class="icon icon-check" aria-hidden="true"></span>Pode ser excluída porque ainda não possui encontros nem matrículas.</p><p th:if="${!podeExcluir}" class="status-message status-warning"><span class="icon icon-info" aria-hidden="true"></span>Desative esta atividade para preservar encontros e matrículas.</p></article>
         </section>
 
-        <section class="table-card">
+        <section class="section-block" aria-labelledby="frequencia-turma-titulo">
+            <div class="section-header">
+                <div>
+                    <h2 id="frequencia-turma-titulo">Frequência do mês</h2>
+                    <p class="muted" th:text="${'Meta: ' + #numbers.formatDecimal(metaFrequencia, 1, 0) + '% de presença. Mais de ' + limiteFaltas + ' faltas no mês pedem contato com a família.'}">Regra.</p>
+                </div>
+                <form class="inline-filter" method="get" th:action="@{/atividades/{id}(id=${atividade.id})}">
+                    <label for="mes">Mês</label>
+                    <input id="mes" name="mes" type="month" th:value="${mesReferencia}">
+                    <button class="button button-soft" type="submit">Ver mês</button>
+                </form>
+            </div>
+            <div class="month-summary">
+                <div class="month-stat" th:classappend="${resumoMensal.abaixoDaMeta()} ? 'month-stat-alert'"><span>Frequência da turma</span><strong th:text="${#numbers.formatDecimal(resumoMensal.percentual(), 1, 1) + '%'}">0%</strong></div>
+                <div class="month-stat"><span>Aulas previstas</span><strong th:text="${resumoMensal.aulasPrevistas()}">0</strong></div>
+                <div class="month-stat"><span>Matriculados no mês</span><strong th:text="${resumoMensal.matriculasAtivas()}">0</strong></div>
+                <div class="month-stat" th:classappend="${resumoMensal.totalFaltosos() > 0} ? 'month-stat-alert'"><span>Para contatar</span><strong th:text="${resumoMensal.totalFaltosos()}">0</strong></div>
+            </div>
+            <div class="table-card">
+                <div class="table-wrapper">
+                    <table>
+                        <caption class="sr-only">Frequência mensal por participante</caption>
+                        <thead>
+                        <tr>
+                            <th scope="col">Participante</th>
+                            <th scope="col">Presenças</th>
+                            <th scope="col">Faltas</th>
+                            <th scope="col">Frequência</th>
+                            <th scope="col">Situação</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="linha : ${linhasMensais}">
+                            <td class="table-primary"><a th:href="@{/participantes/{id}(id=${linha.participanteId()}, mes=${mesReferencia})}" th:text="${linha.participante()}">Participante</a></td>
+                            <td th:text="${linha.presencas() + ' de ' + linha.aulasPrevistas()}">0 de 0</td>
+                            <td><span th:text="${linha.faltas()}">0</span><span class="muted" th:if="${linha.faltasJustificadas() > 0}" th:text="${' (' + linha.faltasJustificadas() + ' justificadas)'}"></span></td>
+                            <td th:text="${linha.semAulasPrevistas()} ? 'Sem aulas' : ${#numbers.formatDecimal(linha.percentual(), 1, 1) + '%'}">0%</td>
+                            <td>
+                                <span class="status-pill status-off" th:if="${linha.contatoNecessario()}">Contatar família</span>
+                                <span class="status-pill status-warning-pill" th:if="${!linha.contatoNecessario() and linha.abaixoDaMeta()}">Abaixo da meta</span>
+                                <span class="status-pill status-on" th:if="${!linha.contatoNecessario() and !linha.abaixoDaMeta() and !linha.semAulasPrevistas()}">Em dia</span>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(linhasMensais)}">
+                            <td class="empty-cell" colspan="5">Nenhuma matrícula vigente neste mês. Matricule participantes pela página de cada pessoa.</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section class="section-block table-card" aria-labelledby="matriculas-turma-titulo">
+            <div class="table-wrapper">
+                <table>
+                    <caption id="matriculas-turma-titulo">Matrículas da turma</caption>
+                    <thead>
+                    <tr>
+                        <th scope="col">Participante</th>
+                        <th scope="col">Início</th>
+                        <th scope="col">Situação</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="matricula : ${matriculas}">
+                        <td class="table-primary"><a th:href="@{/participantes/{id}(id=${matricula.participante.id})}" th:text="${matricula.participante.nome}">Participante</a></td>
+                        <td th:text="${#temporals.format(matricula.dataInicio, 'dd/MM/yyyy')}">01/01/2026</td>
+                        <td>
+                            <span th:class="${matricula.ativa} ? 'status-pill status-on' : 'status-pill status-off'" th:text="${matricula.status.descricao}">Ativa</span>
+                            <span class="muted" th:if="${!matricula.ativa}" th:text="${' ' + matricula.motivoSaidaDescricao}">Motivo</span>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(matriculas)}">
+                        <td class="empty-cell" colspan="3">Ainda não há matrículas nesta turma.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="table-card section-block">
             <div class="table-wrapper">
                 <table>
                     <caption>Encontros relacionados</caption>

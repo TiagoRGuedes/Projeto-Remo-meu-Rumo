@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.ibmec.remomeurumo.dto.ApiMensagem;
 import com.ibmec.remomeurumo.dto.AtividadeInput;
 import com.ibmec.remomeurumo.dto.AtividadeOutput;
-import com.ibmec.remomeurumo.model.Atividade;
 import com.ibmec.remomeurumo.service.AtividadeService;
 
 import jakarta.validation.Valid;
@@ -39,7 +38,7 @@ public class AtividadeApiController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public AtividadeOutput cadastrar(@Valid @RequestBody AtividadeInput input) {
-        return AtividadeOutput.de(atividadeService.cadastrar(new Atividade(input.nome(), input.descricao())));
+        return AtividadeOutput.de(atividadeService.cadastrar(input.paraModelo()));
     }
 
     @GetMapping("/{id}")
@@ -49,7 +48,7 @@ public class AtividadeApiController {
 
     @PutMapping("/{id}")
     public AtividadeOutput atualizar(@PathVariable Long id, @Valid @RequestBody AtividadeInput input) {
-        return AtividadeOutput.de(atividadeService.atualizar(id, new Atividade(input.nome(), input.descricao())));
+        return AtividadeOutput.de(atividadeService.atualizar(id, input.paraModelo()));
     }
 
     @DeleteMapping("/{id}")

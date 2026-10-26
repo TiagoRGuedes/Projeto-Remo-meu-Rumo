@@ -3,10 +3,13 @@ package com.ibmec.remomeurumo.dto;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import com.ibmec.remomeurumo.model.Participante;
 import com.ibmec.remomeurumo.model.Sexo;
 import com.ibmec.remomeurumo.model.TipoEscola;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public record ParticipanteOutput(
         Long id,
         String nome,

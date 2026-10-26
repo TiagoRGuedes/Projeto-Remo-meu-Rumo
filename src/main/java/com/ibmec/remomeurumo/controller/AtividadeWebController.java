@@ -4,6 +4,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -20,11 +21,15 @@ import com.ibmec.remomeurumo.exception.RegraNegocioException;
 import com.ibmec.remomeurumo.dto.ConfirmacaoOperacao;
 import com.ibmec.remomeurumo.dto.TipoOperacaoConfirmacao;
 import com.ibmec.remomeurumo.model.Atividade;
+import com.ibmec.remomeurumo.model.DiaSemana;
 import com.ibmec.remomeurumo.model.ModuloHistorico;
+import com.ibmec.remomeurumo.support.MesReferencia;
 import com.ibmec.remomeurumo.service.AtividadeService;
 import com.ibmec.remomeurumo.service.ConfirmacaoOperacaoService;
 import com.ibmec.remomeurumo.service.EncontroService;
+import com.ibmec.remomeurumo.service.FrequenciaService;
 import com.ibmec.remomeurumo.service.HistoricoOperacaoService;
+import com.ibmec.remomeurumo.service.MatriculaService;
 import com.ibmec.remomeurumo.service.PresencaService;
 
 import jakarta.validation.Valid;
@@ -39,17 +44,28 @@ public class AtividadeWebController {
     private final HistoricoOperacaoService historicoService;
     private final ConfirmacaoOperacaoService confirmacaoService;
     private final PresencaService presencaService;
+    private final MatriculaService matriculaService;
+    private final FrequenciaService frequenciaService;
 
     public AtividadeWebController(AtividadeService atividadeService,
             EncontroService encontroService,
             HistoricoOperacaoService historicoService,
             ConfirmacaoOperacaoService confirmacaoService,
-            PresencaService presencaService) {
+            PresencaService presencaService,
+            MatriculaService matriculaService,
+            FrequenciaService frequenciaService) {
         this.atividadeService = atividadeService;
         this.encontroService = encontroService;
         this.historicoService = historicoService;
         this.confirmacaoService = confirmacaoService;
         this.presencaService = presencaService;
+        this.matriculaService = matriculaService;
+        this.frequenciaService = frequenciaService;
+    }
+
+    @ModelAttribute
+    public void opcoesGrade(Model model) {
+        model.addAttribute("opcoesDiasSemana", DiaSemana.values());
     }
 
     @GetMapping
@@ -92,9 +108,10 @@ public class AtividadeWebController {
                     confirmacaoService.alteracoes(
                             confirmacaoService.alteracao("Nome", null, atividade.getNome()),
                             confirmacaoService.alteracao("Descrição", null, atividade.getDescricao()),
+                            confirmacaoService.alteracao("Grade", null, atividade.getGradeResumo()),
                             confirmacaoService.alteracao("Situação inicial", null, "Ativa")),
                     List.of("A atividade aparecerá na gestão e na busca global.",
-                            "Ficará disponível para a criação de encontros.",
+                            "Ficará disponível para matrículas e para a criação de encontros.",
                             "A criação será registrada no Histórico do sistema."),
                     dadosAtividade(atividade), "/atividades/nova/corrigir", "/atividades/nova",
                     "/atividades/{id}",
@@ -109,8 +126,17 @@ public class AtividadeWebController {
     }
 
     @GetMapping("/{id}")
-    public String visualizar(@PathVariable Long id, Model model) {
+    public String visualizar(@PathVariable Long id,
+            @RequestParam(required = false) String mes, Model model) {
+        var referencia = MesReferencia.resolver(mes);
         model.addAttribute("atividade", atividadeService.obter(id));
+        model.addAttribute("mesReferencia", referencia.toString());
+        model.addAttribute("resumoMensal", frequenciaService.resumoMensalDaTurma(id, referencia));
+        model.addAttribute("linhasMensais", frequenciaService.linhasMensaisDaTurma(id, referencia));
+        model.addAttribute("matriculas", matriculaService.listarPorTurma(id));
+        model.addAttribute("matriculasAtivas", matriculaService.contarAtivasDaTurma(id));
+        model.addAttribute("limiteFaltas", FrequenciaService.LIMITE_FALTAS_MES);
+        model.addAttribute("metaFrequencia", FrequenciaService.META_FREQUENCIA_MENSAL);
         model.addAttribute("encontros", encontroService.listarPorAtividade(id));
         model.addAttribute("historicoAdministrativo", historicoService.porEntidade(ModuloHistorico.ATIVIDADES, id));
         model.addAttribute("podeExcluir", atividadeService.podeExcluir(id));
@@ -146,6 +172,7 @@ public class AtividadeWebController {
                     confirmacaoService.alteracoes(
                             confirmacaoService.alteracao("Nome", atual.getNome(), atividade.getNome()),
                             confirmacaoService.alteracao("Descrição", atual.getDescricao(), atividade.getDescricao()),
+                            confirmacaoService.alteracao("Grade", atual.getGradeResumo(), atividade.getGradeResumo()),
                             confirmacaoService.alteracao("Situação", atual.isAtivo() ? "Ativa" : "Inativa",
                                     atual.isAtivo() ? "Ativa" : "Inativa")),
                     List.of("O novo nome aparecerá nos encontros e relatórios relacionados.",
@@ -233,12 +260,12 @@ public class AtividadeWebController {
     private ConfirmacaoOperacao prepararExclusao(Atividade atividade, HttpSession session) {
         if (!atividadeService.podeExcluir(atividade.getId())) {
             throw new RegraNegocioException(
-                    "Esta atividade possui encontros e não pode ser excluída. Desative-a para preservar o histórico.");
+                    "Esta atividade possui encontros ou matrículas e não pode ser excluída. Desative-a para preservar o histórico.");
         }
         return confirmacaoService.criar(session,
                 TipoOperacaoConfirmacao.EXCLUIR_ATIVIDADE, atividade.getId(), "Exclusão definitiva",
                 "Excluir " + atividade.getNome() + "?",
-                "A exclusão é permitida porque não existem encontros vinculados.", atividade.getNome(),
+                "A exclusão é permitida porque não existem encontros nem matrículas vinculados.", atividade.getNome(),
                 confirmacaoService.alteracoes(
                         confirmacaoService.alteracao("Atividade", atividade.getNome(), "Será removida")),
                 List.of("A atividade será removida definitivamente.",
@@ -252,6 +279,10 @@ public class AtividadeWebController {
         Map<String, String> dados = new LinkedHashMap<>();
         dados.put("nome", Objects.toString(atividade.getNome(), ""));
         dados.put("descricao", Objects.toString(atividade.getDescricao(), ""));
+        dados.put("diasSemana", atividade.getDiasSemana() == null ? "" : atividade.getDiasSemana().stream()
+                .map(DiaSemana::name)
+                .collect(Collectors.joining(",")));
+        dados.put("horario", atividade.getHorario() == null ? "" : atividade.getHorarioFormatado());
         return dados;
     }
 }

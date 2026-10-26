@@ -30,6 +30,16 @@
                 <textarea id="descricao" th:field="*{descricao}" aria-describedby="ajuda-descricao"></textarea>
                 <p id="ajuda-descricao" class="field-help">Descreva brevemente o objetivo ou o grupo atendido.</p>
             </div>
+            <fieldset class="field choice-group" aria-describedby="ajuda-dias">
+                <legend>Dias da semana</legend>
+                <label class="choice" th:each="dia : ${opcoesDiasSemana}"><input type="checkbox" th:field="*{diasSemana}" th:value="${dia}"> <span th:text="${dia.descricao}">Segunda</span></label>
+                <p id="ajuda-dias" class="field-help">Os dias definem a grade da turma e quais aulas são esperadas no mês.</p>
+            </fieldset>
+            <div class="field">
+                <label for="horario">Horário</label>
+                <input id="horario" type="time" th:field="*{horario}" aria-describedby="erro-horario" th:attr="aria-invalid=${#fields.hasErrors('horario')}">
+                <div id="erro-horario" class="field-error" th:if="${#fields.hasErrors('horario')}" th:errors="*{horario}">Erro</div>
+            </div>
             <div class="button-row">
                 <button class="button button-primary" type="submit"><span class="icon icon-arrow" aria-hidden="true"></span><span th:text="${modoEdicao} ? 'Revisar alterações' : 'Revisar cadastro'">Revisar cadastro</span></button>
                 <a class="button button-soft" th:href="@{/atividades}"><span class="icon icon-close" aria-hidden="true"></span>Cancelar e voltar</a>

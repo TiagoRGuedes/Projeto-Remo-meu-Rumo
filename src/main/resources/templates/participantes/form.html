@@ -25,6 +25,39 @@
                 <input id="nome" th:field="*{nome}" aria-describedby="erro-nome" th:attr="aria-invalid=${#fields.hasErrors('nome')}" autofocus>
                 <div id="erro-nome" class="field-error" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}">Erro</div>
             </div>
+            <div class="field-row">
+                <div class="field">
+                    <label for="sexo">Sexo</label>
+                    <select id="sexo" th:field="*{sexo}">
+                        <option th:each="opcao : ${opcoesSexo}" th:value="${opcao}" th:text="${opcao.descricao}">Não informado</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="dataNascimento">Data de nascimento</label>
+                    <input id="dataNascimento" type="date" th:field="*{dataNascimento}" aria-describedby="erro-dataNascimento ajuda-dataNascimento" th:attr="aria-invalid=${#fields.hasErrors('dataNascimento')}">
+                    <p id="ajuda-dataNascimento" class="field-help">A idade é calculada automaticamente.</p>
+                    <div id="erro-dataNascimento" class="field-error" th:if="${#fields.hasErrors('dataNascimento')}" th:errors="*{dataNascimento}">Erro</div>
+                </div>
+            </div>
+            <div class="field">
+                <label for="tipoEscola">Escola</label>
+                <select id="tipoEscola" th:field="*{tipoEscola}">
+                    <option th:each="opcao : ${opcoesTipoEscola}" th:value="${opcao}" th:text="${opcao.descricao}">Não informado</option>
+                </select>
+            </div>
+            <fieldset class="field choice-group" aria-describedby="ajuda-deficiencia">
+                <legend>Possui deficiência?</legend>
+                <label class="choice"><input type="radio" th:field="*{possuiDeficiencia}" value="true"> Sim</label>
+                <label class="choice"><input type="radio" th:field="*{possuiDeficiencia}" value="false"> Não</label>
+                <label class="choice"><input type="radio" name="possuiDeficiencia" value="" th:checked="*{possuiDeficiencia == null}"> Não informado</label>
+                <p id="ajuda-deficiencia" class="field-help">Dado sensível: aparece só no cadastro individual e não é exportado.</p>
+            </fieldset>
+            <div class="field">
+                <label for="laudoReferencia">Referência do laudo</label>
+                <input id="laudoReferencia" th:field="*{laudoReferencia}" maxlength="80" aria-describedby="ajuda-laudo erro-laudoReferencia" th:attr="aria-invalid=${#fields.hasErrors('laudoReferencia')}">
+                <p id="ajuda-laudo" class="field-help">Informe apenas um código ou a pasta onde o laudo está guardado, nunca o diagnóstico.</p>
+                <div id="erro-laudoReferencia" class="field-error" th:if="${#fields.hasErrors('laudoReferencia')}" th:errors="*{laudoReferencia}">Erro</div>
+            </div>
             <div class="field">
                 <label for="observacoes">Observações</label>
                 <textarea id="observacoes" th:field="*{observacoes}" aria-describedby="ajuda-observacoes"></textarea>

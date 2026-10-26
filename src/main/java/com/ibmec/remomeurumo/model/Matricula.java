@@ -116,6 +116,25 @@ public class Matricula {
         return dataSaida == null || !dataSaida.isBefore(data);
     }
 
+    public boolean vigenteEm(LocalDate data) {
+        if (dataInicio != null && data.isBefore(dataInicio)) {
+            return false;
+        }
+        return isAtiva() || dataSaida == null || !data.isAfter(dataSaida);
+    }
+
+    public LocalDate inicioNoPeriodo(LocalDate inicio) {
+        return dataInicio != null && dataInicio.isAfter(inicio) ? dataInicio : inicio;
+    }
+
+    public LocalDate fimNoPeriodo(LocalDate fim) {
+        return !isAtiva() && dataSaida != null && dataSaida.isBefore(fim) ? dataSaida : fim;
+    }
+
+    public boolean vigenteNoPeriodo(LocalDate inicio, LocalDate fim) {
+        return !inicioNoPeriodo(inicio).isAfter(fimNoPeriodo(fim));
+    }
+
     public String getMotivoSaidaDescricao() {
         return motivoSaida == null ? "Não informado" : motivoSaida.getDescricao();
     }

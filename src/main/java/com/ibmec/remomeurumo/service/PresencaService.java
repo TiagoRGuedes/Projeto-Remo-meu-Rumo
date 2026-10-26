@@ -20,12 +20,14 @@ import com.ibmec.remomeurumo.exception.RecursoNaoEncontradoException;
 import com.ibmec.remomeurumo.exception.RegraNegocioException;
 import com.ibmec.remomeurumo.model.AcaoHistorico;
 import com.ibmec.remomeurumo.model.Encontro;
+import com.ibmec.remomeurumo.model.Matricula;
 import com.ibmec.remomeurumo.model.ModuloHistorico;
 import com.ibmec.remomeurumo.model.Participante;
 import com.ibmec.remomeurumo.model.Presenca;
 import com.ibmec.remomeurumo.model.StatusEncontro;
 import com.ibmec.remomeurumo.model.StatusPresenca;
 import com.ibmec.remomeurumo.repository.EncontroRepository;
+import com.ibmec.remomeurumo.repository.MatriculaRepository;
 import com.ibmec.remomeurumo.repository.ParticipanteRepository;
 import com.ibmec.remomeurumo.repository.PresencaRepository;
 
@@ -35,12 +37,15 @@ public class PresencaService {
     private final PresencaRepository presencaRepository;
     private final ParticipanteRepository participanteRepository;
     private final EncontroRepository encontroRepository;
+    private final MatriculaRepository matriculaRepository;
     private final HistoricoOperacaoService historicoService;
 
     public PresencaService(PresencaRepository presencaRepository,
             ParticipanteRepository participanteRepository,
             EncontroRepository encontroRepository,
+            MatriculaRepository matriculaRepository,
             HistoricoOperacaoService historicoService) {
+        this.matriculaRepository = matriculaRepository;
         this.presencaRepository = presencaRepository;
         this.participanteRepository = participanteRepository;
         this.encontroRepository = encontroRepository;
@@ -55,9 +60,18 @@ public class PresencaService {
                 .collect(Collectors.toMap(p -> p.getParticipante().getId(), p -> p));
 
         String filtro = busca == null ? "" : busca.trim().toLowerCase(Locale.ROOT);
-        return participanteRepository.findByAtivoTrueOrderByNomeAsc().stream()
+        Map<Long, Participante> chamada = new LinkedHashMap<>();
+        matriculaRepository.listarPorTurma(encontro.getAtividade().getId()).stream()
+                .filter(matricula -> matricula.vigenteEm(encontro.getData()))
+                .map(Matricula::getParticipante)
+                .forEach(participante -> chamada.put(participante.getId(), participante));
+        presencas.values().forEach(presenca -> chamada.putIfAbsent(
+                presenca.getParticipante().getId(), presenca.getParticipante()));
+        return chamada.values().stream()
+                .filter(Participante::isAtivo)
                 .filter(participante -> filtro.isBlank()
                         || participante.getNome().toLowerCase(Locale.ROOT).contains(filtro))
+                .sorted(Comparator.comparing(Participante::getNome))
                 .map(participante -> montarItem(participante, presencas.get(participante.getId()), marcarTodos))
                 .toList();
     }

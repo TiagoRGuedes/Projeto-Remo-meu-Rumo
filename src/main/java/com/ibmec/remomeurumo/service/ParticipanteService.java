@@ -190,8 +190,6 @@ public class ParticipanteService {
                 + " | Nascimento: " + (participante.getDataNascimento() == null
                         ? "Não informado" : participante.getDataNascimento())
                 + " | Escola: " + participante.getTipoEscola().getDescricao()
-                + " | Deficiência: " + participante.getDescricaoDeficiencia()
-                + " | Laudo: " + (temTexto(participante.getLaudoReferencia()) ? "Informado" : "Não informado")
                 + " | Situação: " + (participante.isAtivo() ? "Ativo" : "Inativo");
     }
 

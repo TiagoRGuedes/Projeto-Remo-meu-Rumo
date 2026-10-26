@@ -8,6 +8,8 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.format.annotation.DateTimeFormat;
+
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -50,6 +52,7 @@ public class Atividade {
     @Column(name = "dia_semana", length = 20)
     private Set<DiaSemana> diasSemana = new LinkedHashSet<>();
 
+    @DateTimeFormat(pattern = "HH:mm")
     private LocalTime horario;
 
     @Column(nullable = false)
