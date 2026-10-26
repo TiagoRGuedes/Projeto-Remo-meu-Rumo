@@ -2,6 +2,7 @@ package com.ibmec.remomeurumo.service;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -80,7 +81,9 @@ public class MatriculaService {
     @Transactional(readOnly = true)
     public List<MovimentoMatricula> movimentos(Long participanteId) {
         List<MovimentoMatricula> movimentos = new ArrayList<>();
-        for (Matricula matricula : matriculaRepository.listarPorParticipante(participanteId)) {
+        List<Matricula> matriculas = new ArrayList<>(matriculaRepository.listarPorParticipante(participanteId));
+        matriculas.sort(Comparator.comparing(Matricula::getId));
+        for (Matricula matricula : matriculas) {
             String turma = matricula.getAtividade().getNome();
             movimentos.add(new MovimentoMatricula(matricula.getDataInicio(), "Ingresso",
                     "Ingressou na turma " + turma + "."));
@@ -96,8 +99,10 @@ public class MatriculaService {
                 }
             }
         }
-        movimentos.sort(Comparator.comparing(MovimentoMatricula::data).reversed());
-        return movimentos;
+        List<MovimentoMatricula> ordenados = new ArrayList<>(movimentos);
+        Collections.reverse(ordenados);
+        ordenados.sort(Comparator.comparing(MovimentoMatricula::data).reversed());
+        return ordenados;
     }
 
     @Transactional(readOnly = true)

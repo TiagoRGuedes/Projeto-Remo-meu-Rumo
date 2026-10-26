@@ -8,13 +8,13 @@
 - `dataNascimento` (a idade é calculada)
 - `tipoEscola` (`PUBLICA`, `PARTICULAR`, `NAO_ESTUDA`, `NAO_INFORMADO`)
 - `possuiDeficiencia` (sim, não ou não informado; código CD/SD)
-- `laudoReferencia` (somente código ou pasta do laudo, nunca o diagnóstico)
+- `condicao` (nome da deficiência ou condição, por exemplo TEA ou Síndrome de Down)
 - `ativo`
 - `observacoes`
 - `dataCadastro`
 - `dataAtualizacao`
 
-`possuiDeficiencia` e `laudoReferencia` são dados sensíveis: aparecem só no cadastro individual e ficam fora da listagem da API, do Histórico e da exportação.
+`possuiDeficiencia`, `condicao` e os anexos são dados sensíveis: aparecem só no cadastro individual e ficam fora da listagem da API, do Histórico e da exportação.
 
 ## Atividade
 
@@ -41,11 +41,24 @@ A atividade funciona como a turma do Instituto: tem grade (dias e horário) e re
 - `dataCadastro`
 - `dataAtualizacao`
 
-Relacionamento: um participante pode ter matrículas em várias turmas; existe no máximo uma matrícula por par participante/turma. Se a pessoa volta, a mesma matrícula é reativada e o histórico de presença é mantido.
+Relacionamento: um participante pode ter matrículas em várias turmas. Cada matrícula é um período (início e saída). Troca de turma encerra a matrícula atual com o motivo `TROCA_DE_TURMA` e abre outra na nova turma; um retorno abre um novo período. Só pode haver uma matrícula ativa por participante e turma.
+
+## Anexo
+
+- `id`
+- `participante`
+- `encontro` (opcional; atestado de uma falta avisada)
+- `tipo` (`ATESTADO`, `LAUDO`, `OUTRO`)
+- `nomeArquivo`, `contentType`, `tamanho`, `conteudo` (PDF ou imagem, até 5 MB)
+- `enviadoEm`
+
+## Aula não realizada
+
+`Encontro` ganhou `motivoCancelamento` (`FERIADO`, `GREVE`, `CONDICOES_CLIMATICAS`, `OUTRO`) e `justificativaCancelamento`. Uma aula cancelada não conta como aula prevista para ninguém.
 
 ## Frequência mensal
 
-- Aulas previstas: encontros não cancelados da turma no mês, dentro do período da matrícula e até a data de hoje.
+- Aulas previstas: encontros não cancelados da turma no mês, dentro dos períodos de matrícula e até a data de hoje. Quando a pessoa entrou ou saiu no meio do mês, a tela avisa ("Conta só as aulas desde o ingresso em …").
 - Percentual: presenças ÷ aulas previstas. Aula sem registro conta como falta; falta justificada continua sendo falta.
 - Meta mensal: 60%.
 - Mais de 3 faltas no mês: contato com a família.

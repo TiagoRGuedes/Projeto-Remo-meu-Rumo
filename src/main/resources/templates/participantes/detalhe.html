@@ -52,7 +52,7 @@
                 <a class="inline-action" th:href="@{/frequencia(participanteId=${participante.id})}">Ver registros completos <span class="icon icon-arrow" aria-hidden="true"></span></a>
                 <p><strong>Registros no histórico:</strong> <span th:text="${#lists.size(historico)}">0</span></p>
                 <p th:if="${podeExcluir}" class="status-message status-success"><span class="icon icon-check" aria-hidden="true"></span>Este cadastro não possui matrículas nem presenças e pode ser excluído.</p>
-                <p th:if="${!podeExcluir}" class="status-message status-warning"><span class="icon icon-info" aria-hidden="true"></span>Possui matrículas ou <span th:text="${totalPresencas}">0</span> registros de presença e só pode ser desativado.</p>
+                <p th:if="${!podeExcluir}" class="status-message status-warning"><span class="icon icon-info" aria-hidden="true"></span><span th:text="${totalPresencas > 0 ? 'Possui ' + totalPresencas + ' registros de presença e só pode ser desativado.' : 'Possui matrículas ou arquivos e só pode ser desativado.'}">Só pode ser desativado.</span></p>
             </article>
         </section>
 
