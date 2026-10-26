@@ -104,7 +104,11 @@ Ctrl + C
 
 ## Funcionalidades
 
-- Cadastro, edição, busca e ativação/desativação de participantes.
+- Cadastro, edição, busca e ativação/desativação de participantes, com sexo, nascimento, escola e deficiência.
+- Turmas com grade (dias da semana e horário).
+- Matrículas em uma ou mais turmas, com saída por motivo e retorno sem perder o histórico.
+- Frequência mensal por participante e por turma, com meta de 60% e alerta acima de 3 faltas no mês.
+- Exportação mensal em JSON para Power BI ou planilha, sem dados sensíveis.
 - Busca global conectando participantes, atividades e encontros.
 - Cadastro, edição, busca e ativação/desativação de atividades.
 - Dashboards da Visão geral, participantes, atividades, encontros e frequência.
@@ -124,4 +128,4 @@ Ctrl + C
 
 ## Dados demonstrativos
 
-O perfil `demo` cria, somente em um banco vazio, 36 participantes fictícios, 6 atividades demonstrativas, 24 encontros distribuídos no período recente e presenças com diferentes faixas de frequência. Use esses dados para apresentação e testes manuais; eles são claramente identificados como demonstração e não representam pessoas reais.
+O perfil `demo` cria, somente em um banco vazio, 36 participantes fictícios, 6 turmas com grade, matrículas, aulas semanais das últimas 9 semanas e presenças com diferentes faixas de frequência, incluindo pessoas com mais de 3 faltas no mês e saídas registradas. Use esses dados para apresentação e testes manuais; eles são claramente identificados como demonstração e não representam pessoas reais.

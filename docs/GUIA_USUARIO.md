@@ -4,15 +4,30 @@
 
 1. Abra Participantes.
 2. Clique em Cadastrar participante.
-3. Informe o nome.
-4. Salve.
+3. Informe o nome e, se souber, sexo, data de nascimento, escola e deficiência.
+4. Em "Referência do laudo", informe só o código ou a pasta onde o laudo está guardado.
+5. Revise e confirme.
+
+## Matricular em uma turma
+
+1. Abra a página do participante.
+2. Em Matrículas, escolha a turma e a data de início.
+3. Clique em Matricular, revise e confirme.
+4. Uma pessoa pode estar em várias turmas.
+
+## Registrar a saída e o retorno
+
+1. Na matrícula, clique em Registrar saída.
+2. Escolha o motivo (dedicação a outra atividade, mudança na rotina familiar, afastamento de saúde ou outro).
+3. Revise e confirme. O histórico de presença continua guardado.
+4. Se a pessoa voltar, clique em Reativar matrícula.
 
 ## Cadastrar atividades
 
 1. Abra Atividades.
 2. Clique em Cadastrar atividade.
-3. Informe o nome da atividade.
-4. Salve.
+3. Informe o nome, os dias da semana e o horário.
+4. Revise e confirme.
 
 ## Criar encontro
 
@@ -56,6 +71,8 @@
 1. Abra Frequência.
 2. Use os filtros desejados.
 3. Consulte o resumo e o histórico.
+4. Em "Frequência mensal por turma", escolha o mês para ver aulas previstas, percentual e quem precisa de contato.
+5. Clique em uma turma para ver cada participante no mês. Mais de 3 faltas no mês aparece como "Contatar família".
 
 ## Relatórios
 

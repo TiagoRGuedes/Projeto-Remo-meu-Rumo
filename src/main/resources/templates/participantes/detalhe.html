@@ -43,7 +43,7 @@
                         <span class="status-pill status-warning-pill" th:if="${participante.laudoPendente}">Laudo pendente</span></dd></div>
                     <div th:if="${participante.laudoReferencia != null}"><dt>Laudo</dt><dd th:text="${participante.laudoReferencia}">Referência</dd></div>
                 </dl>
-                <p><strong>Observações:</strong> <span th:text="${participante.observacoes} ?: 'Sem observações'">Sem observações</span></p>
+                <p><strong>Observações:</strong> <span th:text="${#strings.isEmpty(participante.observacoes)} ? 'Sem observações' : ${participante.observacoes}">Sem observações</span></p>
                 <p class="muted">Desativar mantém todo o histórico e remove a pessoa das novas listas de presença.</p>
             </article>
             <article class="form-card">
@@ -53,7 +53,7 @@
                 <a class="inline-action" th:href="@{/frequencia(participanteId=${participante.id})}">Ver registros completos <span class="icon icon-arrow" aria-hidden="true"></span></a>
                 <p><strong>Registros no histórico:</strong> <span th:text="${#lists.size(historico)}">0</span></p>
                 <p th:if="${podeExcluir}" class="status-message status-success"><span class="icon icon-check" aria-hidden="true"></span>Este cadastro não possui matrículas nem presenças e pode ser excluído.</p>
-                <p th:if="${!podeExcluir}" class="status-message status-warning"><span class="icon icon-info" aria-hidden="true"></span>Possui <span th:text="${totalPresencas}">0</span> registros e só pode ser desativado.</p>
+                <p th:if="${!podeExcluir}" class="status-message status-warning"><span class="icon icon-info" aria-hidden="true"></span>Possui matrículas ou <span th:text="${totalPresencas}">0</span> registros de presença e só pode ser desativado.</p>
             </article>
         </section>
 

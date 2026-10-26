@@ -59,7 +59,7 @@ public class FrequenciaService {
         var participante = participanteRepository.findById(participanteId)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Participante não encontrado."));
         LocalDate inicio = mes.atDay(1);
-        LocalDate fim = mes.atEndOfMonth();
+        LocalDate fim = limiteDoMes(mes);
 
         List<FrequenciaMensal> porTurma = new ArrayList<>();
         long totalPrevistas = 0;
@@ -87,7 +87,7 @@ public class FrequenciaService {
         List<FrequenciaMensal> linhas = linhasMensaisDaTurma(turma, mes);
 
         long aulasPrevistas = encontroRepository.countByAtividadeIdAndStatusNotAndDataBetween(
-                turmaId, StatusEncontro.CANCELADO, mes.atDay(1), mes.atEndOfMonth());
+                turmaId, StatusEncontro.CANCELADO, mes.atDay(1), limiteDoMes(mes));
         long presencasRegistradas = linhas.stream().mapToLong(FrequenciaMensal::presencas).sum();
         long presencasEsperadas = linhas.stream().mapToLong(FrequenciaMensal::aulasPrevistas).sum();
         double percentual = presencasEsperadas == 0 ? 0
@@ -120,6 +120,12 @@ public class FrequenciaService {
                 .toList();
     }
 
+    public LocalDate limiteDoMes(YearMonth mes) {
+        LocalDate fim = mes.atEndOfMonth();
+        LocalDate hoje = LocalDate.now();
+        return fim.isAfter(hoje) ? hoje : fim;
+    }
+
     private Atividade obterTurma(Long turmaId) {
         return atividadeRepository.findById(turmaId)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Turma não encontrada."));
@@ -127,7 +133,7 @@ public class FrequenciaService {
 
     private List<FrequenciaMensal> linhasMensaisDaTurma(Atividade turma, YearMonth mes) {
         LocalDate inicio = mes.atDay(1);
-        LocalDate fim = mes.atEndOfMonth();
+        LocalDate fim = limiteDoMes(mes);
         List<Encontro> aulas = encontroRepository.findByAtividadeIdAndStatusNotAndDataBetweenOrderByDataAsc(
                 turma.getId(), StatusEncontro.CANCELADO, inicio, fim);
         Map<Long, List<Presenca>> presencasPorParticipante = presencaRepository

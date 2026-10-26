@@ -25,7 +25,7 @@ import com.ibmec.remomeurumo.model.StatusPresenca;
 @Transactional
 class FrequenciaMensalServiceTest {
 
-    private static final YearMonth MES = YearMonth.of(2035, 3);
+    private static final YearMonth MES = YearMonth.of(2025, 3);
 
     @Autowired private FrequenciaService frequenciaService;
     @Autowired private MatriculaService matriculaService;
@@ -89,6 +89,18 @@ class FrequenciaMensalServiceTest {
 
         assertThat(frequencia.consolidado().aulasPrevistas()).isEqualTo(1);
         assertThat(frequencia.consolidado().percentual()).isEqualTo(100.0);
+    }
+
+    @Test
+    void aulasFuturasDoMesAtualNaoContamComoFalta() {
+        YearMonth atual = YearMonth.now();
+        Atividade turma = turma("Mensal Futuro");
+        Participante participante = matricular("Mensal Futuro Pessoa", turma, atual.atDay(1));
+        encontroService.criar(turma.getId(), LocalDate.now().plusDays(1), "", StatusEncontro.PLANEJADO);
+
+        assertThat(frequenciaService.limiteDoMes(atual)).isEqualTo(LocalDate.now());
+        assertThat(frequenciaService.frequenciaMensalDoParticipante(participante.getId(), atual)
+                .consolidado().faltas()).isZero();
     }
 
     @Test

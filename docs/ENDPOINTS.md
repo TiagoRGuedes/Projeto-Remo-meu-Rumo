@@ -45,6 +45,10 @@
 - `GET /acessibilidade`
 - `POST /acessibilidade`
 
+- `POST /matriculas/nova`
+- `POST /matriculas/{id}/encerrar`
+- `POST /matriculas/{id}/reativar`
+
 ## API REST
 
 - `GET /api/participantes`
@@ -63,6 +67,25 @@
 - `PUT /api/encontros/{id}`
 - `GET /api/presencas`
 - `POST /api/presencas`
+- `GET /api/participantes/{id}/matriculas`
+- `GET /api/participantes/{id}/frequencia?mes=AAAA-MM`
+- `GET /api/turmas`
+- `POST /api/turmas`
+- `GET /api/turmas/{id}`
+- `PUT /api/turmas/{id}`
+- `DELETE /api/turmas/{id}`
+- `GET /api/turmas/{id}/matriculas`
+- `GET /api/turmas/{id}/frequencia?mes=AAAA-MM`
+- `GET /api/turmas/{id}/frequencia/participantes?mes=AAAA-MM`
+- `GET /api/turmas/{id}/faltosos?mes=AAAA-MM`
+- `GET /api/matriculas`
+- `POST /api/matriculas`
+- `GET /api/matriculas/{id}`
+- `POST /api/matriculas/{id}/encerrar`
+- `POST /api/matriculas/{id}/reativar`
+- `GET /api/exportacao/frequencia-mensal?mes=AAAA-MM` (um registro por matrícula e mês, em `snake_case`, pronto para Power BI ou planilha; sem dados sensíveis)
+
+Sem `mes`, as rotas usam o mês atual.
 
 ## CSV
 

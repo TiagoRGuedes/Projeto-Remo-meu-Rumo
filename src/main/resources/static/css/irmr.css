@@ -206,7 +206,6 @@ p:last-child {
     transform: translateY(0);
 }
 
-/* Header */
 .topbar {
     position: sticky;
     top: 0;
@@ -413,7 +412,6 @@ p:last-child {
     color: #fff;
 }
 
-/* Shell and navigation */
 .app-shell {
     display: grid;
     min-height: calc(100vh - var(--header-height));
@@ -609,7 +607,6 @@ p:last-child {
     outline: none;
 }
 
-/* Icons */
 .icon {
     display: inline-block;
     width: 1.1rem;
@@ -659,7 +656,6 @@ p:last-child {
     transform: rotate(180deg);
 }
 
-/* Page structure */
 .page-header {
     position: relative;
     display: flex;
@@ -757,7 +753,6 @@ p:last-child {
     grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-/* Dashboard foundations */
 .button-prominent {
     min-height: 50px;
     padding-right: 1.2rem;
@@ -1585,7 +1580,6 @@ a.flow-panel {
     font-size: .9rem;
 }
 
-/* Connected operations */
 .live-pulse {
     display: grid;
     grid-template-columns: auto repeat(4, minmax(0, 1fr));
@@ -1724,7 +1718,6 @@ a.flow-panel {
     font-weight: 850;
 }
 
-/* Global search */
 .search-page-header {
     margin-bottom: 1rem;
 }
@@ -1890,7 +1883,6 @@ a.flow-panel {
     border-top: 1px solid var(--border);
 }
 
-/* Impact review and one-use confirmation */
 .confirmation-workspace {
     max-width: 1220px;
 }
@@ -2289,7 +2281,6 @@ a.card {
     background: var(--border-strong);
 }
 
-/* Buttons */
 .button {
     display: inline-flex;
     min-height: 42px;
@@ -2380,7 +2371,6 @@ a.card {
     box-shadow: none;
 }
 
-/* Forms */
 .form-card {
     padding: 1.4rem;
 }
@@ -2555,7 +2545,6 @@ fieldset {
     border: 0;
 }
 
-/* Tables */
 .table-card {
     overflow: hidden;
 }
@@ -2797,7 +2786,6 @@ td.empty-cell {
     text-align: center;
 }
 
-/* Messages */
 .messages:empty {
     display: none;
 }
@@ -2868,7 +2856,6 @@ td.empty-cell {
     color: var(--warning);
 }
 
-/* Presence workflow */
 .workflow-progress {
     position: relative;
     display: grid;
@@ -3247,7 +3234,6 @@ td.empty-cell {
     box-shadow: 0 -8px 24px rgba(0, 45, 79, .1);
 }
 
-/* Frequency and reports */
 .frequency-cell {
     min-width: 180px;
 }
@@ -3292,7 +3278,6 @@ progress::-moz-progress-bar {
     gap: 1rem;
 }
 
-/* Help and accessibility */
 .first-steps {
     margin-bottom: 1rem;
     padding: 1rem 0;
@@ -3449,7 +3434,6 @@ a.help-card {
     text-align: left;
 }
 
-/* Detail and error pages */
 .confirmation-panel {
     max-width: 760px;
     margin: 1rem auto 0;
@@ -3482,7 +3466,6 @@ a.help-card {
     background: var(--warning);
 }
 
-/* Administrative history */
 .history-groups {
     margin-top: 1.5rem;
 }
@@ -3659,7 +3642,6 @@ a.help-card {
     content: "";
 }
 
-/* Footer */
 .footer {
     display: flex;
     align-items: center;
@@ -3698,7 +3680,6 @@ a.help-card {
     color: var(--brand-blue-hover);
 }
 
-/* Dark mode */
 body.modo-escuro {
     --page: #0d1b26;
     --surface: #152735;
@@ -3848,7 +3829,6 @@ body.modo-escuro .search-result-row:hover {
     color: var(--text-strong);
 }
 
-/* High contrast */
 body.alto-contraste {
     --page: #000000;
     --surface: #000000;
@@ -4013,7 +3993,6 @@ body.alto-contraste .confirmation-flow li > span {
     color: #fff;
 }
 
-/* Motion preference */
 body.reduzir-animacoes *,
 body.reduzir-animacoes *::before,
 body.reduzir-animacoes *::after {
@@ -4034,7 +4013,6 @@ body.reduzir-animacoes *::after {
     }
 }
 
-/* Responsive */
 @media (max-width: 1450px) {
     .topbar {
         grid-template-columns: var(--sidebar-width) minmax(240px, 1fr) auto;
@@ -4938,7 +4916,6 @@ body.reduzir-animacoes *::after {
     }
 }
 
-/* Print */
 @media print {
     @page {
         margin: 1.4cm;
