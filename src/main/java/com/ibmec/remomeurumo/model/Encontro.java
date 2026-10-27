@@ -28,12 +28,12 @@ public class Encontro {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull(message = "Informe a atividade.")
+    @NotNull(message = "Informe a turma.")
     @ManyToOne(optional = false)
     @JoinColumn(name = "atividade_id", nullable = false)
     private Atividade atividade;
 
-    @NotNull(message = "Informe a data do encontro.")
+    @NotNull(message = "Informe a data da aula.")
     @Column(nullable = false)
     private LocalDate data;
 
@@ -45,6 +45,14 @@ public class Encontro {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private StatusEncontro status = StatusEncontro.REALIZADO;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 30)
+    private MotivoCancelamento motivoCancelamento;
+
+    @Size(max = 300, message = "A justificativa deve ter no máximo 300 caracteres.")
+    @Column(length = 300)
+    private String justificativaCancelamento;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime dataCadastro;
@@ -112,5 +120,30 @@ public class Encontro {
 
     public void setDataCadastro(LocalDateTime dataCadastro) {
         this.dataCadastro = dataCadastro;
+    }
+
+    public MotivoCancelamento getMotivoCancelamento() {
+        return motivoCancelamento;
+    }
+
+    public void setMotivoCancelamento(MotivoCancelamento motivoCancelamento) {
+        this.motivoCancelamento = motivoCancelamento;
+    }
+
+    public String getJustificativaCancelamento() {
+        return justificativaCancelamento;
+    }
+
+    public void setJustificativaCancelamento(String justificativaCancelamento) {
+        this.justificativaCancelamento = justificativaCancelamento;
+    }
+
+    public String getMotivoCancelamentoTexto() {
+        if (motivoCancelamento == null) {
+            return justificativaCancelamento;
+        }
+        return justificativaCancelamento == null || justificativaCancelamento.isBlank()
+                ? motivoCancelamento.getDescricao()
+                : motivoCancelamento.getDescricao() + " — " + justificativaCancelamento;
     }
 }

@@ -7,13 +7,13 @@
 <div class="app-shell">
     <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
     <main id="conteudo" class="content" tabindex="-1">
-        <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="@{/}">Visão geral</a><span aria-hidden="true">›</span><a th:href="@{/encontros}">Encontros</a><span aria-hidden="true">›</span><span aria-current="page" th:text="${modoEdicao ? 'Editar' : 'Criar'}">Criar</span></nav>
-        <a class="back-link" th:href="${modoEdicao} ? @{/encontros/{id}(id=${encontro.id})} : @{/encontros}"><span class="icon icon-back" aria-hidden="true"></span>Voltar para encontros</a>
+        <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="@{/}">Início</a><span aria-hidden="true">›</span><a th:href="@{/encontros}">Aulas</a><span aria-hidden="true">›</span><span aria-current="page" th:text="${modoEdicao ? 'Editar' : 'Criar'}">Criar</span></nav>
+        <a class="back-link" th:href="${modoEdicao} ? @{/encontros/{id}(id=${encontro.id})} : @{/encontros}"><span class="icon icon-back" aria-hidden="true"></span>Voltar para aulas</a>
         <div class="page-header">
             <div>
-                <p class="eyebrow">Encontros</p>
-                <h1 th:text="${modoEdicao} ? 'Editar encontro' : 'Cadastrar encontro'">Cadastrar encontro</h1>
-                <p class="muted">Registre a data e a atividade para preparar a lista de presença.</p>
+                <p class="eyebrow">Aulas</p>
+                <h1 th:text="${modoEdicao} ? 'Editar aula' : 'Cadastrar aula'">Cadastrar aula</h1>
+                <p class="muted">Registre a data e a turma para preparar a lista de presença.</p>
             </div>
         </div>
 
@@ -21,10 +21,10 @@
               th:action="${modoEdicao} ? @{/encontros/{id}/editar(id=${encontro.id})} : @{/encontros/novo}">
             <div class="global-error" th:if="${#fields.hasGlobalErrors()}" th:each="erro : ${#fields.globalErrors()}" th:text="${erro}">Erro</div>
             <div class="field">
-                <label for="atividadeId">Atividade <span class="required">(obrigatório)</span></label>
+                <label for="atividadeId">Turma <span class="required">(obrigatório)</span></label>
                 <select id="atividadeId" th:field="*{atividadeId}" aria-describedby="erro-atividade" th:attr="aria-invalid=${#fields.hasErrors('atividadeId')}" autofocus>
-                    <option value="">Escolha uma atividade</option>
-                    <option th:each="atividade : ${atividades}" th:value="${atividade.id}" th:text="${atividade.nome}">Atividade</option>
+                    <option value="">Escolha uma turma</option>
+                    <option th:each="atividade : ${atividades}" th:value="${atividade.id}" th:text="${atividade.nome}">Turma</option>
                 </select>
                 <div id="erro-atividade" class="field-error" th:if="${#fields.hasErrors('atividadeId')}" th:errors="*{atividadeId}">Erro</div>
             </div>
@@ -42,14 +42,14 @@
             <div class="field">
                 <label for="observacoes">Observações</label>
                 <textarea id="observacoes" th:field="*{observacoes}" aria-describedby="ajuda-observacoes"></textarea>
-                <p id="ajuda-observacoes" class="field-help">Inclua somente uma observação necessária para identificar este encontro.</p>
+                <p id="ajuda-observacoes" class="field-help">Inclua somente uma observação necessária para identificar esta aula.</p>
             </div>
             <div class="button-row">
-                <button class="button button-primary" type="submit"><span class="icon icon-arrow" aria-hidden="true"></span><span th:text="${modoEdicao} ? 'Revisar alterações' : 'Revisar encontro'">Revisar encontro</span></button>
+                <button class="button button-primary" type="submit"><span class="icon icon-arrow" aria-hidden="true"></span><span th:text="${modoEdicao} ? 'Revisar alterações' : 'Revisar aula'">Revisar aula</span></button>
                 <a class="button button-soft" th:href="@{/encontros}"><span class="icon icon-close" aria-hidden="true"></span>Cancelar e voltar</a>
             </div>
         </form>
-        <aside class="context-help section-block"><span class="icon icon-info" aria-hidden="true"></span><div><strong>Próximo passo</strong><p>Revise atividade, data e status. O encontro só será criado na confirmação final.</p></div></aside>
+        <aside class="context-help section-block"><span class="icon icon-info" aria-hidden="true"></span><div><strong>Próximo passo</strong><p>Revise turma, data e status. A aula só será criada na confirmação final.</p></div></aside>
         <footer th:replace="~{fragments/footer :: footer}"></footer>
     </main>
 </div>

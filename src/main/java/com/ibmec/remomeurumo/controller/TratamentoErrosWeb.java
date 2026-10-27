@@ -5,6 +5,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import com.ibmec.remomeurumo.exception.RecursoNaoEncontradoException;
@@ -31,6 +32,13 @@ public class TratamentoErrosWeb {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public String regraNegocio(RegraNegocioException ex, Model model) {
         model.addAttribute("mensagem", ex.getMessage());
+        return "erros/erro";
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    @ResponseStatus(HttpStatus.PAYLOAD_TOO_LARGE)
+    public String arquivoGrande(Model model) {
+        model.addAttribute("mensagem", "O arquivo deve ter no máximo 5 MB. Volte e escolha um arquivo menor.");
         return "erros/erro";
     }
 

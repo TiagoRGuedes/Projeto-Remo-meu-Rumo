@@ -34,7 +34,19 @@ public interface EncontroRepository extends JpaRepository<Encontro, Long> {
 
     long countByAtividadeId(Long atividadeId);
 
+    long countByAtividadeIdAndStatusNotAndDataBetween(
+            Long atividadeId, StatusEncontro status, LocalDate inicio, LocalDate fim);
+
+    List<Encontro> findByAtividadeIdAndStatusNotAndDataBetweenOrderByDataAsc(
+            Long atividadeId, StatusEncontro status, LocalDate inicio, LocalDate fim);
+
     long countByStatus(StatusEncontro status);
+
+    List<Encontro> findByStatusNotAndDataBetweenOrderByDataAscAtividadeNomeAsc(
+            StatusEncontro status, LocalDate inicio, LocalDate fim);
+
+    @Query("select min(e.data) from Encontro e")
+    LocalDate primeiraData();
 
     @Query("""
             select e from Encontro e

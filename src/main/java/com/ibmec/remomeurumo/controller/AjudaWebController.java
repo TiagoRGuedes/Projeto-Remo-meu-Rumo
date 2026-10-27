@@ -10,4 +10,9 @@ public class AjudaWebController {
     public String ajuda() {
         return "ajuda/index";
     }
+
+    @GetMapping("/ajuda/instalar")
+    public String instalar() {
+        return "ajuda/instalar";
+    }
 }

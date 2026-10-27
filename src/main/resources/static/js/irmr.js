@@ -1,4 +1,64 @@
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/sw.js").catch(() => undefined);
+    });
+}
+
+let pedidoInstalacao = null;
+
+window.addEventListener("beforeinstallprompt", (evento) => {
+    evento.preventDefault();
+    pedidoInstalacao = evento;
+    document.querySelectorAll("button[data-instalar-agora]").forEach((botao) => {
+        botao.hidden = false;
+    });
+});
+
+const prepararInstalacao = () => {
+    const chave = "irmr-banner-instalar-fechado";
+    const lerFechado = () => {
+        try {
+            return localStorage.getItem(chave) === "1";
+        } catch (erro) {
+            return false;
+        }
+    };
+    const instalado = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+    const banner = document.querySelector("[data-banner-instalar]");
+    if (banner && !instalado && !lerFechado() && window.matchMedia("(max-width: 760px)").matches
+            && !window.location.pathname.startsWith("/ajuda/instalar")) {
+        banner.hidden = false;
+    }
+    const fechar = document.querySelector("[data-fechar-banner]");
+    if (fechar && banner) {
+        fechar.addEventListener("click", () => {
+            banner.hidden = true;
+            try {
+                localStorage.setItem(chave, "1");
+            } catch (erro) {
+                return;
+            }
+        });
+    }
+    document.querySelectorAll("[data-instalar-agora]").forEach((alvo) => {
+        alvo.addEventListener("click", (evento) => {
+            if (!pedidoInstalacao) {
+                return;
+            }
+            evento.preventDefault();
+            pedidoInstalacao.prompt();
+            pedidoInstalacao.userChoice.finally(() => {
+                pedidoInstalacao = null;
+                if (banner) {
+                    banner.hidden = true;
+                }
+            });
+        });
+    });
+};
+
 document.addEventListener("DOMContentLoaded", () => {
+    prepararInstalacao();
     document.querySelectorAll("form").forEach((form) => {
         form.addEventListener("submit", () => {
             const button = form.querySelector("[data-confirm-once]");

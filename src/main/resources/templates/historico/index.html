@@ -9,7 +9,7 @@
     <main id="conteudo" class="content" tabindex="-1">
         <div th:replace="~{fragments/mensagens :: mensagens}"></div>
         <nav class="breadcrumbs" aria-label="Caminho da página">
-            <a th:href="@{/}">Visão geral</a><span aria-hidden="true">›</span><span aria-current="page">Histórico</span>
+            <a th:href="@{/}">Início</a><span aria-hidden="true">›</span><span aria-current="page">Histórico</span>
         </nav>
         <div class="page-header">
             <div>
@@ -25,6 +25,14 @@
             <article class="metric metric-success"><span>Cadastros</span><strong th:text="${indicadores.cadastros()}">0</strong></article>
             <article class="metric metric-warning"><span>Alterações</span><strong th:text="${indicadores.alteracoes()}">0</strong></article>
         </section>
+
+        <nav class="historico-tipos section-block" aria-label="Filtrar por tipo">
+            <a th:href="@{/historico(busca=${busca})}" th:attr="aria-current=${modulo == null and acao == null and grupoFiltro == null} ? 'true' : null">Todos</a>
+            <a th:each="tipo : ${tiposRapidos}"
+               th:href="@{/historico(modulo=${tipo.modulo()}, acao=${tipo.acao()}, grupo=${tipo.grupo()}, busca=${busca})}"
+               th:attr="aria-current=${modulo == tipo.modulo() and acao == tipo.acao() and grupoFiltro == tipo.grupo()} ? 'true' : null"
+               th:text="${tipo.rotulo()}">Ingresso</a>
+        </nav>
 
         <form class="form-card filters filter-panel section-block" method="get" th:action="@{/historico}">
             <div class="filter-title">
@@ -57,7 +65,7 @@
             </div>
             <div class="field field-wide">
                 <label for="busca">Buscar</label>
-                <input id="busca" name="busca" th:value="${busca}" placeholder="Participante, atividade ou descrição">
+                <input id="busca" name="busca" th:value="${busca}" placeholder="Nome, turma ou data (ex.: 15/09)">
             </div>
             <button class="button button-primary" type="submit"><span class="icon icon-filter" aria-hidden="true"></span>Filtrar</button>
             <a class="button button-soft" th:href="@{/historico}"><span class="icon icon-reset" aria-hidden="true"></span>Limpar filtros</a>

@@ -1,7 +1,10 @@
 package com.ibmec.remomeurumo.controller;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,13 +18,18 @@ import com.ibmec.remomeurumo.dto.ConfirmacaoOperacao;
 import com.ibmec.remomeurumo.dto.ResultadoRegistroPresenca;
 import com.ibmec.remomeurumo.exception.RegraNegocioException;
 import com.ibmec.remomeurumo.model.Atividade;
+import com.ibmec.remomeurumo.model.DiaSemana;
 import com.ibmec.remomeurumo.model.Encontro;
+import com.ibmec.remomeurumo.model.MotivoSaida;
 import com.ibmec.remomeurumo.model.Participante;
 import com.ibmec.remomeurumo.model.Presenca;
+import com.ibmec.remomeurumo.model.Sexo;
 import com.ibmec.remomeurumo.model.StatusEncontro;
+import com.ibmec.remomeurumo.model.TipoEscola;
 import com.ibmec.remomeurumo.service.AtividadeService;
 import com.ibmec.remomeurumo.service.ConfirmacaoOperacaoService;
 import com.ibmec.remomeurumo.service.EncontroService;
+import com.ibmec.remomeurumo.service.MatriculaService;
 import com.ibmec.remomeurumo.service.ParticipanteService;
 import com.ibmec.remomeurumo.service.PresencaService;
 
@@ -36,17 +44,20 @@ public class ConfirmacaoWebController {
     private final AtividadeService atividadeService;
     private final EncontroService encontroService;
     private final PresencaService presencaService;
+    private final MatriculaService matriculaService;
 
     public ConfirmacaoWebController(ConfirmacaoOperacaoService confirmacaoService,
             ParticipanteService participanteService,
             AtividadeService atividadeService,
             EncontroService encontroService,
-            PresencaService presencaService) {
+            PresencaService presencaService,
+            MatriculaService matriculaService) {
         this.confirmacaoService = confirmacaoService;
         this.participanteService = participanteService;
         this.atividadeService = atividadeService;
         this.encontroService = encontroService;
         this.presencaService = presencaService;
+        this.matriculaService = matriculaService;
     }
 
     @GetMapping("/{token}")
@@ -99,10 +110,18 @@ public class ConfirmacaoWebController {
     private Long executar(ConfirmacaoOperacao confirmacao, RedirectAttributes redirectAttributes) {
         Map<String, String> dados = confirmacao.dados();
         return switch (confirmacao.tipo()) {
-            case CRIAR_PARTICIPANTE -> participanteService.cadastrar(
-                    new Participante(dados.get("nome"), dados.get("observacoes"))).getId();
+            case CRIAR_PARTICIPANTE -> {
+                Long participanteId = participanteService.cadastrar(participanteDe(dados)).getId();
+                String turmaIds = dados.getOrDefault("turmaIds", "");
+                for (String turmaId : turmaIds.split(",")) {
+                    if (!turmaId.isBlank()) {
+                        matriculaService.matricular(participanteId, Long.valueOf(turmaId.trim()), LocalDate.now());
+                    }
+                }
+                yield participanteId;
+            }
             case EDITAR_PARTICIPANTE -> participanteService.atualizar(confirmacao.entidadeId(),
-                    new Participante(dados.get("nome"), dados.get("observacoes"))).getId();
+                    participanteDe(dados)).getId();
             case ATIVAR_PARTICIPANTE -> {
                 participanteService.ativar(confirmacao.entidadeId());
                 yield confirmacao.entidadeId();
@@ -115,10 +134,9 @@ public class ConfirmacaoWebController {
                 participanteService.excluir(confirmacao.entidadeId());
                 yield null;
             }
-            case CRIAR_ATIVIDADE -> atividadeService.cadastrar(
-                    new Atividade(dados.get("nome"), dados.get("descricao"))).getId();
+            case CRIAR_ATIVIDADE -> atividadeService.cadastrar(atividadeDe(dados)).getId();
             case EDITAR_ATIVIDADE -> atividadeService.atualizar(confirmacao.entidadeId(),
-                    new Atividade(dados.get("nome"), dados.get("descricao"))).getId();
+                    atividadeDe(dados)).getId();
             case ATIVAR_ATIVIDADE -> {
                 atividadeService.ativar(confirmacao.entidadeId());
                 yield confirmacao.entidadeId();
@@ -131,6 +149,27 @@ public class ConfirmacaoWebController {
                 atividadeService.excluir(confirmacao.entidadeId());
                 yield null;
             }
+            case MATRICULAR_PARTICIPANTE -> {
+                matriculaService.matricular(
+                        Long.valueOf(dados.get("participanteId")),
+                        Long.valueOf(dados.get("turmaId")),
+                        data(dados.get("dataInicio")));
+                yield Long.valueOf(dados.get("participanteId"));
+            }
+            case ENCERRAR_MATRICULA -> matriculaService.encerrar(
+                    confirmacao.entidadeId(),
+                    MotivoSaida.valueOf(dados.get("motivoSaida")),
+                    dados.get("observacaoSaida"),
+                    data(dados.get("dataSaida"))).getParticipante().getId();
+            case REATIVAR_MATRICULA -> matriculaService.reativar(
+                    confirmacao.entidadeId()).getParticipante().getId();
+            case REMOVER_TURMA -> matriculaService.removerTurma(
+                    confirmacao.entidadeId(),
+                    data(dados.get("dataRemocao"))).getParticipante().getId();
+            case TROCAR_TURMA -> matriculaService.trocarTurma(
+                    confirmacao.entidadeId(),
+                    Long.valueOf(dados.get("novaTurmaId")),
+                    data(dados.get("dataTroca"))).getParticipante().getId();
             case CRIAR_ENCONTRO -> encontroService.criar(
                     Long.valueOf(dados.get("atividadeId")),
                     LocalDate.parse(dados.get("data")),
@@ -166,6 +205,55 @@ public class ConfirmacaoWebController {
                 yield encontroId;
             }
         };
+    }
+
+    private Participante participanteDe(Map<String, String> dados) {
+        return new Participante(
+                dados.get("nome"),
+                enumOuPadrao(dados.get("sexo"), Sexo.class, Sexo.NAO_INFORMADO),
+                data(dados.get("dataNascimento")),
+                enumOuPadrao(dados.get("tipoEscola"), TipoEscola.class, TipoEscola.NAO_INFORMADO),
+                booleanOuNulo(dados.get("possuiDeficiencia")),
+                dados.get("condicao"),
+                dados.get("observacoes"));
+    }
+
+    private Atividade atividadeDe(Map<String, String> dados) {
+        return new Atividade(
+                dados.get("nome"),
+                dados.get("descricao"),
+                diasSemana(dados.get("diasSemana")),
+                hora(dados.get("horario")));
+    }
+
+    private Set<DiaSemana> diasSemana(String valor) {
+        if (valor == null || valor.isBlank()) {
+            return Set.of();
+        }
+        Set<DiaSemana> dias = new LinkedHashSet<>();
+        for (String item : valor.split(",")) {
+            String nome = item.trim();
+            if (!nome.isEmpty()) {
+                dias.add(DiaSemana.valueOf(nome));
+            }
+        }
+        return dias;
+    }
+
+    private LocalDate data(String valor) {
+        return valor == null || valor.isBlank() ? null : LocalDate.parse(valor);
+    }
+
+    private LocalTime hora(String valor) {
+        return valor == null || valor.isBlank() ? null : LocalTime.parse(valor);
+    }
+
+    private Boolean booleanOuNulo(String valor) {
+        return valor == null || valor.isBlank() ? null : Boolean.valueOf(valor);
+    }
+
+    private <T extends Enum<T>> T enumOuPadrao(String valor, Class<T> tipo, T padrao) {
+        return valor == null || valor.isBlank() ? padrao : Enum.valueOf(tipo, valor);
     }
 
     private String destino(String url, Long id) {

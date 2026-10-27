@@ -8,17 +8,17 @@
     <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
     <main id="conteudo" class="content" tabindex="-1">
         <div th:replace="~{fragments/mensagens :: mensagens}"></div>
-        <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="@{/}">Visão geral</a><span aria-hidden="true">›</span><a th:href="@{/encontros}">Encontros</a><span aria-hidden="true">›</span><span aria-current="page" th:text="${encontro.atividade.nome + ' · ' + encontro.data}">Encontro</span></nav>
-        <a class="back-link" th:href="@{/encontros}"><span class="icon icon-back" aria-hidden="true"></span>Voltar para encontros</a>
+        <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="@{/}">Início</a><span aria-hidden="true">›</span><a th:href="@{/encontros}">Aulas</a><span aria-hidden="true">›</span><span aria-current="page" th:text="${encontro.atividade.nome + ' · ' + encontro.data}">Aula</span></nav>
+        <a class="back-link" th:href="@{/encontros}"><span class="icon icon-back" aria-hidden="true"></span>Voltar para aulas</a>
         <div class="page-header">
             <div>
-                <p class="eyebrow">Encontro</p>
-                <h1>Encontro</h1>
-                <p class="muted"><a th:href="@{/atividades/{id}(id=${encontro.atividade.id})}" th:text="${encontro.atividade.nome}">Atividade</a> em <span th:text="${encontro.data}">Data</span></p>
+                <p class="eyebrow">Aula</p>
+                <h1>Aula</h1>
+                <p class="muted"><a th:href="@{/atividades/{id}(id=${encontro.atividade.id})}" th:text="${encontro.atividade.nome}">Turma</a> em <span th:text="${encontro.data}">Data</span></p>
             </div>
             <div class="actions">
-                <a class="button button-primary" th:href="@{/presencas/registrar(atividadeId=${encontro.atividade.id}, encontroId=${encontro.id})}"><span class="icon icon-presence" aria-hidden="true"></span>Registrar presença</a>
-                <a class="button button-soft" th:href="@{/encontros/{id}/editar(id=${encontro.id})}"><span class="icon icon-edit" aria-hidden="true"></span>Editar encontro</a>
+                <a class="button button-primary" th:href="@{/presencas/registrar(atividadeId=${encontro.atividade.id}, encontroId=${encontro.id})}"><span class="icon icon-presence" aria-hidden="true"></span>Fazer chamada</a>
+                <a class="button button-soft" th:href="@{/encontros/{id}/editar(id=${encontro.id})}"><span class="icon icon-edit" aria-hidden="true"></span>Editar aula</a>
                 <a class="button button-soft" th:href="@{/relatorios/encontro/{id}.csv(id=${encontro.id})}"><span class="icon icon-download" aria-hidden="true"></span>Exportar CSV</a>
                 <a class="button button-danger" th:href="@{/encontros/{id}/excluir(id=${encontro.id})}"><span class="icon icon-close" aria-hidden="true"></span>Remover ou cancelar</a>
             </div>
@@ -27,14 +27,14 @@
         <section class="grid grid-4">
             <article class="metric metric-neutral"><span>Total</span><strong th:text="${resumo.total()}">0</strong></article>
             <article class="metric metric-success"><span>Presentes</span><strong th:text="${resumo.presentes()}">0</strong></article>
-            <article class="metric"><span>Ausentes</span><strong th:text="${resumo.ausentes()}">0</strong></article>
-            <article class="metric metric-warning"><span>Justificadas</span><strong th:text="${resumo.justificadas()}">0</strong></article>
+            <article class="metric"><span>Faltas</span><strong th:text="${resumo.ausentes()}">0</strong></article>
+            <article class="metric metric-warning"><span>Faltas avisadas</span><strong th:text="${resumo.justificadas()}">0</strong></article>
         </section>
 
         <section class="table-card section-block">
             <div class="table-wrapper">
                 <table>
-                    <caption>Presença do encontro</caption>
+                    <caption>Presença da aula</caption>
                     <thead>
                     <tr>
                         <th scope="col">Participante</th>
@@ -51,7 +51,7 @@
                         <td class="table-actions"><a th:href="@{/presencas/registrar(atividadeId=${encontro.atividade.id}, encontroId=${encontro.id})}"><span class="icon icon-edit" aria-hidden="true"></span>Corrigir presença</a><a class="danger-link" th:href="@{/presencas/{id}/excluir(id=${presenca.id})}">Excluir registro</a></td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(presencas)}">
-                        <td class="empty-cell" colspan="4">Ainda não há presença registrada para este encontro.</td>
+                        <td class="empty-cell" colspan="4">Ainda não há presença registrada para esta aula.</td>
                     </tr>
                     </tbody>
                 </table>
@@ -60,7 +60,7 @@
         <section class="section-block" aria-labelledby="historico-encontro-titulo">
             <div class="section-header"><div><h2 id="historico-encontro-titulo">Histórico deste registro</h2><p class="muted">Criação, edições e alterações da lista de presença.</p></div><a class="button button-soft" th:href="@{/historico(busca=${encontro.atividade.nome})}">Ver histórico completo</a></div>
             <div class="timeline timeline-compact" th:if="${!#lists.isEmpty(historicoAdministrativo)}"><article class="timeline-item" th:each="evento : ${historicoAdministrativo}"><time th:text="${evento.dataFormatada + ' · ' + evento.horaFormatada}">Data</time><strong th:text="${evento.acao.descricao + ' · ' + evento.modulo.descricao}">Ação</strong><span th:text="${evento.descricao}">Descrição</span></article></div>
-            <div class="empty-state" th:if="${#lists.isEmpty(historicoAdministrativo)}">As próximas alterações deste encontro aparecerão aqui.</div>
+            <div class="empty-state" th:if="${#lists.isEmpty(historicoAdministrativo)}">As próximas alterações desta aula aparecerão aqui.</div>
         </section>
         <footer th:replace="~{fragments/footer :: footer}"></footer>
     </main>

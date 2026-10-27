@@ -33,7 +33,7 @@ public class Presenca {
     @JoinColumn(name = "participante_id", nullable = false)
     private Participante participante;
 
-    @NotNull(message = "Informe o encontro.")
+    @NotNull(message = "Informe a aula.")
     @ManyToOne(optional = false)
     @JoinColumn(name = "encontro_id", nullable = false)
     private Encontro encontro;

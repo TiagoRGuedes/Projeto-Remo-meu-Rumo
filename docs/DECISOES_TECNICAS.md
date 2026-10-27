@@ -36,6 +36,46 @@ Os services registram operações importantes por meio de `HistoricoOperacaoServ
 
 Participantes com presenças e atividades com encontros não podem ser apagados fisicamente. Encontros com presença devem ser cancelados. A exclusão definitiva usa POST na interface e só é permitida após uma página de confirmação quando não há dependências.
 
+## Atividade como turma
+
+A atividade passou a funcionar como a turma do Instituto, com dias da semana e horário. Assim, encontros, presenças e relatórios existentes continuam válidos, sem uma migração de dados.
+
+## Matrícula e frequência mensal
+
+A matrícula liga a pessoa à turma e define quem é esperado em cada aula. A frequência mensal usa as aulas previstas dentro do período da matrícula e até hoje; aula sem registro conta como falta.
+
+## Vocabulário da ONG
+
+A interface usa Turma, Aula, Presente, Falta e Falta avisada. O código, as rotas e o banco mantêm os nomes `Atividade`, `Encontro`, `AUSENTE` e `JUSTIFICADA`, para não exigir migração.
+
+## Chamada em uma etapa
+
+A chamada rápida dispensa a tela de conferência: o botão Salvar só libera quando todos estão marcados e mostra quantos faltam. A aula é criada automaticamente na primeira chamada do dia, e uma aula planejada passa a realizada. As marcações ficam no `localStorage` do aparelho até o envio.
+
+## Idioma fixo
+
+O sistema usa `pt-BR` fixo para datas e números, independentemente do idioma do navegador.
+
+## Períodos de matrícula
+
+Troca de turma e retorno criam uma nova matrícula em vez de reabrir a anterior. Assim, cada período tem início e fim, e a frequência mensal soma só as aulas dentro dos períodos. Na inicialização, o sistema remove a antiga restrição de matrícula única e converte colunas `ENUM` do H2 em texto, para que novos valores (como novas ações do Histórico) funcionem em bancos já existentes.
+
+## Anexos no banco
+
+Os arquivos ficam no próprio H2, até 5 MB cada, e só são servidos pela página do participante, sem cache. A listagem não carrega o conteúdo dos arquivos.
+
+## Dados sensíveis
+
+Deficiência e referência de laudo ficam só no cadastro individual. Não aparecem na listagem da API, no Histórico nem na exportação.
+
 ## Total esperado no dashboard
 
 Como o modelo atual não possui uma lista histórica de inscritos por encontro, o total esperado usa o maior valor entre participantes atualmente ativos e registros existentes no encontro. Essa regra deve ser revisada se a ONG adotar turmas ou inscrições por atividade.
+
+## Turmas oficiais, várias turmas e PWA
+
+- `TurmasOficiais` é a fonte única da grade. `SincronizacaoTurmas` (`app.turmas-oficiais.criar`, ligado por padrão e desligado nos testes) cria as turmas que faltam, sem apagar nenhuma.
+- Remover uma turma encerra a matrícula com `MotivoSaida.TURMA_REMOVIDA` e registra `AcaoHistorico.TURMA_REMOVIDA`. Quando a pessoa já tem outra turma ativa, a nova matrícula registra `TURMA_ADICIONADA`.
+- Frequência por pessoa (`FrequenciaService.painelPorParticipante`): soma as matrículas no período, mensal ou anual. A aula de hoje sem nenhuma presença registrada ainda não conta.
+- O início do ano letivo para os chips de mês é `app.ano-letivo.mes-inicio`, com padrão 2 (fevereiro).
+- PWA: `static/manifest.json`, `static/sw.js` (service worker mínimo, só para permitir a instalação) e os ícones `img/brand/app-192.png` e `app-512.png`.

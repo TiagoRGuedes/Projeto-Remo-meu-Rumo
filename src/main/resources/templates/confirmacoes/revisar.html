@@ -8,7 +8,7 @@
     <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
     <main id="conteudo" class="content confirmation-workspace" tabindex="-1">
         <nav class="breadcrumbs" aria-label="Caminho da página">
-            <a th:href="@{/}">Visão geral</a><span aria-hidden="true">›</span><span aria-current="page">Revisar operação</span>
+            <a th:href="@{/}">Início</a><span aria-hidden="true">›</span><span aria-current="page">Revisar operação</span>
         </nav>
 
         <section class="impact-review" th:classappend="${confirmacao.destrutiva()} ? ' impact-review-danger' : ''">

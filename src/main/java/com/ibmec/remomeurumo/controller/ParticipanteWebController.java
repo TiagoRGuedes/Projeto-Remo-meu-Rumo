@@ -1,9 +1,12 @@
 package com.ibmec.remomeurumo.controller;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -20,10 +23,18 @@ import com.ibmec.remomeurumo.exception.RegraNegocioException;
 import com.ibmec.remomeurumo.dto.ConfirmacaoOperacao;
 import com.ibmec.remomeurumo.dto.TipoOperacaoConfirmacao;
 import com.ibmec.remomeurumo.model.ModuloHistorico;
+import com.ibmec.remomeurumo.model.MotivoSaida;
 import com.ibmec.remomeurumo.model.Participante;
+import com.ibmec.remomeurumo.model.Sexo;
+import com.ibmec.remomeurumo.model.TipoEscola;
+import com.ibmec.remomeurumo.support.MesReferencia;
+import com.ibmec.remomeurumo.model.TipoAnexo;
+import com.ibmec.remomeurumo.service.AnexoService;
+import com.ibmec.remomeurumo.service.AtividadeService;
 import com.ibmec.remomeurumo.service.ConfirmacaoOperacaoService;
 import com.ibmec.remomeurumo.service.FrequenciaService;
 import com.ibmec.remomeurumo.service.HistoricoOperacaoService;
+import com.ibmec.remomeurumo.service.MatriculaService;
 import com.ibmec.remomeurumo.service.ParticipanteService;
 import com.ibmec.remomeurumo.service.PresencaService;
 
@@ -39,17 +50,35 @@ public class ParticipanteWebController {
     private final HistoricoOperacaoService historicoService;
     private final ConfirmacaoOperacaoService confirmacaoService;
     private final FrequenciaService frequenciaService;
+    private final MatriculaService matriculaService;
+    private final AtividadeService atividadeService;
+    private final AnexoService anexoService;
+
+    private static final DateTimeFormatter DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     public ParticipanteWebController(ParticipanteService participanteService,
             PresencaService presencaService,
             HistoricoOperacaoService historicoService,
             ConfirmacaoOperacaoService confirmacaoService,
-            FrequenciaService frequenciaService) {
+            FrequenciaService frequenciaService,
+            MatriculaService matriculaService,
+            AtividadeService atividadeService,
+            AnexoService anexoService) {
+        this.anexoService = anexoService;
+        this.atividadeService = atividadeService;
         this.participanteService = participanteService;
         this.presencaService = presencaService;
         this.historicoService = historicoService;
         this.confirmacaoService = confirmacaoService;
         this.frequenciaService = frequenciaService;
+        this.matriculaService = matriculaService;
+    }
+
+    @ModelAttribute
+    public void opcoesCadastro(Model model) {
+        model.addAttribute("opcoesSexo", Sexo.values());
+        model.addAttribute("opcoesTipoEscola", TipoEscola.values());
+        model.addAttribute("turmasAtivas", atividadeService.listarAtivas());
     }
 
     @GetMapping
@@ -68,8 +97,9 @@ public class ParticipanteWebController {
     }
 
     @GetMapping("/novo")
-    public String novo(Model model) {
+    public String novo(@RequestParam(required = false) Long turmaId, Model model) {
         model.addAttribute("participante", new Participante());
+        model.addAttribute("turmasSelecionadas", turmaId == null ? List.of() : List.of(turmaId));
         model.addAttribute("modoEdicao", false);
         return "participantes/form";
     }
@@ -77,9 +107,12 @@ public class ParticipanteWebController {
     @PostMapping("/novo")
     public String cadastrar(@Valid @ModelAttribute("participante") Participante participante,
             BindingResult bindingResult,
+            @RequestParam(required = false) List<Long> turmaIds,
             Model model,
             RedirectAttributes redirectAttributes,
             HttpSession session) {
+        List<Long> turmas = turmaIds == null ? List.of() : turmaIds.stream().filter(Objects::nonNull).distinct().toList();
+        model.addAttribute("turmasSelecionadas", turmas);
         if (bindingResult.hasErrors()) {
             model.addAttribute("modoEdicao", false);
             return "participantes/form";
@@ -95,13 +128,25 @@ public class ParticipanteWebController {
                     participante.getNome(),
                     confirmacaoService.alteracoes(
                             confirmacaoService.alteracao("Nome", null, participante.getNome()),
+                            confirmacaoService.alteracao("Sexo", null, descricaoSexo(participante)),
+                            confirmacaoService.alteracao("Data de nascimento", null, dataNascimento(participante)),
+                            confirmacaoService.alteracao("Escola", null, descricaoEscola(participante)),
+                            confirmacaoService.alteracao("Deficiência ou condição", null, participante.getDescricaoDeficiencia()),
+                            confirmacaoService.alteracao(turmas.size() > 1 ? "Turmas" : "Turma", null,
+                                    turmas.isEmpty() ? "Sem turma por enquanto"
+                                            : turmas.stream().map(id -> atividadeService.obter(id).getNome())
+                                                    .collect(Collectors.joining(" · "))),
                             confirmacaoService.alteracao("Situação inicial", null, "Ativo"),
                             confirmacaoService.alteracao("Observações", null, participante.getObservacoes())),
                     List.of(
                             "A pessoa será adicionada à lista de participantes.",
-                            "Ela ficará disponível para novas chamadas.",
+                            turmas.isEmpty() ? "Depois do cadastro, adicione a pessoa a uma ou mais turmas."
+                                    : turmas.size() == 1
+                                            ? "A pessoa entra na turma escolhida a partir de hoje e já aparece na chamada."
+                                            : "A pessoa entra nas " + turmas.size()
+                                                    + " turmas a partir de hoje e aparece na chamada de cada uma.",
                             "A criação será registrada no Histórico do sistema."),
-                    dadosParticipante(participante),
+                    dadosNovoParticipante(participante, turmas),
                     "/participantes/novo/corrigir",
                     "/participantes/novo",
                     "/participantes/{id}",
@@ -117,7 +162,8 @@ public class ParticipanteWebController {
     }
 
     @GetMapping("/{id}")
-    public String visualizar(@PathVariable Long id, Model model) {
+    public String visualizar(@PathVariable Long id,
+            @RequestParam(required = false) String mes, Model model) {
         Participante participante = participanteService.obter(id);
         var historico = presencaService.listarHistorico(id, null, null, null, null);
         model.addAttribute("participante", participante);
@@ -127,6 +173,20 @@ public class ParticipanteWebController {
                 historicoService.porEntidade(ModuloHistorico.PARTICIPANTES, id));
         model.addAttribute("podeExcluir", participanteService.podeExcluir(id));
         model.addAttribute("totalPresencas", participanteService.contarPresencas(id));
+        var referencia = MesReferencia.resolver(mes);
+        model.addAttribute("mesReferencia", referencia.toString());
+        model.addAttribute("frequenciaMensal", frequenciaService.frequenciaMensalDoParticipante(id, referencia));
+        model.addAttribute("frequenciaAnual", frequenciaService.frequenciaAnualDoParticipante(id, referencia.getYear()).consolidado());
+        model.addAttribute("matriculas", matriculaService.listarPorParticipante(id));
+        model.addAttribute("turmasDisponiveis", matriculaService.turmasDisponiveis(id));
+        model.addAttribute("totalTurmasAtivas", matriculaService.turmasAtivas(id).size());
+        model.addAttribute("motivosSaida", MotivoSaida.paraSaida());
+        model.addAttribute("movimentos", matriculaService.movimentos(id));
+        model.addAttribute("anexos", anexoService.listarPorParticipante(id));
+        model.addAttribute("tiposAnexo", TipoAnexo.values());
+        model.addAttribute("hoje", LocalDate.now());
+        model.addAttribute("limiteFaltas", FrequenciaService.LIMITE_FALTAS_MES);
+        model.addAttribute("metaFrequencia", FrequenciaService.META_FREQUENCIA_MENSAL);
         return "participantes/detalhe";
     }
 
@@ -160,6 +220,12 @@ public class ParticipanteWebController {
                     participante.getNome(),
                     confirmacaoService.alteracoes(
                             confirmacaoService.alteracao("Nome", atual.getNome(), participante.getNome()),
+                            confirmacaoService.alteracao("Sexo", descricaoSexo(atual), descricaoSexo(participante)),
+                            confirmacaoService.alteracao("Data de nascimento", dataNascimento(atual),
+                                    dataNascimento(participante)),
+                            confirmacaoService.alteracao("Escola", descricaoEscola(atual), descricaoEscola(participante)),
+                            confirmacaoService.alteracao("Deficiência ou condição", atual.getDescricaoDeficiencia(),
+                                    participante.getDescricaoDeficiencia()),
                             confirmacaoService.alteracao("Observações", atual.getObservacoes(), participante.getObservacoes()),
                             confirmacaoService.alteracao("Situação", atual.isAtivo() ? "Ativo" : "Inativo",
                                     atual.isAtivo() ? "Ativo" : "Inativo")),
@@ -234,8 +300,10 @@ public class ParticipanteWebController {
 
     @PostMapping("/novo/corrigir")
     public String corrigirNovo(@ModelAttribute("participante") Participante participante,
-            @RequestParam String tokenConfirmacao, HttpSession session, Model model) {
+            @RequestParam String tokenConfirmacao, @RequestParam(required = false) List<Long> turmaIds,
+            HttpSession session, Model model) {
         confirmacaoService.descartar(session, tokenConfirmacao);
+        model.addAttribute("turmasSelecionadas", turmaIds == null ? List.of() : turmaIds);
         model.addAttribute("modoEdicao", false);
         return "participantes/form";
     }
@@ -253,12 +321,12 @@ public class ParticipanteWebController {
     private ConfirmacaoOperacao prepararExclusao(Participante participante, HttpSession session) {
         if (!participanteService.podeExcluir(participante.getId())) {
             throw new RegraNegocioException(
-                    "Este participante possui histórico de presença e não pode ser excluído. Desative-o para preservar os registros.");
+                    "Este participante possui matrículas ou histórico de presença e não pode ser excluído. Desative-o para preservar os registros.");
         }
         return confirmacaoService.criar(session,
                 TipoOperacaoConfirmacao.EXCLUIR_PARTICIPANTE, participante.getId(), "Exclusão definitiva",
                 "Excluir " + participante.getNome() + "?",
-                "Esta operação é permitida porque o cadastro nunca apareceu em uma presença.", participante.getNome(),
+                "Esta operação é permitida porque o cadastro não tem matrículas nem presenças.", participante.getNome(),
                 confirmacaoService.alteracoes(
                         confirmacaoService.alteracao("Cadastro", participante.getNome(), "Será removido")),
                 List.of("O cadastro será removido definitivamente.",
@@ -268,10 +336,36 @@ public class ParticipanteWebController {
                 "Excluir participante", true);
     }
 
+    private Map<String, String> dadosNovoParticipante(Participante participante, List<Long> turmaIds) {
+        Map<String, String> dados = dadosParticipante(participante);
+        dados.put("turmaIds", turmaIds.stream().map(String::valueOf).collect(Collectors.joining(",")));
+        return dados;
+    }
+
     private Map<String, String> dadosParticipante(Participante participante) {
         Map<String, String> dados = new LinkedHashMap<>();
         dados.put("nome", Objects.toString(participante.getNome(), ""));
+        dados.put("sexo", participante.getSexo() == null ? "" : participante.getSexo().name());
+        dados.put("dataNascimento", Objects.toString(participante.getDataNascimento(), ""));
+        dados.put("tipoEscola", participante.getTipoEscola() == null ? "" : participante.getTipoEscola().name());
+        dados.put("possuiDeficiencia", Objects.toString(participante.getPossuiDeficiencia(), ""));
+        dados.put("condicao", Objects.toString(participante.getCondicao(), ""));
         dados.put("observacoes", Objects.toString(participante.getObservacoes(), ""));
         return dados;
+    }
+
+    private String descricaoSexo(Participante participante) {
+        return participante.getSexo() == null ? Sexo.NAO_INFORMADO.getDescricao()
+                : participante.getSexo().getDescricao();
+    }
+
+    private String descricaoEscola(Participante participante) {
+        return participante.getTipoEscola() == null ? TipoEscola.NAO_INFORMADO.getDescricao()
+                : participante.getTipoEscola().getDescricao();
+    }
+
+    private String dataNascimento(Participante participante) {
+        return participante.getDataNascimento() == null ? "Não informada"
+                : participante.getDataNascimento().format(DATA);
     }
 }
