@@ -19,22 +19,26 @@
             </div>
         </div>
 
-        <section class="metric-grid module-metrics" aria-label="Resumo do histórico">
-            <article class="metric"><span>Ações hoje</span><strong th:text="${indicadores.acoesHoje()}">0</strong></article>
-            <article class="metric"><span>Últimos 7 dias</span><strong th:text="${indicadores.acoesUltimosSeteDias()}">0</strong></article>
-            <article class="metric metric-success"><span>Cadastros</span><strong th:text="${indicadores.cadastros()}">0</strong></article>
-            <article class="metric metric-warning"><span>Alterações</span><strong th:text="${indicadores.alteracoes()}">0</strong></article>
-        </section>
+        <nav class="metric-grid module-metrics topicos topicos-5" aria-label="Escolha o período ou o tipo de alteração">
+            <a class="metric" th:href="@{/historico(topico='tudo')}" th:attr="aria-current=${topico == 'tudo'} ? 'true' : null"><span>Tudo</span><strong th:text="${indicadores.total()}">0</strong><small>Todos os registros</small></a>
+            <a class="metric" th:href="@{/historico(topico='hoje')}" th:attr="aria-current=${topico == 'hoje'} ? 'true' : null"><span>Hoje</span><strong th:text="${indicadores.acoesHoje()}">0</strong><small>Ações feitas hoje</small></a>
+            <a class="metric" th:href="@{/historico(topico='semana')}" th:attr="aria-current=${topico == 'semana'} ? 'true' : null"><span>Últimos 7 dias</span><strong th:text="${indicadores.acoesUltimosSeteDias()}">0</strong><small>A semana até hoje</small></a>
+            <a class="metric metric-success" th:href="@{/historico(topico='cadastros')}" th:attr="aria-current=${topico == 'cadastros'} ? 'true' : null"><span>Cadastros</span><strong th:text="${indicadores.cadastros()}">0</strong><small>Pessoas, turmas e aulas novas</small></a>
+            <a class="metric metric-warning" th:href="@{/historico(topico='alteracoes')}" th:attr="aria-current=${topico == 'alteracoes'} ? 'true' : null"><span>Alterações</span><strong th:text="${indicadores.alteracoes()}">0</strong><small>Edições, ativações e cancelamentos</small></a>
+        </nav>
 
         <nav class="historico-tipos section-block" aria-label="Filtrar por tipo">
-            <a th:href="@{/historico(busca=${busca})}" th:attr="aria-current=${modulo == null and acao == null and grupoFiltro == null} ? 'true' : null">Todos</a>
+            <a th:href="@{/historico(topico=${topico}, busca=${busca})}" th:attr="aria-current=${modulo == null and acao == null and grupoFiltro == null} ? 'true' : null">Todos</a>
             <a th:each="tipo : ${tiposRapidos}"
-               th:href="@{/historico(modulo=${tipo.modulo()}, acao=${tipo.acao()}, grupo=${tipo.grupo()}, busca=${busca})}"
+               th:href="@{/historico(topico=${topico}, modulo=${tipo.modulo()}, acao=${tipo.acao()}, grupo=${tipo.grupo()}, busca=${busca})}"
                th:attr="aria-current=${modulo == tipo.modulo() and acao == tipo.acao() and grupoFiltro == tipo.grupo()} ? 'true' : null"
                th:text="${tipo.rotulo()}">Ingresso</a>
         </nav>
 
-        <form class="form-card filters filter-panel section-block" method="get" th:action="@{/historico}">
+        <details class="filtros-recolhiveis section-block" th:attr="open=${filtrosAvancados} ? 'open' : null">
+        <summary><span class="icon icon-filter" aria-hidden="true"></span>Mais filtros: data, módulo, ação e busca</summary>
+        <form class="form-card filters filter-panel" method="get" th:action="@{/historico}">
+            <input type="hidden" name="topico" th:value="${topico}">
             <div class="filter-title">
                 <h2>Filtrar histórico</h2>
                 <p class="muted">Use apenas os campos necessários para encontrar uma alteração.</p>
@@ -68,8 +72,9 @@
                 <input id="busca" name="busca" th:value="${busca}" placeholder="Nome, turma ou data (ex.: 15/09)">
             </div>
             <button class="button button-primary" type="submit"><span class="icon icon-filter" aria-hidden="true"></span>Filtrar</button>
-            <a class="button button-soft" th:href="@{/historico}"><span class="icon icon-reset" aria-hidden="true"></span>Limpar filtros</a>
+            <a class="button button-soft" th:href="@{/historico(topico=${topico})}"><span class="icon icon-reset" aria-hidden="true"></span>Limpar filtros</a>
         </form>
+        </details>
 
         <div class="results-summary section-block" aria-live="polite">
             <strong th:text="${totalResultados == 1 ? '1 alteração encontrada' : totalResultados + ' alterações encontradas'}">0 alterações encontradas</strong>

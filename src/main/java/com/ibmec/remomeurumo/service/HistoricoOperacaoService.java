@@ -6,6 +6,7 @@ import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -81,6 +82,13 @@ public class HistoricoOperacaoService {
                 encontroId, List.of(ModuloHistorico.ENCONTROS, ModuloHistorico.PRESENCAS));
     }
 
+    public static final Set<AcaoHistorico> ACOES_ALTERACAO = EnumSet.of(
+            AcaoHistorico.EDICAO,
+            AcaoHistorico.ATIVACAO,
+            AcaoHistorico.DESATIVACAO,
+            AcaoHistorico.CORRECAO,
+            AcaoHistorico.CANCELAMENTO);
+
     @Transactional(readOnly = true)
     public IndicadoresHistorico carregarIndicadores() {
         LocalDateTime agora = LocalDateTime.now();
@@ -88,13 +96,8 @@ public class HistoricoOperacaoService {
         long seteDias = historicoRepository.countByDataHoraBetween(LocalDate.now().minusDays(6).atStartOfDay(),
                 agora.plusSeconds(1));
         long cadastros = historicoRepository.countByAcao(AcaoHistorico.CRIACAO);
-        long alteracoes = historicoRepository.countByAcaoIn(EnumSet.of(
-                AcaoHistorico.EDICAO,
-                AcaoHistorico.ATIVACAO,
-                AcaoHistorico.DESATIVACAO,
-                AcaoHistorico.CORRECAO,
-                AcaoHistorico.CANCELAMENTO));
-        return new IndicadoresHistorico(hoje, seteDias, cadastros, alteracoes);
+        long alteracoes = historicoRepository.countByAcaoIn(ACOES_ALTERACAO);
+        return new IndicadoresHistorico(historicoRepository.count(), hoje, seteDias, cadastros, alteracoes);
     }
 
     private String limitar(String valor, int limite) {

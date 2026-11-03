@@ -24,6 +24,8 @@ public class HistoricoWebController {
 
     private static final String GRUPO_TURMAS = "turmas";
 
+    private static final List<String> TOPICOS = List.of("tudo", "hoje", "semana", "cadastros", "alteracoes");
+
     private static final Pattern DATA_BUSCA = Pattern.compile("(\\d{1,2})/(\\d{1,2})(?:/(\\d{4}))?");
 
     private static final List<TipoRapido> TIPOS_RAPIDOS = List.of(
@@ -52,7 +54,9 @@ public class HistoricoWebController {
             @RequestParam(required = false) AcaoHistorico acao,
             @RequestParam(required = false) String busca,
             @RequestParam(required = false) String grupo,
+            @RequestParam(required = false) String topico,
             Model model) {
+        String topicoAtual = topico != null && TOPICOS.contains(topico) ? topico : "tudo";
         String termo = busca;
         LocalDate dataBuscada = dataDaBusca(busca);
         if (dataBuscada != null && inicio == null && fim == null) {
@@ -65,6 +69,18 @@ public class HistoricoWebController {
         if (grupoAtivo != null) {
             registros = registros.stream().filter(registro -> ACOES_TURMAS.contains(registro.getAcao())).toList();
         }
+        LocalDate hoje = LocalDate.now();
+        registros = registros.stream().filter(registro -> switch (topicoAtual) {
+            case "hoje" -> registro.getDataHora().toLocalDate().equals(hoje);
+            case "semana" -> !registro.getDataHora().toLocalDate().isBefore(hoje.minusDays(6));
+            case "cadastros" -> registro.getAcao() == AcaoHistorico.CRIACAO;
+            case "alteracoes" -> HistoricoOperacaoService.ACOES_ALTERACAO.contains(registro.getAcao());
+            default -> true;
+        }).toList();
+        boolean filtrosAvancados = inicio != null || fim != null || modulo != null || acao != null
+                || busca != null && !busca.isBlank();
+        model.addAttribute("topico", topicoAtual);
+        model.addAttribute("filtrosAvancados", filtrosAvancados);
         model.addAttribute("indicadores", historicoService.carregarIndicadores());
         model.addAttribute("historicoPorData", historicoService.agruparPorData(registros));
         model.addAttribute("totalResultados", registros.size());

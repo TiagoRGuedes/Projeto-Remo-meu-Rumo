@@ -98,6 +98,8 @@ class WebControllerSmokeTest {
         assertOkComTexto("/frequencia?topico=registros", "Histórico detalhado");
         assertOkComTexto("/relatorios?topico=aulas", "Exportação da presença por aula");
         assertOkComTexto("/participantes?situacao=recentes", "Cadastrados nos últimos 30 dias");
+        assertOkComTexto("/historico?topico=cadastros", "Mais filtros");
+        assertOkComTexto("/historico?topico=hoje&grupo=turmas", "Últimos 7 dias");
         assertOkComTexto("/frequencia?periodo=ano", "Ano " + java.time.LocalDate.now().getYear());
         assertOkComTexto("/frequencia/planilha.csv", "presencas_no_ano;previstas_no_ano");
         assertOkComTexto("/api/exportacao/frequencia-mensal", "\"presencas_ano\"");

@@ -6334,3 +6334,52 @@ body.reduzir-animacoes *::after {
     border-radius: var(--radius-lg);
     background: var(--surface);
 }
+
+.topicos-5 {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+@media (max-width: 1100px) {
+    .topicos-5 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .topicos-5 .metric {
+        border-bottom: 1px solid var(--border);
+    }
+}
+
+@media (max-width: 760px) {
+    .topicos-5 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .topicos-5 .metric:last-child {
+        grid-column: 1 / -1;
+    }
+}
+
+.filtros-recolhiveis > summary {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    min-height: 44px;
+    padding: 0 1rem;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    font-weight: 700;
+    cursor: pointer;
+    list-style: none;
+}
+
+.filtros-recolhiveis > summary::-webkit-details-marker {
+    display: none;
+}
+
+.filtros-recolhiveis[open] > summary {
+    margin-bottom: .75rem;
+    border-color: var(--brand-blue);
+    background: var(--brand-sky);
+    color: var(--brand-blue-deep);
+}
