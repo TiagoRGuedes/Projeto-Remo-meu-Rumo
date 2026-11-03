@@ -46,6 +46,12 @@ public class ParticipanteService {
 
     @Transactional(readOnly = true)
     public List<Participante> listar(String busca, String situacao) {
+        if ("recentes".equalsIgnoreCase(situacao)) {
+            LocalDateTime limite = LocalDateTime.now().minusDays(30);
+            return listar(busca, null).stream()
+                    .filter(item -> item.getDataCadastro() != null && item.getDataCadastro().isAfter(limite))
+                    .toList();
+        }
         boolean somenteAtivos = "ativos".equalsIgnoreCase(situacao);
         boolean somenteInativos = "inativos".equalsIgnoreCase(situacao);
         if (temTexto(busca)) {

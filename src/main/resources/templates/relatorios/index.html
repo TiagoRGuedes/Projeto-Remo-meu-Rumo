@@ -17,7 +17,15 @@
             <button class="button button-soft" type="button" onclick="window.print()"><span class="icon icon-print" aria-hidden="true"></span>Imprimir página</button>
         </div>
 
-        <form class="form-card filters filter-panel reporting-workspace" method="get" th:action="@{/relatorios}">
+        <nav class="metric-grid module-metrics topicos" aria-label="Escolha o relatório">
+            <a class="metric" th:href="@{/relatorios(topico='participantes', atividadeId=${atividadeId}, inicio=${inicio}, fim=${fim})}" th:attr="aria-current=${topico == 'participantes'} ? 'true' : null"><span>Frequência por participante</span><strong th:text="${#lists.size(frequenciaParticipantes)}">0</strong><small>Pessoas com registros no período</small></a>
+            <a class="metric" th:href="@{/relatorios(topico='turmas', atividadeId=${atividadeId}, inicio=${inicio}, fim=${fim})}" th:attr="aria-current=${topico == 'turmas'} ? 'true' : null"><span>Frequência por turma</span><strong th:text="${#lists.size(frequenciaAtividades)}">0</strong><small>Turmas com registros no período</small></a>
+            <a class="metric" th:href="@{/relatorios(topico='cadastros', atividadeId=${atividadeId}, inicio=${inicio}, fim=${fim})}" th:attr="aria-current=${topico == 'cadastros'} ? 'true' : null"><span>Participantes cadastrados</span><strong th:text="${#lists.size(participantes)}">0</strong><small th:text="${participantesAtivos + ' ativos · ' + (#lists.size(participantes) - participantesAtivos) + ' inativos'}">ativos e inativos</small></a>
+            <a class="metric" th:href="@{/relatorios(topico='aulas', atividadeId=${atividadeId}, inicio=${inicio}, fim=${fim})}" th:attr="aria-current=${topico == 'aulas'} ? 'true' : null"><span>Presença por aula</span><strong th:text="${#lists.size(encontros)}">0</strong><small>Planilha de cada aula</small></a>
+        </nav>
+
+        <form class="form-card filters filter-panel reporting-workspace" method="get" th:action="@{/relatorios}" th:if="${topico != 'cadastros'}">
+            <input type="hidden" name="topico" th:value="${topico}">
             <div class="filter-title">
                 <h2>Filtros do relatório</h2>
                 <p class="muted">Defina a turma e o período antes de gerar ou exportar.</p>
@@ -39,24 +47,12 @@
                 <input id="fim" type="date" name="fim" th:value="${fim}">
             </div>
             <button class="button button-primary" type="submit"><span class="icon icon-filter" aria-hidden="true"></span>Gerar relatório</button>
-            <a class="button button-soft" th:href="@{/relatorios}"><span class="icon icon-reset" aria-hidden="true"></span>Limpar filtros</a>
-            <a class="button button-soft" th:href="@{/relatorios/frequencia-participantes.csv(atividadeId=${atividadeId}, inicio=${inicio}, fim=${fim})}"><span class="icon icon-download" aria-hidden="true"></span>Exportar frequência CSV</a>
+            <a class="button button-soft" th:href="@{/relatorios(topico=${topico})}"><span class="icon icon-reset" aria-hidden="true"></span>Limpar filtros</a>
+            <a class="button button-soft" th:if="${topico == 'participantes'}" th:href="@{/relatorios/frequencia-participantes.csv(atividadeId=${atividadeId}, inicio=${inicio}, fim=${fim})}"><span class="icon icon-download" aria-hidden="true"></span>Exportar frequência CSV</a>
         </form>
 
-        <section class="metric-grid module-metrics section-block" aria-label="Resumo do relatório atual">
-            <article class="metric metric-featured"><span>Participantes analisados</span><strong th:text="${#lists.size(frequenciaParticipantes)}">0</strong></article>
-            <article class="metric"><span>Turmas analisadas</span><strong th:text="${#lists.size(frequenciaAtividades)}">0</strong></article>
-            <article class="metric metric-success"><span>Cadastros disponíveis</span><strong th:text="${#lists.size(participantes)}">0</strong></article>
-            <article class="metric"><span>Aulas disponíveis</span><strong th:text="${#lists.size(encontros)}">0</strong></article>
-        </section>
-
-        <div class="section-header section-header-flow report-results-header section-block">
-            <div><p class="section-index">Resultados</p><h2>Dados consolidados</h2></div>
-            <p>As tabelas abaixo respeitam os filtros definidos no espaço de relatório.</p>
-        </div>
-
-        <section class="report-grid">
-            <article class="table-card data-surface">
+        <section class="section-block">
+            <article class="table-card data-surface" th:if="${topico == 'participantes'}">
                 <div class="table-wrapper">
                     <table class="mobile-card-table">
                         <caption>Frequência por participante</caption>
@@ -80,7 +76,7 @@
                     </table>
                 </div>
             </article>
-            <article class="table-card data-surface">
+            <article class="table-card data-surface" th:if="${topico == 'turmas'}">
                 <div class="table-wrapper">
                     <table class="mobile-card-table">
                         <caption>Frequência por turma</caption>
@@ -106,7 +102,7 @@
             </article>
         </section>
 
-        <section class="table-card data-surface section-block">
+        <section class="table-card data-surface section-block" th:if="${topico == 'cadastros'}">
             <div class="table-wrapper">
                 <table class="mobile-card-table">
                     <caption>Participantes ativos e inativos</caption>
@@ -126,7 +122,7 @@
             </div>
         </section>
 
-        <section class="table-card data-surface section-block">
+        <section class="table-card data-surface section-block" th:if="${topico == 'aulas'}">
             <div class="table-wrapper">
                 <table class="mobile-card-table">
                     <caption>Exportação da presença por aula</caption>
@@ -139,9 +135,12 @@
                     </thead>
                     <tbody>
                     <tr th:each="encontro : ${encontros}">
-                        <td class="table-primary" data-label="Data" th:text="${encontro.data}">Data</td>
+                        <td class="table-primary" data-label="Data" th:text="${#temporals.format(encontro.data, 'dd/MM/yyyy')}">Data</td>
                         <td data-label="Turma" th:text="${encontro.atividade.nome}">Turma</td>
                         <td data-label="Exportação"><a class="button button-link" th:href="@{/relatorios/encontro/{id}.csv(id=${encontro.id})}"><span class="icon icon-download" aria-hidden="true"></span>Exportar presença CSV</a></td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(encontros)}">
+                        <td class="empty-cell" colspan="3">Nenhuma aula encontrada para os filtros informados.</td>
                     </tr>
                     </tbody>
                 </table>
