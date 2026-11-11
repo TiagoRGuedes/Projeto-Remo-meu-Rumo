@@ -56,8 +56,8 @@ class UsuariosPerfisWebTest {
 
     @Test
     void professorAcessaSoAChamada() throws Exception {
-        usuarioService.cadastrar("Prof Teste", "prof.chamada", "senha12345", Perfil.PROFESSOR);
-        ClienteLogado professor = ClienteLogado.entrar(port, "prof.chamada", "senha12345");
+        usuarioService.cadastrar("Prof Teste", "prof.chamada", "Rumo-teste-91", Perfil.PROFESSOR);
+        ClienteLogado professor = ClienteLogado.entrar(port, "prof.chamada", "Rumo-teste-91");
 
         assertThat(professor.get("/chamada?lista=1").statusCode()).isEqualTo(200);
         assertThat(professor.get("/chamada?lista=1").body()).doesNotContain("href=\"/participantes\"", "/usuarios");
@@ -67,7 +67,7 @@ class UsuariosPerfisWebTest {
             assertThat(r.statusCode()).as(rota).isEqualTo(403);
         }
         assertThat(professor.getPagina("/usuarios").body()).contains("não tem acesso");
-        assertThat(professor.postForm("/usuarios", "nome=X&login=xxx&senha=senha12345&perfil=COORDENACAO")
+        assertThat(professor.postForm("/usuarios", "nome=X&login=xxx&senha=Rumo-teste-91&perfil=COORDENACAO")
                 .statusCode()).isEqualTo(403);
     }
 
@@ -77,16 +77,16 @@ class UsuariosPerfisWebTest {
         assertThat(coordenacao.get("/usuarios").statusCode()).isEqualTo(200);
 
         HttpResponse<String> criado = coordenacao.postForm("/usuarios",
-                "nome=Maria+Silva&login=Maria.Prof&senha=senha12345&perfil=PROFESSOR");
+                "nome=Maria+Silva&login=Maria.Prof&senha=Rumo-teste-91&perfil=PROFESSOR");
         assertThat(criado.statusCode()).isEqualTo(302);
 
         Usuario usuario = usuarioRepository.findByLoginAndAtivoTrue("maria.prof").orElseThrow();
-        assertThat(usuario.getSenhaHash()).startsWith("{bcrypt}").doesNotContain("senha12345");
-        ClienteLogado.entrar(port, "maria.prof", "senha12345");
+        assertThat(usuario.getSenhaHash()).startsWith("{bcrypt}").doesNotContain("Rumo-teste-91");
+        ClienteLogado.entrar(port, "maria.prof", "Rumo-teste-91");
         assertThat(coordenacao.get("/usuarios").body()).contains("Maria Silva");
 
         coordenacao.postForm("/usuarios/" + usuario.getId() + "/desativar", "");
-        assertThatThrownBy(() -> ClienteLogado.entrar(port, "maria.prof", "senha12345"))
+        assertThatThrownBy(() -> ClienteLogado.entrar(port, "maria.prof", "Rumo-teste-91"))
                 .isInstanceOf(IllegalStateException.class);
 
         coordenacao.postForm("/usuarios/" + usuario.getId() + "/ativar", "");
@@ -96,12 +96,16 @@ class UsuariosPerfisWebTest {
 
     @Test
     void validaCadastroEProtegeContaPropriaEChaveMestra() {
-        assertThatThrownBy(() -> usuarioService.cadastrar("A", "curta", "1234567", Perfil.PROFESSOR))
-                .isInstanceOf(RegraNegocioException.class).hasMessageContaining("mínimo 8");
-        assertThatThrownBy(() -> usuarioService.cadastrar("A", "admin-teste", "senha12345", Perfil.PROFESSOR))
+        assertThatThrownBy(() -> usuarioService.cadastrar("A", "curta", "123456789", Perfil.PROFESSOR))
+                .isInstanceOf(RegraNegocioException.class).hasMessageContaining("mínimo 10");
+        for (String fraca : new String[] {"1234567890", "aaaaaaaaaaaa", "Senha12345", "RemoMeuRumo"}) {
+            assertThatThrownBy(() -> usuarioService.cadastrar("A", "fraca", fraca, Perfil.PROFESSOR))
+                    .as(fraca).isInstanceOf(RegraNegocioException.class).hasMessageContaining("fraca");
+        }
+        assertThatThrownBy(() -> usuarioService.cadastrar("A", "admin-teste", "Rumo-teste-91", Perfil.PROFESSOR))
                 .isInstanceOf(RegraNegocioException.class).hasMessageContaining("Já existe");
-        Usuario u = usuarioService.cadastrar("Coord Dois", "coord.dois", "senha12345", Perfil.COORDENACAO);
-        assertThatThrownBy(() -> usuarioService.cadastrar("Outro", "COORD.DOIS", "senha12345", Perfil.PROFESSOR))
+        Usuario u = usuarioService.cadastrar("Coord Dois", "coord.dois", "Rumo-teste-91", Perfil.COORDENACAO);
+        assertThatThrownBy(() -> usuarioService.cadastrar("Outro", "COORD.DOIS", "Rumo-teste-91", Perfil.PROFESSOR))
                 .isInstanceOf(RegraNegocioException.class).hasMessageContaining("Já existe");
         assertThatThrownBy(() -> usuarioService.definirAtivo(u.getId(), false, "coord.dois"))
                 .isInstanceOf(RegraNegocioException.class).hasMessageContaining("próprio");

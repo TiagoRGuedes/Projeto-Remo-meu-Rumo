@@ -29,8 +29,8 @@
                 <p id="ajuda-login" class="field-help">Letras sem acento, números, ponto, hífen ou sublinhado.</p>
             </div>
             <div class="field">
-                <label for="senha">Senha <span class="required">(mínimo 8 caracteres)</span></label>
-                <input id="senha" name="senha" type="password" minlength="8" maxlength="72" required autocomplete="new-password">
+                <label for="senha">Senha <span class="required">(mínimo 10 caracteres)</span></label>
+                <input id="senha" name="senha" type="password" minlength="10" maxlength="72" required autocomplete="new-password">
             </div>
             <div class="field">
                 <label for="perfil">Perfil</label>
@@ -69,7 +69,7 @@
                             <form method="post" th:if="${!u.ativo}" th:action="@{/usuarios/{id}/ativar(id=${u.id})}"><button class="text-action" type="submit">Ativar</button></form>
                             <form method="post" th:action="@{/usuarios/{id}/senha(id=${u.id})}">
                                 <label class="sr-only" th:for="${'senha-' + u.id}" th:text="${'Nova senha de ' + u.nome}">Nova senha</label>
-                                <input th:id="${'senha-' + u.id}" name="senha" type="password" minlength="8" maxlength="72" required autocomplete="new-password" placeholder="Nova senha">
+                                <input th:id="${'senha-' + u.id}" name="senha" type="password" minlength="10" maxlength="72" required autocomplete="new-password" placeholder="Nova senha">
                                 <button class="text-action" type="submit">Redefinir senha</button>
                             </form>
                         </td>

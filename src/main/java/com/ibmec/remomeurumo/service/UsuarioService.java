@@ -24,7 +24,9 @@ import com.ibmec.remomeurumo.repository.UsuarioRepository;
 public class UsuarioService {
 
     private static final Pattern LOGIN = Pattern.compile("[a-z0-9._-]{3,60}");
-    private static final int SENHA_MINIMA = 8;
+    private static final int SENHA_MINIMA = 10;
+    private static final java.util.Set<String> SENHAS_COMUNS = java.util.Set.of("1234567890", "0123456789",
+            "senha12345", "senha123456", "password123", "qwertyuiop", "remomeurumo", "remomeurumo1", "123456789a", "abcdefghij");
     private static final int SENHA_MAXIMA = 72; // limite do BCrypt
 
     private final UsuarioRepository usuarioRepository;
@@ -108,6 +110,10 @@ public class UsuarioService {
     private void validarSenha(String senha) {
         if (senha == null || senha.length() < SENHA_MINIMA) {
             throw new RegraNegocioException("A senha deve ter no mínimo " + SENHA_MINIMA + " caracteres.");
+        }
+        if (senha.chars().distinct().count() < 4 || senha.chars().allMatch(Character::isDigit)
+                || SENHAS_COMUNS.contains(senha.toLowerCase(Locale.ROOT))) {
+            throw new RegraNegocioException("Senha fraca demais. Misture letras e números e evite sequências ou palavras óbvias.");
         }
         if (senha.getBytes(java.nio.charset.StandardCharsets.UTF_8).length > SENHA_MAXIMA) {
             throw new RegraNegocioException("A senha deve ter no máximo " + SENHA_MAXIMA + " bytes.");
