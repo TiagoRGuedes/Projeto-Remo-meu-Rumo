@@ -113,6 +113,17 @@ class ChamadaServiceTest {
                 });
     }
 
+    @Test
+    void sessoesDeHojeMostraTurmaDaGradeSemParticipantes() {
+        Atividade turma = turma("Chamada Sem Matriculas");
+
+        assertThat(chamadaService.sessoesDeHoje())
+                .anySatisfy(sessao -> {
+                    assertThat(sessao.turmaId()).isEqualTo(turma.getId());
+                    assertThat(sessao.participantes()).isZero();
+                });
+    }
+
     private Atividade turma(String nome) {
         return atividadeService.cadastrar(new Atividade(nome, "",
                 EnumSet.allOf(DiaSemana.class), LocalTime.of(14, 0)));

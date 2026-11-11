@@ -95,9 +95,6 @@ public class ChamadaService {
                 continue;
             }
             long participantes = contarMatriculados(turma.getId(), hoje);
-            if (participantes == 0 && aula == null) {
-                continue;
-            }
             long registrados = aula == null ? 0 : presencaRepository.countByEncontroId(aula.getId());
             sessoes.add(new SessaoChamada(turma.getId(), turma.getNome(), turma.getGradeResumo(), hoje, "Hoje",
                     hora(turma), aula == null ? null : aula.getId(), participantes, registrados,

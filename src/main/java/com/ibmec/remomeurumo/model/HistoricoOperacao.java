@@ -129,6 +129,7 @@ public class HistoricoOperacao {
             case ATIVIDADES -> "/atividades/" + entidadeId;
             case MATRICULAS -> "/participantes/" + entidadeId;
             case ENCONTROS, PRESENCAS -> "/encontros/" + entidadeId;
+            case USUARIOS -> "/usuarios";
         };
     }
 

@@ -6284,3 +6284,67 @@ body.reduzir-animacoes *::after {
 .section-header .actions .button {
     white-space: nowrap;
 }
+
+/* Login */
+.login-pagina {
+    display: grid;
+    min-height: 100vh;
+    place-items: center;
+    padding: var(--space-4);
+    background: var(--page);
+}
+
+.login-card {
+    width: 100%;
+    max-width: 400px;
+    padding: 1.75rem;
+    border: 1px solid var(--border);
+    border-top: 4px solid var(--brand-red);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    box-shadow: var(--shadow-md);
+}
+
+.login-logo {
+    display: block;
+    margin-bottom: var(--space-5);
+}
+
+.login-intro {
+    margin: 0 0 var(--space-4);
+    color: var(--muted);
+}
+
+.login-botao {
+    width: 100%;
+    margin-top: var(--space-2);
+}
+
+.topbar-sair {
+    margin: 0;
+}
+
+.topbar-sair .topbar-action-label {
+    display: inline;
+}
+
+/* Modo celular: só a chamada (classe posta em fragments/head.html). */
+.modo-celular .sidebar,
+.modo-celular .global-search,
+.modo-celular .banner-instalar,
+.modo-celular .topbar-actions .button-accent,
+.modo-celular .topbar-user,
+.modo-celular .footer,
+.modo-celular .chamada-completa { display: none; }
+.modo-celular .topbar { grid-template-columns: 1fr auto; }
+.modo-celular body { overflow-x: hidden; }
+.modo-celular .topbar-sair .button,
+.modo-celular .chips a,
+.modo-celular .lista-chamadas a,
+.modo-celular .chamada-opcoes label,
+.modo-celular .button { min-height: 48px; }
+.modo-celular .topbar-sair .topbar-action-label { display: inline; }
+
+.hoje-grupo + .hoje-grupo { margin-top: 12px; }
+.hoje-grupo-titulo { display: flex; align-items: center; gap: 8px; margin: 0 0 6px; font-size: 1rem; }
+.hoje-grupo-titulo::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: currentColor; }

@@ -1,11 +1,11 @@
 <header class="topbar" th:fragment="header" xmlns:th="http://www.thymeleaf.org">
-    <a class="brand" th:href="@{/}" aria-label="Ir para o Início">
+    <a class="brand" th:href="${ehProfessor} ? @{/chamada} : @{/}" aria-label="Ir para o Início">
         <img class="brand-logo brand-logo-screen" th:src="@{/img/brand/logo-irmr-branco.png}"
              alt="Instituto Remo Meu Rumo" width="142" height="35">
         <img class="brand-logo brand-logo-print" th:src="@{/img/brand/logo-irmr-colorido.png}"
              alt="Instituto Remo Meu Rumo" width="145" height="30">
     </a>
-    <form class="global-search" th:action="@{/busca}" method="get" role="search">
+    <form class="global-search" th:unless="${ehProfessor}" th:action="@{/busca}" method="get" role="search">
         <label class="sr-only" for="busca-global">Buscar participante ou turma</label>
         <span class="icon icon-search" aria-hidden="true"></span>
         <input id="busca-global" type="search" name="q" minlength="2"
@@ -14,13 +14,16 @@
         <button type="submit" aria-label="Buscar"><span class="icon icon-arrow" aria-hidden="true"></span></button>
     </form>
     <div class="topbar-actions">
-        <span class="topbar-user" aria-label="Perfil em uso: Coordenação"><span class="icon icon-users" aria-hidden="true"></span><span class="topbar-action-label">Coordenação</span></span>
+        <span class="topbar-user" th:attr="aria-label=${ehProfessor} ? 'Perfil em uso: Professor' : 'Perfil em uso: Coordenação'"><span class="icon icon-users" aria-hidden="true"></span><span class="topbar-action-label" th:text="${ehProfessor} ? 'Professor' : 'Coordenação'">Coordenação</span></span>
+        <form class="topbar-sair" th:action="@{/logout}" method="post">
+            <button class="button button-soft" type="submit"><span class="topbar-action-label">Sair</span></button>
+        </form>
         <a class="button button-accent" th:href="@{/chamada}">
             <span class="icon icon-presence" aria-hidden="true"></span>
             <span class="topbar-presence-label">Fazer chamada</span>
         </a>
     </div>
-    <div class="banner-instalar" data-banner-instalar hidden>
+    <div class="banner-instalar" data-banner-instalar hidden th:unless="${ehProfessor}">
         <img th:src="@{/img/brand/app-192.png}" alt="" width="36" height="36">
         <p>Instale o app para fazer a chamada mais rápido</p>
         <a class="button button-accent" th:href="@{/ajuda/instalar}" data-instalar-agora>Como instalar</a>

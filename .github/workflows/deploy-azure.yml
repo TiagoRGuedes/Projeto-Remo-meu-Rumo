@@ -22,6 +22,14 @@ jobs:
           java-version: '25'
           cache: maven
 
+      # Login do site: usuário e senha vêm dos segredos do repositório (Settings > Secrets), nunca do código.
+      - name: Credenciais do login
+        env:
+          U: ${{ secrets.ADMIN_USUARIO }}
+          S: ${{ secrets.ADMIN_SENHA }}
+        run: |
+          test -n "$U" && test -n "$S" || { echo "Faltam os segredos ADMIN_USUARIO/ADMIN_SENHA"; exit 1; }
+          printf '\nadmin.usuario=%s\nadmin.senha=%s\n' "$U" "$S" >> src/main/resources/application.properties
       - name: Build e testes (Maven)
         run: |
           chmod +x mvnw

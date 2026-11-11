@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Entrar')}"></head>
+<body th:class="'login-pagina ' + ${temaClasses}">
+<main class="login-card" id="conteudo">
+    <img class="login-logo" th:src="@{/img/brand/logo-irmr-colorido.png}" alt="Instituto Remo Meu Rumo" width="145" height="30">
+    <h1>Entrar</h1>
+    <p class="login-intro">Controle de presença. Acesso restrito a coordenação e professores.</p>
+    <div class="alert alert-error" role="alert" th:if="${param.erro}">
+        <span class="icon icon-info" aria-hidden="true"></span>
+        <span>Usuário ou senha incorretos.</span>
+    </div>
+    <div class="alert alert-error" role="alert" th:if="${param.bloqueado}">
+        <span class="icon icon-info" aria-hidden="true"></span>
+        <span>Muitas tentativas erradas. Aguarde 15 minutos e tente de novo.</span>
+    </div>
+    <div class="alert alert-error" role="alert" th:if="${param.expirou}">
+        <span class="icon icon-info" aria-hidden="true"></span>
+        <span>Sua sessão expirou. Entre de novo.</span>
+    </div>
+    <div class="alert alert-success" th:if="${param.saiu}">
+        <span class="icon icon-check" aria-hidden="true"></span>
+        <span>Você saiu do sistema.</span>
+    </div>
+    <form method="post" th:action="@{/login}">
+        <div class="field">
+            <label for="username">Usuário</label>
+            <input id="username" name="username" type="text" autocomplete="username" autocapitalize="none" required autofocus>
+        </div>
+        <div class="field">
+            <label for="password">Senha</label>
+            <input id="password" name="password" type="password" autocomplete="current-password" required>
+        </div>
+        <button class="button button-primary login-botao" type="submit">Entrar</button>
+    </form>
+</main>
+</body>
+</html>

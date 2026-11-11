@@ -7,6 +7,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
@@ -18,6 +19,13 @@ class WebControllerSmokeTest {
 
     @LocalServerPort
     private int port;
+
+    private ClienteLogado cliente;
+
+    @BeforeEach
+    void entrar() throws Exception {
+        cliente = ClienteLogado.entrar(port);
+    }
 
     @Test
     void deveAbrirRotasPrincipais() throws Exception {
@@ -151,21 +159,21 @@ class WebControllerSmokeTest {
     }
 
     private HttpResponse<String> get(String path) throws Exception {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("http://localhost:" + port + path))
-                .GET()
-                .build();
-        return HttpClient.newHttpClient()
-                .send(request, HttpResponse.BodyHandlers.ofString());
+        return cliente.get(path);
     }
 
     private HttpResponse<String> postForm(String path, String body) throws Exception {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("http://localhost:" + port + path))
-                .header("Content-Type", "application/x-www-form-urlencoded")
-                .POST(HttpRequest.BodyPublishers.ofString(body))
-                .build();
-        return HttpClient.newHttpClient()
-                .send(request, HttpResponse.BodyHandlers.ofString());
+        return cliente.postForm(path, body);
+    }
+
+    @Test
+    void rotaProtegidaExigeLogin() throws Exception {
+        HttpResponse<String> semLogin = HttpClient.newHttpClient().send(
+                HttpRequest.newBuilder(URI.create("http://localhost:" + port + "/participantes")).GET().build(),
+                HttpResponse.BodyHandlers.ofString());
+
+        assertThat(semLogin.statusCode()).isEqualTo(302);
+        assertThat(semLogin.headers().firstValue("location").orElseThrow()).endsWith("/login");
+        assertThat(get("/participantes").statusCode()).isEqualTo(200);
     }
 }
