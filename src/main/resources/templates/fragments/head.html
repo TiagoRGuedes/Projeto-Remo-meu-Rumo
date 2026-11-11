@@ -10,16 +10,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="Remo Meu Rumo">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <script>
-        /* Só interface, não é segurança: quem barra o acesso é o SegurancaConfig (permissões por perfil ficam para a fase de segurança).
-           Celular (PWA instalado ou tela de toque estreita) vê só a chamada. */
-        (function () {
-            var m = function (q) { return window.matchMedia(q).matches; };
-            if (!m("(pointer: coarse)") || !(m("(display-mode: standalone)") || m("(max-width: 768px)"))) { return; }
-            document.documentElement.classList.add("modo-celular");
-            if (!/^\/(chamada|login|error)(\/|$)/.test(location.pathname)) { location.replace("/chamada"); }
-        })();
-    </script>
+    <script th:src="@{/js/modo-celular.js}"></script>
     <link rel="stylesheet" th:href="@{/css/irmr.css}">
     <script defer th:src="@{/js/irmr.js}"></script>
 </head>

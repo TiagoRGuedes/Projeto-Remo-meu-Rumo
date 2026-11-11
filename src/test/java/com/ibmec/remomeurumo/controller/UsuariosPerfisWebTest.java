@@ -107,6 +107,18 @@ class UsuariosPerfisWebTest {
     }
 
     @Test
+    void respostaTemCspEReferrerPolicy() throws Exception {
+        var r = java.net.http.HttpClient.newHttpClient().send(
+                java.net.http.HttpRequest.newBuilder(java.net.URI.create("http://localhost:" + port + "/login")).build(),
+                java.net.http.HttpResponse.BodyHandlers.ofString());
+
+        assertThat(r.headers().firstValue("Content-Security-Policy").orElse(""))
+                .contains("script-src 'self'", "object-src 'none'", "frame-ancestors 'none'");
+        assertThat(r.headers().firstValue("Referrer-Policy")).contains("same-origin");
+        assertThat(r.body()).doesNotContain("<script>");
+    }
+
+    @Test
     void professorAcessaSoAChamada() throws Exception {
         usuarioService.cadastrar("Prof Teste", "prof.chamada", "Rumo-teste-91", Perfil.PROFESSOR);
         ClienteLogado professor = ClienteLogado.entrar(port, "prof.chamada", "Rumo-teste-91");

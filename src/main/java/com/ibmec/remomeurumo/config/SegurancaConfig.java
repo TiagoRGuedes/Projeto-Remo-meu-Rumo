@@ -30,6 +30,7 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.access.AccessDeniedHandlerImpl;
 import org.springframework.security.web.access.DelegatingAccessDeniedHandler;
 import org.springframework.security.web.csrf.CsrfException;
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.SavedRequest;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -96,6 +97,12 @@ public class SegurancaConfig {
                         new LinkedHashMap<>(Map.of(CsrfException.class,
                                 (AccessDeniedHandler) SegurancaConfig::csrfVencido)),
                         new AccessDeniedHandlerImpl())))
+                // CSP: scripts só do próprio site (sem inline); estilo inline liberado porque as barras de progresso usam style="width:..".
+                .headers(h -> h
+                        .contentSecurityPolicy(c -> c.policyDirectives("default-src 'self'; script-src 'self'; "
+                                + "style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; "
+                                + "base-uri 'self'; form-action 'self'; frame-ancestors 'none'"))
+                        .referrerPolicy(r -> r.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.SAME_ORIGIN)))
                 .logout(l -> l.logoutSuccessUrl("/login?saiu"))
                 .addFilterBefore(new LimiteTentativasLogin(), UsernamePasswordAuthenticationFilter.class);
         return http.build();
