@@ -55,6 +55,34 @@ class UsuariosPerfisWebTest {
     }
 
     @Test
+    void limiteDeLoginBloqueiaOUsuarioNaoOIpNemObedeceXForwardedFor() throws Exception {
+        var http = java.net.http.HttpClient.newBuilder().followRedirects(java.net.http.HttpClient.Redirect.NEVER)
+                .cookieHandler(new java.net.CookieManager()).build();
+        for (int i = 1; i <= 6; i++) { // cada tentativa diz vir de um IP diferente: não pode adiantar
+            assertThat(tentarLogin(http, "alvo.bloqueio", "errada", "9.9.9." + i)).contains("/login?");
+        }
+        assertThat(tentarLogin(http, "alvo.bloqueio", "errada", "9.9.9.99")).endsWith("/login?bloqueado");
+        usuarioService.cadastrar("Outro Prof", "outro.prof", "Rumo-teste-91", Perfil.PROFESSOR);
+        assertThat(tentarLogin(http, "outro.prof", "Rumo-teste-91", null)).doesNotContain("bloqueado").doesNotContain("erro");
+    }
+
+    private String tentarLogin(java.net.http.HttpClient http, String usuario, String senha, String xff) throws Exception {
+        String base = "http://localhost:" + port;
+        String html = http.send(java.net.http.HttpRequest.newBuilder(java.net.URI.create(base + "/login")).build(),
+                java.net.http.HttpResponse.BodyHandlers.ofString()).body();
+        var m = java.util.regex.Pattern.compile("name=\"_csrf\"[^>]*value=\"([^\"]+)\"").matcher(html);
+        m.find();
+        var b = java.net.http.HttpRequest.newBuilder(java.net.URI.create(base + "/login"))
+                .header("Content-Type", "application/x-www-form-urlencoded");
+        if (xff != null) {
+            b.header("X-Forwarded-For", xff);
+        }
+        return http.send(b.POST(java.net.http.HttpRequest.BodyPublishers.ofString(
+                "username=" + usuario + "&password=" + senha + "&_csrf=" + m.group(1))).build(),
+                java.net.http.HttpResponse.BodyHandlers.ofString()).headers().firstValue("location").orElse("");
+    }
+
+    @Test
     void professorAcessaSoAChamada() throws Exception {
         usuarioService.cadastrar("Prof Teste", "prof.chamada", "Rumo-teste-91", Perfil.PROFESSOR);
         ClienteLogado professor = ClienteLogado.entrar(port, "prof.chamada", "Rumo-teste-91");

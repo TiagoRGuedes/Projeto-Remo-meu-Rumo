@@ -95,14 +95,18 @@ public class SegurancaConfig {
     }
 
     /**
-     * Bloqueia por 15 minutos após 5 senhas erradas, contando por IP e também por usuário
-     * (o IP pode vir de X-Forwarded-For e ser trocado a cada tentativa).
-     * shortcut: contador em memória, zera ao reiniciar e não vale entre instâncias; trocar por cache compartilhado se escalar.
+     * Limite de tentativas de login. Por usuário: a partir de 5 erros bloqueia por 1, 5 e depois 15 minutos (curto, para
+     * trancar uma conta alheia custar caro e atrapalhar pouco). Por IP: limite bem maior (30 erros em 15 minutos), para
+     * não trancar uma equipe inteira atrás do mesmo IP. Só o login certo zera o contador do usuário, nunca o do IP.
+     * O IP vem de getRemoteAddr: o X-Forwarded-For só vale quando o Tomcat o recebe de um proxy interno
+     * (server.tomcat.remoteip.internal-proxies), senão qualquer um trocaria o IP a cada tentativa.
+     * shortcut: contadores em memória, zeram ao reiniciar e não valem entre instâncias; trocar por cache compartilhado se escalar.
      */
     static class LimiteTentativasLogin extends OncePerRequestFilter {
-        private static final int MAXIMO = 5;
+        private static final int MAXIMO_USUARIO = 5;
+        private static final int MAXIMO_IP = 30;
         private static final Duration JANELA = Duration.ofMinutes(15);
-        private record Falhas(int total, Instant desde) { }
+        private record Falhas(int total, Instant ultima, Instant bloqueadoAte) { }
         private final Map<String, Falhas> contadores = new ConcurrentHashMap<>();
 
         @Override
@@ -113,29 +117,44 @@ public class SegurancaConfig {
                 return;
             }
             String usuario = req.getParameter("username");
-            List<String> chaves = List.of("ip:" + req.getRemoteAddr(),
-                    "u:" + (usuario == null ? "" : usuario.strip().toLowerCase(Locale.ROOT)));
+            // alguns proxies (Azure) mandam "ip:porta"; sem tirar a porta cada conexão pareceria um IP novo
+            String chaveIp = "ip:" + req.getRemoteAddr().replaceFirst("^(\\d+\\.\\d+\\.\\d+\\.\\d+):\\d+$", "$1");
+            String chaveUsuario = "u:" + (usuario == null ? "" : usuario.strip().toLowerCase(Locale.ROOT));
             Instant agora = Instant.now();
             if (contadores.size() > 1000) {
-                contadores.values().removeIf(f -> f.desde().plus(JANELA).isBefore(agora));
+                contadores.values().removeIf(f -> f.ultima().plus(JANELA).isBefore(agora));
             }
-            for (String chave : chaves) {
-                Falhas f = contadores.get(chave);
-                if (f != null && f.desde().plus(JANELA).isBefore(agora)) {
-                    contadores.remove(chave);
-                } else if (f != null && f.total() >= MAXIMO) {
-                    res.sendRedirect(req.getContextPath() + "/login?bloqueado");
-                    return;
-                }
+            Falhas doIp = vigente(chaveIp, agora);
+            Falhas doUsuario = vigente(chaveUsuario, agora);
+            if ((doIp != null && doIp.total() >= MAXIMO_IP)
+                    || (doUsuario != null && doUsuario.bloqueadoAte().isAfter(agora))) {
+                res.sendRedirect(req.getContextPath() + "/login?bloqueado");
+                return;
             }
             chain.doFilter(req, res);
             String destino = res.getHeader("Location");
             if (destino != null && destino.contains("/login?erro")) {
-                chaves.forEach(c -> contadores.merge(c, new Falhas(1, agora),
-                        (antiga, nova) -> new Falhas(antiga.total() + 1, antiga.desde())));
+                contadores.merge(chaveIp, new Falhas(1, agora, agora),
+                        (antiga, nova) -> new Falhas(antiga.total() + 1, agora, agora));
+                contadores.merge(chaveUsuario, new Falhas(1, agora, agora), (antiga, nova) -> {
+                    int total = antiga.total() + 1;
+                    Duration espera = total < MAXIMO_USUARIO ? Duration.ZERO
+                            : total == MAXIMO_USUARIO ? Duration.ofMinutes(1)
+                            : total < MAXIMO_USUARIO + 3 ? Duration.ofMinutes(5) : Duration.ofMinutes(15);
+                    return new Falhas(total, agora, agora.plus(espera));
+                });
             } else {
-                chaves.forEach(contadores::remove);
+                contadores.remove(chaveUsuario);
             }
+        }
+
+        private Falhas vigente(String chave, Instant agora) {
+            Falhas f = contadores.get(chave);
+            if (f != null && f.ultima().plus(JANELA).isBefore(agora)) {
+                contadores.remove(chave);
+                return null;
+            }
+            return f;
         }
     }
 }

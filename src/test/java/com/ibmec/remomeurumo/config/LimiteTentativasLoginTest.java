@@ -30,11 +30,28 @@ class LimiteTentativasLoginTest {
     }
 
     @Test
-    void bloqueiaPorIpMesmoTrocandoDeUsuario() throws Exception {
+    void ipTemLimiteBemMaiorEUmLoginCertoNaoZeraOContadorDoIp() throws Exception {
         LimiteTentativasLogin filtro = new LimiteTentativasLogin();
-        for (int i = 1; i <= 5; i++) {
-            tentar(filtro, "8.8.8.8", "u" + i);
+        for (int i = 1; i <= 29; i++) {
+            assertThat(tentar(filtro, "8.8.8.8", "u" + i).getRedirectedUrl()).isEqualTo("/login?erro");
         }
+        MockHttpServletRequest req = new MockHttpServletRequest("POST", "/login");
+        req.setServletPath("/login");
+        req.setRemoteAddr("8.8.8.8");
+        req.setParameter("username", "colega");
+        MockHttpServletResponse ok = new MockHttpServletResponse();
+        filtro.doFilter(req, ok, (r, s) -> ((MockHttpServletResponse) s).sendRedirect("/"));
+        assertThat(ok.getRedirectedUrl()).isEqualTo("/");
+        assertThat(tentar(filtro, "8.8.8.8", "u30").getRedirectedUrl()).isEqualTo("/login?erro");
         assertThat(tentar(filtro, "8.8.8.8", "outro").getRedirectedUrl()).isEqualTo("/login?bloqueado");
+    }
+
+    @Test
+    void ipComPortaContaComoOMesmoIp() throws Exception {
+        LimiteTentativasLogin filtro = new LimiteTentativasLogin();
+        for (int i = 1; i <= 30; i++) {
+            tentar(filtro, "7.7.7.7:" + (1000 + i), "u" + i);
+        }
+        assertThat(tentar(filtro, "7.7.7.7:5555", "novo").getRedirectedUrl()).isEqualTo("/login?bloqueado");
     }
 }
