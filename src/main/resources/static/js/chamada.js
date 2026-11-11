@@ -17,12 +17,14 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
     }
     const chave = "irmr-chamada-" + form.dataset.chamada;
-    const guardar = (valor) => {
+    const VALIDADE = 24 * 60 * 60 * 1000;
+    const guardar = (marcas) => {
         try {
-            if (valor === null) {
+            if (marcas === null) {
                 localStorage.removeItem(chave);
             } else {
-                localStorage.setItem(chave, JSON.stringify(valor));
+                // o rascunho tem dono e prazo: num celular compartilhado, outra pessoa não vê as marcações de quem saiu
+                localStorage.setItem(chave, JSON.stringify({dono: form.dataset.usuario, salvoEm: Date.now(), marcas}));
             }
         } catch (erro) {
             return;
@@ -30,16 +32,29 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     const lerRascunho = () => {
         try {
-            return JSON.parse(localStorage.getItem(chave) || "null");
+            const item = JSON.parse(localStorage.getItem(chave) || "null");
+            if (item && item.dono === form.dataset.usuario && Date.now() - item.salvoEm < VALIDADE) {
+                return item.marcas;
+            }
+            localStorage.removeItem(chave);
         } catch (erro) {
             return null;
         }
+        return null;
     };
 
     if (form.dataset.somenteLeitura === "true") {
-        guardar(null);
+        // só apaga o rascunho quando a chamada acabou de ser salva; ao abrir uma chamada já salva sem corrigir, ele fica
+        if (form.dataset.salva === "true") {
+            guardar(null);
+        }
         return;
     }
+
+    // a marcação só mexe no celular; sem isso a sessão (30 min) vence no meio da aula e o "Salvar" falha
+    setInterval(() => {
+        fetch("/chamada", {method: "HEAD", credentials: "same-origin"}).catch(() => undefined);
+    }, 10 * 60 * 1000);
 
     const ciclo = ["PRESENTE", "AUSENTE", "JUSTIFICADA"];
     const linhas = [...form.querySelectorAll(".chamada-linha")];

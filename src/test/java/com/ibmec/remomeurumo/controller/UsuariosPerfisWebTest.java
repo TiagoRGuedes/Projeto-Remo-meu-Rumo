@@ -66,6 +66,19 @@ class UsuariosPerfisWebTest {
         assertThat(tentarLogin(http, "outro.prof", "Rumo-teste-91", null)).doesNotContain("bloqueado").doesNotContain("erro");
     }
 
+    @Test
+    void sessaoVencidaAoSalvarChamadaVoltaParaATurmaDepoisDoLogin() throws Exception {
+        var http = java.net.http.HttpClient.newBuilder().followRedirects(java.net.http.HttpClient.Redirect.NEVER)
+                .cookieHandler(new java.net.CookieManager()).build();
+        var salvar = http.send(java.net.http.HttpRequest.newBuilder(java.net.URI.create("http://localhost:" + port + "/chamada/7"))
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .POST(java.net.http.HttpRequest.BodyPublishers.ofString("data=2026-11-10&_csrf=velho")).build(),
+                java.net.http.HttpResponse.BodyHandlers.ofString());
+        assertThat(salvar.headers().firstValue("location").orElse("")).endsWith("/login?expirou&chamada");
+
+        assertThat(tentarLogin(http, "admin-teste", "senha-teste", null)).endsWith("/chamada/7?data=2026-11-10&corrigir=1");
+    }
+
     private String tentarLogin(java.net.http.HttpClient http, String usuario, String senha, String xff) throws Exception {
         String base = "http://localhost:" + port;
         String html = http.send(java.net.http.HttpRequest.newBuilder(java.net.URI.create(base + "/login")).build(),

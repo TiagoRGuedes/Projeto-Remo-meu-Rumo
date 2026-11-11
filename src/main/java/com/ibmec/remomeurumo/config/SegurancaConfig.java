@@ -1,18 +1,24 @@
 package com.ibmec.remomeurumo.config;
 
 import java.io.IOException;
+import java.net.URI;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -24,6 +30,8 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.access.AccessDeniedHandlerImpl;
 import org.springframework.security.web.access.DelegatingAccessDeniedHandler;
 import org.springframework.security.web.csrf.CsrfException;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
+import org.springframework.security.web.savedrequest.SavedRequest;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -34,6 +42,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 /**
  * Login com dois perfis. A chave mestra (COORDENACAO) vem de ADMIN_USUARIO e ADMIN_SENHA; os demais usuários ficam no banco.
@@ -81,17 +90,53 @@ public class SegurancaConfig {
                 .formLogin(f -> f
                         .loginPage("/login")
                         .failureUrl("/login?erro")
-                        .successHandler((req, res, auth) -> res.sendRedirect(req.getContextPath()
-                                + (auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_COORDENACAO"))
-                                        ? "/" : "/chamada"))))
+                        .successHandler(SegurancaConfig::aposLogin))
                 // CSRF vencido (tela de login aberta por muito tempo ou servidor reiniciado): volta ao login em vez do 403.
                 .exceptionHandling(e -> e.accessDeniedHandler(new DelegatingAccessDeniedHandler(
                         new LinkedHashMap<>(Map.of(CsrfException.class,
-                                (AccessDeniedHandler) (req, res, ex) -> res.sendRedirect(req.getContextPath() + "/login?expirou"))),
+                                (AccessDeniedHandler) SegurancaConfig::csrfVencido)),
                         new AccessDeniedHandlerImpl())))
                 .logout(l -> l.logoutSuccessUrl("/login?saiu"))
                 .addFilterBefore(new LimiteTentativasLogin(), UsernamePasswordAuthenticationFilter.class);
         return http.build();
+    }
+
+    private static final String VOLTAR_PARA = "voltarParaChamada";
+    private static final Pattern TURMA = Pattern.compile("/chamada/(\\d+)");
+
+    /** Sessão vencida ao salvar a chamada: guarda a turma e a data para voltar a ela depois do login (as marcações ficam no aparelho). */
+    static void csrfVencido(HttpServletRequest req, HttpServletResponse res, AccessDeniedException ex) throws IOException {
+        String voltar = null;
+        Matcher turma = TURMA.matcher(req.getServletPath());
+        if (turma.matches()) {
+            try {
+                voltar = "/chamada/" + turma.group(1) + "?data=" + LocalDate.parse(req.getParameter("data")) + "&corrigir=1";
+                req.getSession().setAttribute(VOLTAR_PARA, voltar);
+            } catch (RuntimeException dataInvalida) {
+                voltar = null;
+            }
+        }
+        res.sendRedirect(req.getContextPath() + "/login?expirou" + (voltar == null ? "" : "&chamada"));
+    }
+
+    /** Volta para a turma que estava aberta (só caminhos /chamada/..., nunca um endereço vindo de fora); senão vai para o início do perfil. */
+    static void aposLogin(HttpServletRequest req, HttpServletResponse res, Authentication auth) throws IOException {
+        String destino = null;
+        HttpSession sessao = req.getSession(false);
+        if (sessao != null && sessao.getAttribute(VOLTAR_PARA) instanceof String voltar && voltar.startsWith("/chamada/")) {
+            destino = req.getContextPath() + voltar;
+            sessao.removeAttribute(VOLTAR_PARA);
+        }
+        HttpSessionRequestCache cache = new HttpSessionRequestCache();
+        SavedRequest salvo = cache.getRequest(req, res);
+        if (salvo != null) {
+            cache.removeRequest(req, res);
+            if (destino == null && URI.create(salvo.getRedirectUrl()).getPath().startsWith(req.getContextPath() + "/chamada/")) {
+                destino = salvo.getRedirectUrl();
+            }
+        }
+        boolean coordenacao = auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_COORDENACAO"));
+        res.sendRedirect(destino != null ? destino : req.getContextPath() + (coordenacao ? "/" : "/chamada"));
     }
 
     /**

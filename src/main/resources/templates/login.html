@@ -16,7 +16,7 @@
     </div>
     <div class="alert alert-error" role="alert" th:if="${param.expirou}">
         <span class="icon icon-info" aria-hidden="true"></span>
-        <span>Sua sessão expirou. Entre de novo.</span>
+        <span>Sua sessão expirou. Entre de novo.<span th:if="${param.chamada}"> Você volta para a chamada; as marcações estão guardadas neste aparelho, mas reanexe os atestados.</span></span>
     </div>
     <div class="alert alert-success" th:if="${param.saiu}">
         <span class="icon icon-check" aria-hidden="true"></span>

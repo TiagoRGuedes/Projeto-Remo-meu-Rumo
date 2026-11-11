@@ -35,6 +35,12 @@ public class GlobalModelAdvice {
         return request.getRequestURI();
     }
 
+    @ModelAttribute("usuarioLogado")
+    public String usuarioLogado() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return auth == null ? "" : auth.getName();
+    }
+
     /** Só esconde itens de menu; quem barra o acesso é o SecurityFilterChain. */
     @ModelAttribute("ehProfessor")
     public boolean ehProfessor() {
