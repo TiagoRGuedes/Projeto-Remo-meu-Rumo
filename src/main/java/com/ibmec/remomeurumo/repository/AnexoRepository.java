@@ -30,6 +30,11 @@ public interface AnexoRepository extends JpaRepository<Anexo, Long> {
     List<Long> participantesComAnexoNaAula(@Param("encontroId") Long encontroId);
 
     @Modifying
+    @Query("delete from Anexo a where a.participante.id = :participanteId and a.encontro.id = :encontroId and a.tipo = :tipo")
+    void deleteByParticipanteIdAndEncontroIdAndTipo(@Param("participanteId") Long participanteId,
+            @Param("encontroId") Long encontroId, @Param("tipo") com.ibmec.remomeurumo.model.TipoAnexo tipo);
+
+    @Modifying
     @Query("update Anexo a set a.encontro = null where a.encontro.id = :encontroId")
     void desvincularAula(@Param("encontroId") Long encontroId);
 }
