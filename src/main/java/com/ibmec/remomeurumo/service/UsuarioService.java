@@ -5,6 +5,9 @@ import java.util.Locale;
 import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.session.SessionInformation;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,9 +31,12 @@ public class UsuarioService {
     private final PasswordEncoder encoder;
     private final HistoricoOperacaoService historicoService;
     private final String loginMestre;
+    private final SessionRegistry sessoes;
 
     public UsuarioService(UsuarioRepository usuarioRepository, PasswordEncoder encoder,
-            HistoricoOperacaoService historicoService, @Value("${admin.usuario:}") String loginMestre) {
+            HistoricoOperacaoService historicoService, SessionRegistry sessoes,
+            @Value("${admin.usuario:}") String loginMestre) {
+        this.sessoes = sessoes;
         this.usuarioRepository = usuarioRepository;
         this.encoder = encoder;
         this.historicoService = historicoService;
@@ -72,6 +78,9 @@ public class UsuarioService {
             throw new RegraNegocioException("Você não pode desativar o seu próprio usuário.");
         }
         usuario.setAtivo(ativo);
+        if (!ativo) {
+            derrubarSessoes(usuario);
+        }
         registrar(usuario, ativo ? AcaoHistorico.ATIVACAO : AcaoHistorico.DESATIVACAO,
                 ativo ? "Usuário ativado." : "Usuário desativado.");
     }
@@ -81,7 +90,14 @@ public class UsuarioService {
         validarSenha(senha);
         Usuario usuario = obter(id);
         usuario.setSenhaHash(encoder.encode(senha));
+        derrubarSessoes(usuario);
         registrar(usuario, AcaoHistorico.EDICAO, "Senha redefinida.");
+    }
+
+    private void derrubarSessoes(Usuario usuario) {
+        sessoes.getAllPrincipals().stream()
+                .filter(p -> p instanceof UserDetails d && d.getUsername().equalsIgnoreCase(usuario.getLogin()))
+                .forEach(p -> sessoes.getAllSessions(p, false).forEach(SessionInformation::expireNow));
     }
 
     private Usuario obter(Long id) {

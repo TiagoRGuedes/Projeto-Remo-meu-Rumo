@@ -41,6 +41,20 @@ class UsuariosPerfisWebTest {
     }
 
     @Test
+    void desativarOuTrocarSenhaDerrubaSessaoAberta() throws Exception {
+        Usuario u = usuarioService.cadastrar("Prof Sessao", "prof.sessao", "senha-longa-123", Perfil.PROFESSOR);
+        ClienteLogado a = ClienteLogado.entrar(port, "prof.sessao", "senha-longa-123");
+        ClienteLogado b = ClienteLogado.entrar(port, "prof.sessao", "senha-longa-123");
+        assertThat(a.get("/chamada?lista=1").statusCode()).isEqualTo(200);
+
+        usuarioService.redefinirSenha(u.getId(), "outra-senha-456");
+        assertThat(a.get("/chamada?lista=1").statusCode()).isEqualTo(302);
+
+        usuarioService.definirAtivo(u.getId(), false, "admin-teste");
+        assertThat(b.get("/chamada?lista=1").statusCode()).isEqualTo(302);
+    }
+
+    @Test
     void professorAcessaSoAChamada() throws Exception {
         usuarioService.cadastrar("Prof Teste", "prof.chamada", "senha12345", Perfil.PROFESSOR);
         ClienteLogado professor = ClienteLogado.entrar(port, "prof.chamada", "senha12345");

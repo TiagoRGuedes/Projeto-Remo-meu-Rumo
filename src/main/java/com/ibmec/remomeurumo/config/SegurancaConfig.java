@@ -13,10 +13,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.access.AccessDeniedHandlerImpl;
 import org.springframework.security.web.access.DelegatingAccessDeniedHandler;
@@ -54,9 +57,22 @@ public class SegurancaConfig {
         return new ContasUserDetailsService(usuario.strip(), encoder.encode(senha), usuarios);
     }
 
+    /** Lista as sessões abertas por usuário, para derrubá-las ao desativar a conta ou trocar a senha. */
     @Bean
-    SecurityFilterChain seguranca(HttpSecurity http) throws Exception {
+    SessionRegistry sessionRegistry() {
+        return new SessionRegistryImpl();
+    }
+
+    @Bean
+    HttpSessionEventPublisher httpSessionEventPublisher() {
+        return new HttpSessionEventPublisher();
+    }
+
+    @Bean
+    SecurityFilterChain seguranca(HttpSecurity http, SessionRegistry registro) throws Exception {
         http
+                .sessionManagement(s -> s.sessionConcurrency(c -> c
+                        .maximumSessions(-1).sessionRegistry(registro).expiredUrl("/login?expirou")))
                 .authorizeHttpRequests(a -> a
                         .requestMatchers("/login", "/error", "/css/**", "/js/**", "/img/**",
                                 "/manifest.json", "/sw.js").permitAll()
