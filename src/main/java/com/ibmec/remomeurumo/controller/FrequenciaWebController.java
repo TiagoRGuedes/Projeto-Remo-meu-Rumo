@@ -124,7 +124,7 @@ public class FrequenciaWebController {
     }
 
     private String celula(String texto) {
-        return "\"" + (texto == null ? "" : texto.replace("\"", "\"\"")) + "\"";
+        return com.ibmec.remomeurumo.support.Csv.celula(texto);
     }
 
     private String rotuloMes(YearMonth mes) {
