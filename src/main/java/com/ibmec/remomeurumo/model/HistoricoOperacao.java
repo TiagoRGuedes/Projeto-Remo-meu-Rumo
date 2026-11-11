@@ -53,6 +53,10 @@ public class HistoricoOperacao {
     @Column(nullable = false, updatable = false)
     private LocalDateTime dataHora;
 
+    /** Login de quem fez a alteração (nulo nos registros antigos ou feitos fora de uma sessão). */
+    @Column(length = 60, updatable = false)
+    private String usuario;
+
     protected HistoricoOperacao() {
     }
 
@@ -77,6 +81,14 @@ public class HistoricoOperacao {
     @PrePersist
     public void antesDeCadastrar() {
         this.dataHora = LocalDateTime.now();
+    }
+
+    public String getUsuario() {
+        return usuario;
+    }
+
+    public void setUsuario(String usuario) {
+        this.usuario = usuario;
     }
 
     public Long getId() {

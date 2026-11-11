@@ -90,6 +90,7 @@
                             </div>
                             <h3><a th:if="${evento.urlRelacionada != null}" th:href="${evento.urlRelacionada}" th:text="${evento.nomeEntidade}">Nome do registro</a><span th:if="${evento.urlRelacionada == null}" th:text="${evento.nomeEntidade}">Nome do registro</span></h3>
                             <p th:text="${evento.descricao}">Descrição da ação.</p>
+                            <p class="muted" th:if="${evento.usuario != null}" th:text="${'Por ' + evento.usuario}">Por usuário</p>
                             <dl class="history-diff" th:if="${evento.temComparacao}">
                                 <div><dt>Antes</dt><dd th:text="${evento.detalhesAnteriores}">Situação anterior</dd></div>
                                 <div><dt>Depois</dt><dd th:text="${evento.detalhesNovos}">Nova situação</dd></div>

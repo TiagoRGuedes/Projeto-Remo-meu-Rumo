@@ -95,6 +95,17 @@ class UsuariosPerfisWebTest {
                 java.net.http.HttpResponse.BodyHandlers.ofString()).headers().firstValue("location").orElse("");
     }
 
+    @Autowired
+    private com.ibmec.remomeurumo.service.HistoricoOperacaoService historicoService;
+
+    @Test
+    void historicoGravaQuemFezAAlteracao() throws Exception {
+        ClienteLogado.entrar(port).postForm("/usuarios", "nome=Quem+Fez&login=quem.fez&senha=Rumo-teste-91&perfil=PROFESSOR");
+
+        assertThat(historicoService.listar(null, null, com.ibmec.remomeurumo.model.ModuloHistorico.USUARIOS, null, "quem.fez"))
+                .isNotEmpty().allSatisfy(h -> assertThat(h.getUsuario()).isEqualTo("admin-teste"));
+    }
+
     @Test
     void professorAcessaSoAChamada() throws Exception {
         usuarioService.cadastrar("Prof Teste", "prof.chamada", "Rumo-teste-91", Perfil.PROFESSOR);
