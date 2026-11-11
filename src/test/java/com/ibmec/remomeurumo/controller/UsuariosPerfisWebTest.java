@@ -119,6 +119,11 @@ class UsuariosPerfisWebTest {
     }
 
     @Test
+    void idInvalidoViraNaoEncontradoEmVezDeErro500() throws Exception {
+        assertThat(ClienteLogado.entrar(port).getPagina("/participantes/abc").statusCode()).isEqualTo(404);
+    }
+
+    @Test
     void professorAcessaSoAChamada() throws Exception {
         usuarioService.cadastrar("Prof Teste", "prof.chamada", "Rumo-teste-91", Perfil.PROFESSOR);
         ClienteLogado professor = ClienteLogado.entrar(port, "prof.chamada", "Rumo-teste-91");
