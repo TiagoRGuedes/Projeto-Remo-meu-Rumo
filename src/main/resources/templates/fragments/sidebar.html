@@ -1,28 +1,31 @@
 <nav class="sidebar" th:fragment="sidebar" th:with="rota=${rotaAtual ?: ''}" aria-label="Navegação principal" xmlns:th="http://www.thymeleaf.org">
     <div class="nav-list">
-        <a th:href="@{/}" th:classappend="${rota == '/'} ? 'active' : ''" th:attr="aria-current=${rota == '/'} ? 'page' : null">
+        <a th:unless="${ehProfessor}" th:href="@{/}" th:classappend="${rota == '/'} ? 'active' : ''" th:attr="aria-current=${rota == '/'} ? 'page' : null">
             <span class="nav-node" aria-hidden="true"><span class="icon icon-dashboard"></span></span><span>Início</span>
         </a>
         <a th:href="@{/chamada}" th:with="ativo=${#strings.startsWith(rota, '/chamada') or #strings.startsWith(rota, '/presencas') or #strings.startsWith(rota, '/encontros')}" th:classappend="${ativo} ? 'active' : ''" th:attr="aria-current=${ativo} ? 'page' : null">
             <span class="nav-node" aria-hidden="true"><span class="icon icon-presence"></span></span><span>Chamada</span>
         </a>
-        <a th:href="@{/participantes}" th:classappend="${#strings.startsWith(rota, '/participantes')} ? 'active' : ''" th:attr="aria-current=${#strings.startsWith(rota, '/participantes')} ? 'page' : null">
+        <a th:unless="${ehProfessor}" th:href="@{/participantes}" th:classappend="${#strings.startsWith(rota, '/participantes')} ? 'active' : ''" th:attr="aria-current=${#strings.startsWith(rota, '/participantes')} ? 'page' : null">
             <span class="nav-node" aria-hidden="true"><span class="icon icon-users"></span></span><span>Participantes</span>
         </a>
-        <a th:href="@{/atividades}" th:classappend="${#strings.startsWith(rota, '/atividades')} ? 'active' : ''" th:attr="aria-current=${#strings.startsWith(rota, '/atividades')} ? 'page' : null">
+        <a th:unless="${ehProfessor}" th:href="@{/atividades}" th:classappend="${#strings.startsWith(rota, '/atividades')} ? 'active' : ''" th:attr="aria-current=${#strings.startsWith(rota, '/atividades')} ? 'page' : null">
             <span class="nav-node" aria-hidden="true"><span class="icon icon-activity"></span></span><span>Turmas</span>
         </a>
-        <a th:href="@{/frequencia}" th:classappend="${#strings.startsWith(rota, '/frequencia')} ? 'active' : ''" th:attr="aria-current=${#strings.startsWith(rota, '/frequencia')} ? 'page' : null">
+        <a th:unless="${ehProfessor}" th:href="@{/frequencia}" th:classappend="${#strings.startsWith(rota, '/frequencia')} ? 'active' : ''" th:attr="aria-current=${#strings.startsWith(rota, '/frequencia')} ? 'page' : null">
             <span class="nav-node" aria-hidden="true"><span class="icon icon-frequency"></span></span><span>Frequência</span>
         </a>
-        <a th:href="@{/relatorios}" th:classappend="${#strings.startsWith(rota, '/relatorios')} ? 'active' : ''" th:attr="aria-current=${#strings.startsWith(rota, '/relatorios')} ? 'page' : null">
+        <a th:unless="${ehProfessor}" th:href="@{/relatorios}" th:classappend="${#strings.startsWith(rota, '/relatorios')} ? 'active' : ''" th:attr="aria-current=${#strings.startsWith(rota, '/relatorios')} ? 'page' : null">
             <span class="nav-node" aria-hidden="true"><span class="icon icon-report"></span></span><span>Relatórios</span>
         </a>
-        <a th:href="@{/historico}" th:classappend="${#strings.startsWith(rota, '/historico')} ? 'active' : ''" th:attr="aria-current=${#strings.startsWith(rota, '/historico')} ? 'page' : null">
+        <a th:unless="${ehProfessor}" th:href="@{/historico}" th:classappend="${#strings.startsWith(rota, '/historico')} ? 'active' : ''" th:attr="aria-current=${#strings.startsWith(rota, '/historico')} ? 'page' : null">
             <span class="nav-node" aria-hidden="true"><span class="icon icon-history"></span></span><span>Histórico</span>
         </a>
+        <a th:unless="${ehProfessor}" th:href="@{/usuarios}" th:classappend="${#strings.startsWith(rota, '/usuarios')} ? 'active' : ''" th:attr="aria-current=${#strings.startsWith(rota, '/usuarios')} ? 'page' : null">
+            <span class="nav-node" aria-hidden="true"><span class="icon icon-users"></span></span><span>Usuários</span>
+        </a>
     </div>
-    <div class="sidebar-support">
+    <div class="sidebar-support" th:unless="${ehProfessor}">
         <a th:href="@{/acessibilidade}" th:classappend="${#strings.startsWith(rota, '/acessibilidade')} ? 'active' : ''" th:attr="aria-current=${#strings.startsWith(rota, '/acessibilidade')} ? 'page' : null">
             <span class="nav-node" aria-hidden="true"><span class="icon icon-accessibility"></span></span><span>Acessibilidade</span>
         </a>

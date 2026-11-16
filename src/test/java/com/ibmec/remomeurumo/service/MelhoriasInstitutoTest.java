@@ -119,6 +119,20 @@ class MelhoriasInstitutoTest {
     }
 
     @Test
+    void anexoConfereOTipoRealPelosPrimeirosBytes() {
+        Participante pessoa = participanteService.cadastrar(new Participante("Anexo Falso", ""));
+        var html = new MockMultipartFile("arquivo", "foto.png", "image/png", "<html><script>x</script></html>".getBytes());
+        assertThatThrownBy(() -> anexoService.anexar(pessoa.getId(), TipoAnexo.OUTRO, html, null))
+                .isInstanceOf(RegraNegocioException.class);
+
+        var png = new MockMultipartFile("arquivo", "foto.jpg", "application/octet-stream",
+                new byte[] {(byte) 0x89, 'P', 'N', 'G', 13, 10, 26, 10, 0});
+        var anexo = anexoService.anexar(pessoa.getId(), TipoAnexo.OUTRO, png, null);
+        assertThat(anexoService.obter(anexo.getId()).getContentType()).isEqualTo("image/png");
+        assertThat(anexoService.obter(anexo.getId()).getNomeArquivo()).isEqualTo("foto.png");
+    }
+
+    @Test
     void condicaoSoValeParaQuemTemDeficienciaECompoeADescricao() {
         Participante comCondicao = participanteService.cadastrar(new Participante("Condição Pessoa", Sexo.FEMININO,
                 LocalDate.of(2015, 3, 2), TipoEscola.PUBLICA, true, "TEA (autismo)", ""));

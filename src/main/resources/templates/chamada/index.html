@@ -21,10 +21,14 @@
                th:text="${aba.turma()}">SEG · 9h</a>
         </nav>
 
-        <section class="painel-card" aria-labelledby="hoje-titulo">
+        <section class="painel-card" aria-labelledby="hoje-titulo"
+                 th:with="feitas=${sessoesDeHoje.?[situacao() == 'Registrada' or situacao() == 'Não aconteceu']},
+                          aFazer=${sessoesDeHoje.?[situacao() != 'Registrada' and situacao() != 'Não aconteceu']}">
             <div class="painel-card-topo"><h2 id="hoje-titulo">Hoje</h2></div>
-            <ul class="lista-chamadas" th:if="${!#lists.isEmpty(sessoesDeHoje)}">
-                <li th:each="sessao : ${sessoesDeHoje}">
+            <div class="hoje-grupo" th:if="${!#lists.isEmpty(aFazer)}">
+                <h3 class="hoje-grupo-titulo">A fazer</h3>
+                <ul class="lista-chamadas">
+                <li th:each="sessao : ${aFazer}">
                     <a th:href="@{/chamada/{id}(id=${sessao.turmaId()}, data=${sessao.data()})}">
                         <span class="lista-chamadas-hora" th:text="${sessao.hora()}">14h00</span>
                         <span class="lista-chamadas-turma">
@@ -34,7 +38,23 @@
                         <span class="tag-sessao" th:classappend="${'tag-' + #strings.toLowerCase(#strings.replace(sessao.situacao(), ' ', '-'))}" th:text="${sessao.situacao()}">Agora</span>
                     </a>
                 </li>
-            </ul>
+                </ul>
+            </div>
+            <div class="hoje-grupo" th:if="${!#lists.isEmpty(feitas)}">
+                <h3 class="hoje-grupo-titulo">Feitas</h3>
+                <ul class="lista-chamadas">
+                <li th:each="sessao : ${feitas}">
+                    <a th:href="@{/chamada/{id}(id=${sessao.turmaId()}, data=${sessao.data()})}">
+                        <span class="lista-chamadas-hora" th:text="${sessao.hora()}">14h00</span>
+                        <span class="lista-chamadas-turma">
+                            <strong th:text="${sessao.turma()}">Turma</strong>
+                            <small th:text="${sessao.participantes() + ' participantes · ' + sessao.grade()}">8 participantes</small>
+                        </span>
+                        <span class="tag-sessao" th:classappend="${'tag-' + #strings.toLowerCase(#strings.replace(sessao.situacao(), ' ', '-'))}" th:text="${sessao.situacao()}">Agora</span>
+                    </a>
+                </li>
+                </ul>
+            </div>
             <p class="painel-vazio" th:if="${#lists.isEmpty(sessoesDeHoje)}">Nenhuma aula na grade de hoje.</p>
         </section>
 
@@ -70,7 +90,8 @@
                 </div>
                 <button class="button button-primary" type="submit">Abrir chamada</button>
             </form>
-            <p class="muted">Precisa da tela antiga, com busca e observação por pessoa? Use a <a th:href="@{/presencas/registrar(completa=1)}">chamada completa</a>.</p>
+            <p class="muted instalar-dica"><a th:href="@{/ajuda/instalar}">Como instalar o app no celular</a></p>
+            <p class="muted chamada-completa" th:unless="${ehProfessor}">Precisa da tela antiga, com busca e observação por pessoa? Use a <a th:href="@{/presencas/registrar(completa=1)}">chamada completa</a>.</p>
         </section>
         <footer th:replace="~{fragments/footer :: footer}"></footer>
     </main>

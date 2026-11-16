@@ -65,7 +65,7 @@
 
         <form class="chamada-form" method="post" enctype="multipart/form-data" th:if="${chamada.total > 0 and !chamada.naoRealizada}"
               th:action="@{/chamada/{id}(id=${chamada.turmaId})}"
-              th:attr="data-chamada=${chamada.turmaId + '-' + chamada.data},data-somente-leitura=${!modoCorrecao}">
+              th:attr="data-chamada=${chamada.turmaId + '-' + chamada.data},data-somente-leitura=${!modoCorrecao},data-salva=${chamadaSalva != null},data-usuario=${usuarioLogado}">
             <input type="hidden" name="data" th:value="${chamada.data}">
             <div class="chamada-progresso" th:if="${modoCorrecao}">
                 <p><strong data-marcados th:text="${chamada.marcados}">0</strong> de <span th:text="${chamada.total}">14</span> marcados</p>

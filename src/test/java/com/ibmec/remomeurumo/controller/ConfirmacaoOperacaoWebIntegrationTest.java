@@ -3,8 +3,6 @@ package com.ibmec.remomeurumo.controller;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.net.CookieManager;
-import java.net.CookiePolicy;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
@@ -52,13 +50,12 @@ class ConfirmacaoOperacaoWebIntegrationTest {
 
     private HttpClient client;
 
+    private ClienteLogado cliente;
+
     @BeforeEach
-    void configurarClienteComSessao() {
-        CookieManager cookies = new CookieManager(null, CookiePolicy.ACCEPT_ALL);
-        client = HttpClient.newBuilder()
-                .cookieHandler(cookies)
-                .followRedirects(HttpClient.Redirect.NEVER)
-                .build();
+    void configurarClienteComSessao() throws Exception {
+        cliente = ClienteLogado.entrar(port);
+        client = cliente.client;
     }
 
     @Test
@@ -150,11 +147,7 @@ class ConfirmacaoOperacaoWebIntegrationTest {
     }
 
     private HttpResponse<String> postForm(String path, String body) throws Exception {
-        HttpRequest request = HttpRequest.newBuilder(uri(path))
-                .header("Content-Type", "application/x-www-form-urlencoded")
-                .POST(HttpRequest.BodyPublishers.ofString(body))
-                .build();
-        return client.send(request, HttpResponse.BodyHandlers.ofString());
+        return cliente.postForm(path, body);
     }
 
     private URI uri(String path) {

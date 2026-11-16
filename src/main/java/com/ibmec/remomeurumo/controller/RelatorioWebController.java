@@ -107,7 +107,6 @@ public class RelatorioWebController {
     }
 
     private String valor(String texto) {
-        String seguro = texto == null ? "" : texto.replace("\"", "\"\"");
-        return "\"" + seguro + "\"";
+        return com.ibmec.remomeurumo.support.Csv.celula(texto);
     }
 }

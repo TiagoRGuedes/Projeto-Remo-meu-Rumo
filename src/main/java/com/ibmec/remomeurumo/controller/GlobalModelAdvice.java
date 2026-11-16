@@ -1,5 +1,7 @@
 package com.ibmec.remomeurumo.controller;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
@@ -31,5 +33,18 @@ public class GlobalModelAdvice {
     @ModelAttribute("rotaAtual")
     public String rotaAtual(HttpServletRequest request) {
         return request.getRequestURI();
+    }
+
+    @ModelAttribute("usuarioLogado")
+    public String usuarioLogado() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return auth == null ? "" : auth.getName();
+    }
+
+    /** Só esconde itens de menu; quem barra o acesso é o SecurityFilterChain. */
+    @ModelAttribute("ehProfessor")
+    public boolean ehProfessor() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return auth != null && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_PROFESSOR"));
     }
 }

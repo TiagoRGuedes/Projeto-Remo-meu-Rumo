@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,6 +48,10 @@ public class HistoricoOperacaoService {
                 limitar(descricao, 600),
                 limitarOpcional(detalhesAnteriores, 500),
                 limitarOpcional(detalhesNovos, 500));
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && !(auth instanceof AnonymousAuthenticationToken)) {
+            registro.setUsuario(limitar(auth.getName(), 60));
+        }
         return historicoRepository.save(registro);
     }
 

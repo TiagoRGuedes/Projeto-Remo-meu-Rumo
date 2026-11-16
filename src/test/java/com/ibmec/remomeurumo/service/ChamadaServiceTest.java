@@ -16,7 +16,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.ibmec.remomeurumo.dto.LinhaChamada;
 import com.ibmec.remomeurumo.exception.RegraNegocioException;
+import org.springframework.mock.web.MockMultipartFile;
+
 import com.ibmec.remomeurumo.model.Atividade;
+import com.ibmec.remomeurumo.model.TipoAnexo;
 import com.ibmec.remomeurumo.model.DiaSemana;
 import com.ibmec.remomeurumo.model.Participante;
 import com.ibmec.remomeurumo.model.StatusEncontro;
@@ -31,6 +34,7 @@ class ChamadaServiceTest {
     @Autowired private MatriculaService matriculaService;
     @Autowired private ParticipanteService participanteService;
     @Autowired private AtividadeService atividadeService;
+    @Autowired private AnexoService anexoService;
     @Autowired private EncontroService encontroService;
     @Autowired private EncontroRepository encontroRepository;
 
@@ -111,6 +115,31 @@ class ChamadaServiceTest {
                     assertThat(sessao.turmaId()).isEqualTo(turma.getId());
                     assertThat(sessao.quando()).isEqualTo("Ontem");
                 });
+    }
+
+    @Test
+    void sessoesDeHojeMostraTurmaDaGradeSemParticipantes() {
+        Atividade turma = turma("Chamada Sem Matriculas");
+
+        assertThat(chamadaService.sessoesDeHoje())
+                .anySatisfy(sessao -> {
+                    assertThat(sessao.turmaId()).isEqualTo(turma.getId());
+                    assertThat(sessao.participantes()).isZero();
+                });
+    }
+
+    @Test
+    void reenviarAtestadoDaMesmaAulaTrocaOAnterior() {
+        LocalDate hoje = LocalDate.now();
+        Atividade turma = turma("Chamada Atestado");
+        Participante ana = matricular("Chamada Atestado Ana", turma, hoje.minusDays(30));
+        var aula = encontroService.criar(turma.getId(), hoje, "", StatusEncontro.REALIZADO);
+        for (int i = 0; i < 3; i++) {
+            anexoService.anexar(ana.getId(), TipoAnexo.ATESTADO,
+                    new MockMultipartFile("a", "atestado.pdf", "application/pdf", ("%PDF-" + i).getBytes()), aula.getId());
+        }
+
+        assertThat(anexoService.listarPorParticipante(ana.getId())).hasSize(1);
     }
 
     private Atividade turma(String nome) {

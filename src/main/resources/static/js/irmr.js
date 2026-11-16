@@ -59,6 +59,9 @@ const prepararInstalacao = () => {
 
 document.addEventListener("DOMContentLoaded", () => {
     prepararInstalacao();
+    document.querySelectorAll("[data-imprimir]").forEach((botao) => {
+        botao.addEventListener("click", () => window.print());
+    });
     document.querySelectorAll("form").forEach((form) => {
         form.addEventListener("submit", () => {
             const button = form.querySelector("[data-confirm-once]");
