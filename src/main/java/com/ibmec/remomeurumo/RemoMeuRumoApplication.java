@@ -56,6 +56,12 @@ public class RemoMeuRumoApplication {
     }
 
     private static void iniciar(String[] args, int porta) throws InterruptedException {
+        String urlDoServidor = System.getProperty("spring.datasource.url", System.getenv("SPRING_DATASOURCE_URL"));
+        String urlCoordenada = comTravaCoordenada(urlDoServidor);
+        if (urlCoordenada != null && !urlCoordenada.equals(urlDoServidor)) {
+            System.setProperty("spring.datasource.url", urlCoordenada);
+            LOG.warn("AUTO_SERVER=TRUE adicionado à URL do banco configurada no servidor.");
+        }
         boolean bancoPrincipal = usaBancoPrincipal(args);
         if (bancoPrincipal && Files.exists(BANCO_RECUPERADO)) {
             LOG.warn("Usando o banco recuperado {}.", BANCO_RECUPERADO);
@@ -99,8 +105,72 @@ public class RemoMeuRumoApplication {
             }
         }
 
+        // Banco corrompido (o H2 não consegue recuperar): guarda o arquivo de lado e começa um banco novo.
+        Path corrompido = arquivoCorrompido(falha);
+        if (corrompido != null && isolarArquivo(corrompido)) {
+            etapa = "subindo o Spring com um banco novo no lugar do corrompido";
+            try {
+                SpringApplication.run(RemoMeuRumoApplication.class, args);
+                iniciado = true;
+                return;
+            } catch (RuntimeException erro) {
+                falha = erro;
+            }
+        }
+
         LOG.error("O sistema não conseguiu iniciar.", falha);
         servirPaginaDeFalha(porta, resumoDaFalha(falha));
+    }
+
+    private static final java.util.regex.Pattern ARQUIVO_H2 = java.util.regex.Pattern.compile("\"([^\"]+\\.mv\\.db)\"");
+
+    /** Caminho do arquivo .mv.db quando o H2 informa que ele está corrompido (erro 90030). */
+    static Path arquivoCorrompido(Throwable erro) {
+        for (Throwable atual = erro; atual != null; atual = atual.getCause()) {
+            String mensagem = atual.getMessage();
+            boolean corrompido = (atual instanceof SQLException sql && sql.getErrorCode() == 90030)
+                    || (mensagem != null && mensagem.contains("File corrupted"));
+            if (corrompido && mensagem != null) {
+                var achado = ARQUIVO_H2.matcher(mensagem);
+                if (achado.find()) {
+                    return Path.of(achado.group(1));
+                }
+            }
+            if (atual.getCause() == atual) {
+                break;
+            }
+        }
+        return null;
+    }
+
+    private static boolean isolarArquivo(Path arquivo) {
+        String carimbo = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"));
+        String nome = arquivo.getFileName().toString().replace(".mv.db", "");
+        Path destino = arquivo.resolveSibling(nome + ".corrompido-" + carimbo + ".bak");
+        try {
+            Files.move(arquivo, destino);
+            Files.deleteIfExists(arquivo.resolveSibling(nome + ".lock.db"));
+            LOG.error("Banco corrompido guardado em {}. Um banco novo será criado.", destino);
+            return true;
+        } catch (IOException erro) {
+            LOG.error("Não foi possível mover o banco corrompido {}.", arquivo, erro);
+            return false;
+        }
+    }
+
+    /**
+     * Garante que dois processos nunca escrevam no mesmo arquivo H2 ao mesmo tempo (num reinício do Azure),
+     * mesmo quando a URL vem da configuração do servidor sem AUTO_SERVER.
+     */
+    static String comTravaCoordenada(String url) {
+        if (url == null || !url.startsWith("jdbc:h2:file:")) {
+            return url;
+        }
+        String maiusculas = url.toUpperCase(java.util.Locale.ROOT);
+        if (maiusculas.contains("AUTO_SERVER") || maiusculas.contains("FILE_LOCK")) {
+            return url;
+        }
+        return url + ";AUTO_SERVER=TRUE";
     }
 
     /** Se o início demorar demais, mostra onde ele está parado, em vez de deixar o Azure esperando. */
