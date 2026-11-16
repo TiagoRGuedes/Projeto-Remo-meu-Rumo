@@ -4,6 +4,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.TextStyle;
+import java.util.List;
 import java.util.Locale;
 
 import org.springframework.format.annotation.DateTimeFormat;
@@ -29,6 +30,8 @@ public class FrequenciaWebController {
 
     private static final Locale PT_BR = Locale.forLanguageTag("pt-BR");
 
+    private static final List<String> TOPICOS = List.of("participantes", "contatar", "turmas", "registros");
+
     private final ParticipanteService participanteService;
     private final AtividadeService atividadeService;
     private final PresencaService presencaService;
@@ -53,7 +56,12 @@ public class FrequenciaWebController {
             @RequestParam(required = false) String mes,
             @RequestParam(required = false) String periodo,
             @RequestParam(required = false) Long turmaId,
+            @RequestParam(required = false) String topico,
             Model model) {
+        String topicoAtual = topico != null && TOPICOS.contains(topico) ? topico
+                : participanteId != null || atividadeId != null || inicio != null || fim != null || status != null
+                        ? "registros" : "participantes";
+        model.addAttribute("topico", topicoAtual);
         var referencia = MesReferencia.resolver(mes);
         boolean anual = "ano".equals(periodo);
         int anoAtual = LocalDate.now().getYear();
@@ -64,9 +72,17 @@ public class FrequenciaWebController {
         model.addAttribute("mesesDisponiveis", frequenciaService.mesesDisponiveis(referencia));
         model.addAttribute("turmasAtivas", atividadeService.listarAtivas());
         model.addAttribute("rotuloPeriodo", anual ? "Ano " + anoAtual : rotuloMes(referencia));
-        model.addAttribute("resumosMensais", anual ? frequenciaService.resumoAnualDasTurmas(anoAtual)
-                : frequenciaService.resumoMensalDasTurmas(referencia));
-        model.addAttribute("linhasPainel", frequenciaService.painelPorParticipante(anual, referencia, turmaId));
+        var resumos = anual ? frequenciaService.resumoAnualDasTurmas(anoAtual)
+                : frequenciaService.resumoMensalDasTurmas(referencia);
+        var linhasPainel = frequenciaService.painelPorParticipante(anual, referencia, turmaId);
+        var linhasContatar = linhasPainel.stream()
+                .filter(linha -> linha.contatoNecessario() || linha.abaixoDaMeta())
+                .toList();
+        model.addAttribute("resumosMensais", resumos);
+        model.addAttribute("linhasExibidas", "contatar".equals(topicoAtual) ? linhasContatar : linhasPainel);
+        model.addAttribute("totalPainel", linhasPainel.size());
+        model.addAttribute("totalContatar", linhasContatar.size());
+        model.addAttribute("totalTurmas", resumos.size());
         model.addAttribute("limiteFaltas", FrequenciaService.LIMITE_FALTAS_MES);
         model.addAttribute("metaFrequencia", FrequenciaService.META_FREQUENCIA_MENSAL);
         model.addAttribute("participantes", participanteService.listar(null));
@@ -74,7 +90,7 @@ public class FrequenciaWebController {
         model.addAttribute("statusPresenca", StatusPresenca.values());
         var historico = presencaService.listarHistorico(participanteId, atividadeId, inicio, fim, status);
         model.addAttribute("historico", historico);
-        model.addAttribute("frequencias", frequenciaService.porParticipante(atividadeId, inicio, fim));
+        model.addAttribute("totalRegistros", historico.size());
         model.addAttribute("resumoFrequencia", frequenciaService.resumirDashboard(historico));
         model.addAttribute("participanteId", participanteId);
         model.addAttribute("atividadeId", atividadeId);

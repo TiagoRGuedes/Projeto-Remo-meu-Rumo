@@ -16,7 +16,14 @@
             </div>
         </div>
 
-        <section class="section-block" aria-labelledby="mensal-titulo">
+        <nav class="metric-grid module-metrics topicos" aria-label="Escolha o que ver">
+            <a class="metric" th:href="@{/frequencia(topico='participantes', periodo=${anual} ? 'ano' : 'mes', mes=${mesReferencia}, turmaId=${turmaId})}" th:attr="aria-current=${topico == 'participantes'} ? 'true' : null"><span>Por participante</span><strong th:text="${totalPainel}">0</strong><small>Frequência de cada pessoa</small></a>
+            <a class="metric metric-warning" th:href="@{/frequencia(topico='contatar', periodo=${anual} ? 'ano' : 'mes', mes=${mesReferencia}, turmaId=${turmaId})}" th:attr="aria-current=${topico == 'contatar'} ? 'true' : null"><span>Para contatar</span><strong th:text="${totalContatar}">0</strong><small>Abaixo da meta ou muitas faltas</small></a>
+            <a class="metric" th:href="@{/frequencia(topico='turmas', periodo=${anual} ? 'ano' : 'mes', mes=${mesReferencia})}" th:attr="aria-current=${topico == 'turmas'} ? 'true' : null"><span>Por turma</span><strong th:text="${totalTurmas}">0</strong><small>Resumo de cada turma</small></a>
+            <a class="metric" th:href="@{/frequencia(topico='registros')}" th:attr="aria-current=${topico == 'registros'} ? 'true' : null"><span>Registros de presença</span><strong th:text="${totalRegistros}">0</strong><small>Cada marcação, com filtros</small></a>
+        </nav>
+
+        <section class="section-block" aria-labelledby="mensal-titulo" th:if="${topico != 'registros'}">
             <div class="section-header">
                 <div>
                     <h2 id="mensal-titulo" th:text="${'Frequência · ' + rotuloPeriodo}">Frequência · Outubro de 2026</h2>
@@ -30,21 +37,21 @@
 
             <div class="filtros-frequencia">
                 <nav class="seletor-periodo" aria-label="Período">
-                    <a th:href="@{/frequencia(periodo='mes', mes=${mesReferencia}, turmaId=${turmaId})}" th:attr="aria-current=${!anual} ? 'true' : null">Mês</a>
-                    <a th:href="@{/frequencia(periodo='ano', mes=${mesReferencia}, turmaId=${turmaId})}" th:attr="aria-current=${anual} ? 'true' : null" th:text="${'Ano ' + anoAtual}">Ano 2026</a>
+                    <a th:href="@{/frequencia(topico=${topico}, periodo='mes', mes=${mesReferencia}, turmaId=${turmaId})}" th:attr="aria-current=${!anual} ? 'true' : null">Mês</a>
+                    <a th:href="@{/frequencia(topico=${topico}, periodo='ano', mes=${mesReferencia}, turmaId=${turmaId})}" th:attr="aria-current=${anual} ? 'true' : null" th:text="${'Ano ' + anoAtual}">Ano 2026</a>
                 </nav>
                 <nav class="chips chips-rolagem" aria-label="Mês" th:if="${!anual}">
-                    <a th:each="item : ${mesesDisponiveis}" th:href="@{/frequencia(periodo='mes', mes=${item.valor()}, turmaId=${turmaId})}"
+                    <a th:each="item : ${mesesDisponiveis}" th:href="@{/frequencia(topico=${topico}, periodo='mes', mes=${item.valor()}, turmaId=${turmaId})}"
                        th:attr="aria-current=${item.valor() == mesReferencia} ? 'true' : null" th:text="${item.rotulo()}">Out</a>
                 </nav>
-                <nav class="chips chips-rolagem" aria-label="Turma">
-                    <a th:href="@{/frequencia(periodo=${anual} ? 'ano' : 'mes', mes=${mesReferencia})}" th:attr="aria-current=${turmaId == null} ? 'true' : null">Todas</a>
-                    <a th:each="turma : ${turmasAtivas}" th:href="@{/frequencia(periodo=${anual} ? 'ano' : 'mes', mes=${mesReferencia}, turmaId=${turma.id})}"
+                <nav class="chips chips-rolagem" aria-label="Turma" th:if="${topico != 'turmas'}">
+                    <a th:href="@{/frequencia(topico=${topico}, periodo=${anual} ? 'ano' : 'mes', mes=${mesReferencia})}" th:attr="aria-current=${turmaId == null} ? 'true' : null">Todas</a>
+                    <a th:each="turma : ${turmasAtivas}" th:href="@{/frequencia(topico=${topico}, periodo=${anual} ? 'ano' : 'mes', mes=${mesReferencia}, turmaId=${turma.id})}"
                        th:attr="aria-current=${turmaId == turma.id} ? 'true' : null" th:text="${turma.nome}">SEG · 9h</a>
                 </nav>
             </div>
 
-            <div class="table-card">
+            <div class="table-card" th:if="${topico != 'turmas'}">
                 <div class="table-wrapper">
                     <table class="mobile-card-table tabela-frequencia">
                         <caption class="sr-only" th:text="${'Frequência por participante · ' + rotuloPeriodo}">Frequência por participante</caption>
@@ -61,7 +68,7 @@
                         </tr>
                         </thead>
                         <tbody>
-                        <tr th:each="linha : ${linhasPainel}">
+                        <tr th:each="linha : ${linhasExibidas}">
                             <td class="table-primary" data-label="Participante"><a th:href="@{/participantes/{id}(id=${linha.participanteId()}, mes=${mesReferencia})}" th:text="${linha.participante()}">Participante</a>
                                 <small class="nota-frequencia" th:if="${linha.observacao() != null}" th:text="${linha.observacao()}">Conta só as aulas desde o ingresso.</small></td>
                             <td data-label="Turma"><span class="lista-turmas"><span class="turma-item" th:each="turma : ${linha.listaTurmas()}" th:text="${turma}">SEG · 9h</span></span></td>
@@ -79,17 +86,17 @@
                                 <span class="status-pill status-on" th:if="${!linha.contatoNecessario() and !linha.abaixoDaMeta() and !linha.semAulasPrevistas()}">Em dia</span>
                             </td>
                         </tr>
-                        <tr th:if="${#lists.isEmpty(linhasPainel)}">
-                            <td class="empty-cell" colspan="8">Ninguém matriculado neste período.</td>
+                        <tr th:if="${#lists.isEmpty(linhasExibidas)}">
+                            <td class="empty-cell" colspan="8" th:text="${topico == 'contatar'} ? 'Ninguém abaixo da meta ou com faltas demais neste período.' : 'Ninguém matriculado neste período.'">Ninguém matriculado neste período.</td>
                         </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            <div class="table-card section-block">
+            <div class="table-card" th:if="${topico == 'turmas'}">
                 <div class="table-wrapper">
-                    <table>
+                    <table class="mobile-card-table">
                         <caption th:text="${'Resumo por turma · ' + rotuloPeriodo}">Resumo por turma</caption>
                         <thead>
                         <tr>
@@ -102,12 +109,12 @@
                         </thead>
                         <tbody>
                         <tr th:each="resumo : ${resumosMensais}">
-                            <td class="table-primary"><a th:href="@{/frequencia(periodo=${anual} ? 'ano' : 'mes', mes=${mesReferencia}, turmaId=${resumo.turmaId()})}" th:text="${resumo.turma()}">Turma</a></td>
-                            <td th:text="${resumo.aulasPrevistas()}">0</td>
-                            <td th:text="${resumo.matriculasAtivas()}">0</td>
-                            <td><span th:text="${#numbers.formatDecimal(resumo.percentual(), 1, 1) + '%'}">0%</span>
+                            <td class="table-primary" data-label="Turma"><a th:href="@{/frequencia(topico='participantes', periodo=${anual} ? 'ano' : 'mes', mes=${mesReferencia}, turmaId=${resumo.turmaId()})}" th:text="${resumo.turma()}">Turma</a></td>
+                            <td data-label="Aulas previstas" th:text="${resumo.aulasPrevistas()}">0</td>
+                            <td data-label="Matriculados" th:text="${resumo.matriculasAtivas()}">0</td>
+                            <td data-label="Frequência"><span th:text="${#numbers.formatDecimal(resumo.percentual(), 1, 1) + '%'}">0%</span>
                                 <span class="status-pill status-warning-pill" th:if="${resumo.abaixoDaMeta()}">Abaixo da meta</span></td>
-                            <td th:if="${!anual}">
+                            <td data-label="Para contatar" th:if="${!anual}">
                                 <span th:if="${resumo.totalFaltosos() == 0}">—</span>
                                 <span class="status-pill status-off" th:if="${resumo.totalFaltosos() > 0}" th:text="${resumo.totalFaltosos() + (resumo.totalFaltosos() == 1 ? ' pessoa' : ' pessoas')}">0</span>
                             </td>
@@ -121,15 +128,16 @@
             </div>
         </section>
 
-        <h2 class="section-block">Registros por período</h2>
-        <section class="metric-grid module-metrics" aria-label="Resumo da frequência exibida">
-            <article class="metric metric-featured"><span>Média geral</span><strong th:text="${#numbers.formatDecimal(resumoFrequencia.mediaGeral(), 1, 1)} + '%'">0%</strong></article>
-            <article class="metric"><span>Participantes exibidos</span><strong th:text="${resumoFrequencia.participantesExibidos()}">0</strong></article>
-            <article class="metric metric-success"><span>Presenças</span><strong th:text="${resumoFrequencia.presencas()}">0</strong></article>
-            <article class="metric metric-warning"><span>Faltas + faltas avisadas</span><strong th:text="${resumoFrequencia.ausencias() + resumoFrequencia.justificadas()}">0</strong></article>
-        </section>
+        <th:block th:if="${topico == 'registros'}">
+        <p class="resumo-linha" aria-live="polite">
+            <span>Média geral <strong th:text="${#numbers.formatDecimal(resumoFrequencia.mediaGeral(), 1, 1)} + '%'">0%</strong></span>
+            <span><strong th:text="${resumoFrequencia.participantesExibidos()}">0</strong> participantes</span>
+            <span><strong th:text="${resumoFrequencia.presencas()}">0</strong> presenças</span>
+            <span><strong th:text="${resumoFrequencia.ausencias() + resumoFrequencia.justificadas()}">0</strong> faltas e faltas avisadas</span>
+        </p>
 
         <form class="form-card filters filter-panel" method="get" th:action="@{/frequencia}">
+            <input type="hidden" name="topico" value="registros">
             <div class="filter-title">
                 <h2>Filtros de consulta</h2>
                 <p class="muted">Combine os campos abaixo para localizar o período desejado.</p>
@@ -167,46 +175,9 @@
                 </select>
             </div>
             <button class="button button-primary" type="submit"><span class="icon icon-filter" aria-hidden="true"></span>Filtrar</button>
-            <a class="button button-soft" th:href="@{/frequencia}"><span class="icon icon-reset" aria-hidden="true"></span>Limpar filtros</a>
+            <a class="button button-soft" th:href="@{/frequencia(topico='registros')}"><span class="icon icon-reset" aria-hidden="true"></span>Limpar filtros</a>
         </form>
 
-        <section class="table-card data-surface section-block">
-            <div class="table-wrapper">
-                <table class="mobile-card-table">
-                    <caption>Frequência por participante</caption>
-                    <thead>
-                    <tr>
-                        <th scope="col">Participante</th>
-                        <th scope="col">Aulas</th>
-                        <th scope="col">Presentes</th>
-                        <th scope="col">Faltas</th>
-                        <th scope="col">Faltas avisadas</th>
-                        <th scope="col">Frequência</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr th:each="item : ${frequencias}">
-                        <td class="table-primary" data-label="Participante" th:text="${item.nome()}">Nome</td>
-                        <td data-label="Aulas" th:text="${item.totalEncontros()}">0</td>
-                        <td data-label="Presentes" th:text="${item.presentes()}">0</td>
-                        <td data-label="Faltas" th:text="${item.ausentes()}">0</td>
-                        <td data-label="Faltas avisadas" th:text="${item.justificadas()}">0</td>
-                        <td class="frequency-cell" data-label="Frequência">
-                            <div class="frequency-value">
-                                <span th:text="${#numbers.formatDecimal(item.percentual(), 1, 1)} + '%'">0%</span>
-                                <span class="sr-only" th:text="${item.presentes()} + ' presenças'">0 presenças</span>
-                            </div>
-                            <progress th:value="${item.percentual()}" max="100"
-                                      th:attr="aria-label=|Frequência de ${item.nome()}: ${#numbers.formatDecimal(item.percentual(), 1, 1)}%|">0%</progress>
-                        </td>
-                    </tr>
-                    <tr th:if="${#lists.isEmpty(frequencias)}">
-                        <td class="empty-cell" colspan="6">Nenhum dado de frequência encontrado para os filtros informados.</td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
 
         <section class="table-card data-surface section-block">
             <div class="table-wrapper">
@@ -236,8 +207,9 @@
                 </table>
             </div>
         </section>
+        </th:block>
 
-        <aside class="context-help section-block"><span class="icon icon-info" aria-hidden="true"></span><div><strong>Como a frequência é calculada?</strong><p>No painel de cima, a frequência é presenças ÷ aulas previstas de todas as turmas da pessoa, desde a entrada em cada uma. Na visão "Ano", tudo soma os meses do ano. Nos registros por período, a conta é sobre os registros encontrados; faltas avisadas aparecem separadas.</p></div></aside>
+        <aside class="context-help section-block"><span class="icon icon-info" aria-hidden="true"></span><div><strong>Como a frequência é calculada?</strong><p>Em "Por participante", "Para contatar" e "Por turma", a frequência é presenças ÷ aulas previstas de todas as turmas da pessoa, desde a entrada em cada uma. Na visão "Ano", tudo soma os meses do ano. Em "Registros de presença", a conta é sobre as marcações encontradas pelos filtros. Para exportar a frequência de um período livre, use Relatórios.</p></div></aside>
         <footer th:replace="~{fragments/footer :: footer}"></footer>
     </main>
 </div>

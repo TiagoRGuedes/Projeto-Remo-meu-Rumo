@@ -4,5 +4,5 @@
     var m = function (q) { return window.matchMedia(q).matches; };
     if (!m("(pointer: coarse)") || !(m("(display-mode: standalone)") || m("(max-width: 768px)"))) { return; }
     document.documentElement.classList.add("modo-celular");
-    if (!/^\/(chamada|login|error)(\/|$)/.test(location.pathname)) { location.replace("/chamada"); }
+    if (!/^\/(chamada|login|error|ajuda\/instalar)(\/|$)/.test(location.pathname)) { location.replace("/chamada"); }
 })();

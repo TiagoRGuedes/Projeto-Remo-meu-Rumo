@@ -86,7 +86,7 @@ public class SegurancaConfig {
                 .authorizeHttpRequests(a -> a
                         .requestMatchers("/login", "/error", "/css/**", "/js/**", "/img/**",
                                 "/manifest.json", "/sw.js").permitAll()
-                        .requestMatchers("/chamada/**").hasAnyRole(Perfil.COORDENACAO.name(), Perfil.PROFESSOR.name())
+                        .requestMatchers("/chamada/**", "/ajuda/instalar").hasAnyRole(Perfil.COORDENACAO.name(), Perfil.PROFESSOR.name())
                         .anyRequest().hasRole(Perfil.COORDENACAO.name()))
                 .formLogin(f -> f
                         .loginPage("/login")

@@ -129,6 +129,11 @@ class UsuariosPerfisWebTest {
         ClienteLogado professor = ClienteLogado.entrar(port, "prof.chamada", "Rumo-teste-91");
 
         assertThat(professor.get("/chamada?lista=1").statusCode()).isEqualTo(200);
+        assertThat(professor.get("/chamada?lista=1").body()).contains("/ajuda/instalar");
+        assertThat(professor.get("/chamada?lista=1").body()).contains("data-banner-instalar");
+        HttpResponse<String> tutorial = professor.get("/ajuda/instalar");
+        assertThat(tutorial.statusCode()).isEqualTo(200);
+        assertThat(tutorial.body()).contains("href=\"/chamada\"").doesNotContain("href=\"/ajuda\"");
         assertThat(professor.get("/chamada?lista=1").body()).doesNotContain("href=\"/participantes\"", "/usuarios");
         for (String rota : new String[] {"/", "/participantes", "/atividades", "/frequencia", "/relatorios",
                 "/historico", "/usuarios", "/api/participantes", "/presencas/registrar?completa=1", "/busca?q=Ana"}) {

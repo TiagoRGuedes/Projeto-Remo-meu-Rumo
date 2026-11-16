@@ -90,6 +90,7 @@
                 </div>
                 <button class="button button-primary" type="submit">Abrir chamada</button>
             </form>
+            <p class="muted instalar-dica"><a th:href="@{/ajuda/instalar}">Como instalar o app no celular</a></p>
             <p class="muted chamada-completa" th:unless="${ehProfessor}">Precisa da tela antiga, com busca e observação por pessoa? Use a <a th:href="@{/presencas/registrar(completa=1)}">chamada completa</a>.</p>
         </section>
         <footer th:replace="~{fragments/footer :: footer}"></footer>

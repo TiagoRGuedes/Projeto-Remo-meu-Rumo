@@ -7,7 +7,7 @@
 <div class="app-shell">
     <nav th:replace="~{fragments/sidebar :: sidebar}"></nav>
     <main id="conteudo" class="content" tabindex="-1">
-        <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="@{/}">Início</a><span>›</span><a th:href="@{/ajuda}">Ajuda</a><span>›</span><span aria-current="page">Instalar no celular</span></nav>
+        <nav class="breadcrumbs" aria-label="Caminho da página"><a th:href="${ehProfessor} ? @{/chamada} : @{/}" th:text="${ehProfessor} ? 'Chamada' : 'Início'">Início</a><span>›</span><th:block th:unless="${ehProfessor}"><a th:href="@{/ajuda}">Ajuda</a><span>›</span></th:block><span aria-current="page">Instalar no celular</span></nav>
         <div class="page-header">
             <div>
                 <p class="eyebrow">Ajuda</p>
@@ -16,6 +16,7 @@
             </div>
             <div class="actions">
                 <button class="button button-primary" type="button" data-instalar-agora hidden>Instalar agora</button>
+                <a class="button button-soft" th:href="@{/chamada}">Voltar para a chamada</a>
             </div>
         </div>
 

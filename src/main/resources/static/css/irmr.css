@@ -53,7 +53,7 @@
 
 html {
     min-width: 320px;
-    overflow-x: hidden;
+    overflow-x: clip;
     scroll-behavior: smooth;
 }
 
@@ -61,7 +61,7 @@ body {
     margin: 0;
     min-width: 320px;
     min-height: 100vh;
-    overflow-x: hidden;
+    overflow-x: clip;
     background: var(--page);
     color: var(--text);
     font-family: Inter, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -6285,6 +6285,108 @@ body.reduzir-animacoes *::after {
     white-space: nowrap;
 }
 
+.topicos a.metric {
+    display: flex;
+    flex-direction: column;
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color .15s ease;
+}
+
+.topicos a.metric > span {
+    text-decoration: none;
+}
+
+.topicos a.metric small {
+    margin-top: .3rem;
+    color: var(--muted);
+    font-size: .82rem;
+    line-height: 1.3;
+}
+
+.topicos a.metric:hover {
+    background: var(--surface-soft);
+}
+
+.topicos a.metric:focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: -3px;
+}
+
+.topicos a.metric[aria-current="true"] {
+    background: var(--brand-sky);
+    box-shadow: inset 0 -4px 0 var(--brand-blue);
+}
+
+.topicos a.metric[aria-current="true"] > span {
+    color: var(--brand-blue-deep);
+}
+
+.topicos a.metric[aria-current="true"]::after {
+    display: none;
+}
+
+.resumo-linha {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem 1.25rem;
+    margin: 0 0 1rem;
+    padding: .85rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+}
+
+.topicos-5 {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+@media (max-width: 1100px) {
+    .topicos-5 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .topicos-5 .metric {
+        border-bottom: 1px solid var(--border);
+    }
+}
+
+@media (max-width: 760px) {
+    .topicos-5 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .topicos-5 .metric:last-child {
+        grid-column: 1 / -1;
+    }
+}
+
+.filtros-recolhiveis > summary {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    min-height: 44px;
+    padding: 0 1rem;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    font-weight: 700;
+    cursor: pointer;
+    list-style: none;
+}
+
+.filtros-recolhiveis > summary::-webkit-details-marker {
+    display: none;
+}
+
+.filtros-recolhiveis[open] > summary {
+    margin-bottom: .75rem;
+    border-color: var(--brand-blue);
+    background: var(--brand-sky);
+    color: var(--brand-blue-deep);
+}
+
 /* Login */
 .login-pagina {
     display: grid;
@@ -6331,13 +6433,12 @@ body.reduzir-animacoes *::after {
 /* Modo celular: só a chamada (classe posta em fragments/head.html). */
 .modo-celular .sidebar,
 .modo-celular .global-search,
-.modo-celular .banner-instalar,
 .modo-celular .topbar-actions .button-accent,
 .modo-celular .topbar-user,
 .modo-celular .footer,
 .modo-celular .chamada-completa { display: none; }
 .modo-celular .topbar { grid-template-columns: 1fr auto; }
-.modo-celular body { overflow-x: hidden; }
+.modo-celular body { overflow-x: clip; }
 .modo-celular .topbar-sair .button,
 .modo-celular .chips a,
 .modo-celular .lista-chamadas a,
@@ -6348,3 +6449,13 @@ body.reduzir-animacoes *::after {
 .hoje-grupo + .hoje-grupo { margin-top: 12px; }
 .hoje-grupo-titulo { display: flex; align-items: center; gap: 8px; margin: 0 0 6px; font-size: 1rem; }
 .hoje-grupo-titulo::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: currentColor; }
+
+.instalar-dica {
+    margin-top: .75rem;
+}
+
+@media (display-mode: standalone) {
+    .instalar-dica {
+        display: none;
+    }
+}

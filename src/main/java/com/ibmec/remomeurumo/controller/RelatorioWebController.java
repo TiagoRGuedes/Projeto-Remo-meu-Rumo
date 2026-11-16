@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.ibmec.remomeurumo.dto.FrequenciaResumo;
+import com.ibmec.remomeurumo.model.Participante;
 import com.ibmec.remomeurumo.model.Presenca;
 import com.ibmec.remomeurumo.service.AtividadeService;
 import com.ibmec.remomeurumo.service.EncontroService;
@@ -25,6 +26,8 @@ import com.ibmec.remomeurumo.service.PresencaService;
 
 @Controller
 public class RelatorioWebController {
+
+    private static final List<String> TOPICOS = List.of("participantes", "turmas", "cadastros", "aulas");
 
     private final FrequenciaService frequenciaService;
     private final PresencaService presencaService;
@@ -48,15 +51,23 @@ public class RelatorioWebController {
     public String relatorios(@RequestParam(required = false) Long atividadeId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate inicio,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fim,
+            @RequestParam(required = false) String topico,
             Model model) {
-        model.addAttribute("participantes", participanteService.listar(null));
+        String topicoAtual = topico != null && TOPICOS.contains(topico) ? topico : "participantes";
+        var frequenciaParticipantes = frequenciaService.porParticipante(atividadeId, inicio, fim);
+        var frequenciaAtividades = frequenciaService.porAtividade(inicio, fim);
+        var participantes = participanteService.listar(null);
+        var encontros = encontroService.listar(atividadeId, null, inicio, fim, null);
+        model.addAttribute("topico", topicoAtual);
+        model.addAttribute("participantes", participantes);
+        model.addAttribute("participantesAtivos", participantes.stream().filter(Participante::isAtivo).count());
         model.addAttribute("atividades", atividadeService.listar(null));
-        model.addAttribute("encontros", encontroService.listar());
+        model.addAttribute("encontros", encontros);
         model.addAttribute("atividadeId", atividadeId);
         model.addAttribute("inicio", inicio);
         model.addAttribute("fim", fim);
-        model.addAttribute("frequenciaParticipantes", frequenciaService.porParticipante(atividadeId, inicio, fim));
-        model.addAttribute("frequenciaAtividades", frequenciaService.porAtividade(inicio, fim));
+        model.addAttribute("frequenciaParticipantes", frequenciaParticipantes);
+        model.addAttribute("frequenciaAtividades", frequenciaAtividades);
         return "relatorios/index";
     }
 

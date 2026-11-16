@@ -20,12 +20,12 @@
             </a>
         </div>
 
-        <section class="metric-grid module-metrics" aria-label="Resumo de participantes">
-            <a class="metric" th:href="@{/participantes}"><span>Total</span><strong th:text="${totalParticipantes}">0</strong></a>
-            <a class="metric metric-success" th:href="@{/participantes(situacao='ativos')}"><span>Ativos</span><strong th:text="${participantesAtivos}">0</strong></a>
-            <a class="metric metric-neutral" th:href="@{/participantes(situacao='inativos')}"><span>Inativos</span><strong th:text="${participantesInativos}">0</strong></a>
-            <article class="metric"><span>Cadastrados nos últimos 30 dias</span><strong th:text="${participantesRecentes}">0</strong></article>
-        </section>
+        <nav class="metric-grid module-metrics topicos" aria-label="Filtrar participantes">
+            <a class="metric" th:href="@{/participantes}" th:attr="aria-current=${situacao == null or #strings.isEmpty(situacao)} ? 'true' : null"><span>Total</span><strong th:text="${totalParticipantes}">0</strong></a>
+            <a class="metric metric-success" th:href="@{/participantes(situacao='ativos')}" th:attr="aria-current=${situacao == 'ativos'} ? 'true' : null"><span>Ativos</span><strong th:text="${participantesAtivos}">0</strong></a>
+            <a class="metric metric-neutral" th:href="@{/participantes(situacao='inativos')}" th:attr="aria-current=${situacao == 'inativos'} ? 'true' : null"><span>Inativos</span><strong th:text="${participantesInativos}">0</strong></a>
+            <a class="metric" th:href="@{/participantes(situacao='recentes')}" th:attr="aria-current=${situacao == 'recentes'} ? 'true' : null"><span>Cadastrados nos últimos 30 dias</span><strong th:text="${participantesRecentes}">0</strong></a>
+        </nav>
 
         <form class="form-card filters filter-panel" method="get" th:action="@{/participantes}">
             <div class="field field-wide">
@@ -38,6 +38,7 @@
                     <option value="">Todos</option>
                     <option value="ativos" th:selected="${situacao == 'ativos'}">Ativos</option>
                     <option value="inativos" th:selected="${situacao == 'inativos'}">Inativos</option>
+                    <option value="recentes" th:selected="${situacao == 'recentes'}">Cadastrados nos últimos 30 dias</option>
                 </select>
             </div>
             <button class="button button-primary" type="submit"><span class="icon icon-search" aria-hidden="true"></span>Pesquisar</button>
