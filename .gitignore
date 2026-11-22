@@ -12,3 +12,21 @@ Instituto-Remo-Meu-Rumo-NOVO-*/
 *.log
 Thumbs.db
 .DS_Store
+
+# Nunca versionar: bancos H2, segredos e dados reais
+*.mv.db
+*.lock.db
+*.trace.db
+*.bak
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.PublishSettings
+*.publishsettings
+*.xlsx
+*.xls
+*.csv

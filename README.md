@@ -39,9 +39,13 @@ Abra esta pasta no VS Code e aguarde a indexação do Java.
 
 ## Executar
 
+O sistema exige login. O usuário e a senha da conta principal (perfil Coordenação) vêm de variáveis de ambiente e nunca ficam no código; sem elas, o sistema não inicia.
+
 No terminal PowerShell, dentro da pasta do projeto:
 
 ```powershell
+$env:ADMIN_USUARIO="coordenacao"
+$env:ADMIN_SENHA="escolha-uma-senha-forte"
 .\mvnw.cmd spring-boot:run
 ```
 
@@ -65,21 +69,9 @@ Para abrir o ambiente demonstrativo completo, com dados fictícios em um banco s
 
 O perfil `demo` não apaga nem substitui o banco padrão. A carga é idempotente: só é criada quando o banco demonstrativo está vazio.
 
-## H2 Console
+## Banco de dados
 
-Com a aplicação em execução:
-
-```text
-http://localhost:8080/h2-console
-```
-
-Use:
-
-- JDBC URL: `jdbc:h2:file:./dados/remo-meu-rumo`
-- User: `sa`
-- Password: deixe em branco
-
-O banco fica na pasta `dados/`, que não deve ser versionada.
+O banco H2 fica na pasta `dados/`, que não é versionada. O console web do H2 fica desligado (`spring.h2.console.enabled=false`) por segurança.
 
 ## Testes
 
@@ -137,3 +129,9 @@ Ctrl + C
 ## Dados demonstrativos
 
 O perfil `demo` cria, somente em um banco vazio, 36 participantes fictícios, 6 turmas com grade, matrículas, aulas semanais das últimas 9 semanas e presenças com diferentes faixas de frequência, incluindo pessoas com mais de 3 faltas no mês e saídas registradas. Use esses dados para apresentação e testes manuais; eles são claramente identificados como demonstração e não representam pessoas reais.
+
+## Segurança
+
+- Senhas e chaves nunca são versionadas: a conta principal vem das variáveis `ADMIN_USUARIO` e `ADMIN_SENHA`, e o deploy usa os segredos do repositório no GitHub.
+- Todos os dados deste repositório (telas, testes e perfil `demo`) são fictícios. Não versione planilhas, bancos ou documentos com dados reais de participantes.
+- Para relatar uma vulnerabilidade, veja [`SECURITY.md`](SECURITY.md).
