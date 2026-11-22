@@ -78,7 +78,6 @@
             <p th:text="${atividadeId != null ? 'Esta turma ainda não possui aulas. Limpe o filtro ou crie uma nova data.' : 'Crie a primeira aula para preparar a lista de presença.'}">Crie a primeira aula.</p>
             <a class="button button-primary" th:href="@{/encontros/novo(atividadeId=${atividadeId})}"><span class="icon icon-plus" aria-hidden="true"></span>Criar aula</a>
         </div>
-        <footer th:replace="~{fragments/footer :: footer}"></footer>
     </main>
 </div>
 </body>

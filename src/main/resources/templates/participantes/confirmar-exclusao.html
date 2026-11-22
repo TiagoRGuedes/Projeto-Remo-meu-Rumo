@@ -22,5 +22,4 @@
             <form method="post" th:if="${participante.ativo}" th:action="@{/participantes/{id}/desativar(id=${participante.id})}"><button class="button button-primary" type="submit">Desativar participante</button></form>
         </div>
     </section>
-    <footer th:replace="~{fragments/footer :: footer}"></footer>
 </main></div></body></html>

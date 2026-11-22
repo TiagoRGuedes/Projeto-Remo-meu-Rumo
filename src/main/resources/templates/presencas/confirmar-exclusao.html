@@ -13,5 +13,4 @@
         <p>A exclusão ficará registrada no Histórico do Sistema com a situação anterior.</p>
         <div class="button-row"><a class="button button-soft" th:href="@{/encontros/{id}(id=${presenca.encontro.id})}">Cancelar</a><form method="post" th:action="@{/presencas/{id}/excluir(id=${presenca.id})}"><button class="button button-danger-solid" type="submit"><span class="icon icon-close" aria-hidden="true"></span>Excluir registro</button></form></div>
     </section>
-    <footer th:replace="~{fragments/footer :: footer}"></footer>
 </main></div></body></html>

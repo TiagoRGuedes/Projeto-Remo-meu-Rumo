@@ -16,5 +16,4 @@
         <div class="button-row" th:if="${podeExcluir}"><a class="button button-soft" th:href="@{/atividades/{id}(id=${atividade.id})}">Cancelar</a><form method="post" th:action="@{/atividades/{id}/excluir(id=${atividade.id})}"><button class="button button-danger-solid" type="submit"><span class="icon icon-close" aria-hidden="true"></span>Excluir turma</button></form></div>
         <div class="button-row" th:if="${!podeExcluir}"><a class="button button-soft" th:href="@{/atividades/{id}(id=${atividade.id})}">Voltar para a turma</a><form method="post" th:if="${atividade.ativo}" th:action="@{/atividades/{id}/desativar(id=${atividade.id})}"><button class="button button-primary" type="submit">Desativar turma</button></form></div>
     </section>
-    <footer th:replace="~{fragments/footer :: footer}"></footer>
 </main></div></body></html>

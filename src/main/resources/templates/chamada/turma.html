@@ -104,7 +104,6 @@
             </div>
         </form>
         <p class="muted chamada-dica" th:if="${modoCorrecao and chamada.total > 0}">Toque no nome para alternar: Presente → Falta → Falta avisada. Em Falta avisada, dá para anexar o atestado. As marcações ficam guardadas neste aparelho até você salvar; os arquivos, só depois de salvar.</p>
-        <footer th:replace="~{fragments/footer :: footer}"></footer>
     </main>
 </div>
 <script defer th:src="@{/js/chamada.js}"></script>

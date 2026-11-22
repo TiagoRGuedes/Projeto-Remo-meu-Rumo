@@ -30,6 +30,8 @@ public class RemoMeuRumoApplication {
 
     static final Duration ESPERA_ENTRE_TENTATIVAS = Duration.ofSeconds(10);
 
+    static final Duration TEMPO_PAGINA_DIAGNOSTICO = Duration.ofMinutes(3);
+
     static final Path BANCO = Path.of("dados", "remo-meu-rumo.mv.db");
 
     static final Path BANCO_RECUPERADO = Path.of("dados", "remo-meu-rumo-recuperado.mv.db");
@@ -283,6 +285,19 @@ public class RemoMeuRumoApplication {
             });
             servidor.start();
             paginaDiagnostico = servidor;
+            // A página fica no ar só por alguns minutos: depois o processo termina, e o Azure reinicia o sistema.
+            // Assim uma falha passageira (por exemplo, o pacote trocado no meio de um deploy) não fica presa no ar.
+            Thread encerrar = new Thread(() -> {
+                try {
+                    Thread.sleep(TEMPO_PAGINA_DIAGNOSTICO);
+                } catch (InterruptedException erro) {
+                    Thread.currentThread().interrupt();
+                }
+                LOG.error("Encerrando para o servidor reiniciar o sistema.");
+                System.exit(1);
+            }, "encerrar-diagnostico");
+            encerrar.setDaemon(true);
+            encerrar.start();
             LOG.error("Página de diagnóstico no ar na porta {}.", porta);
         } catch (IOException erro) {
             LOG.error("Não foi possível abrir a página de diagnóstico.", erro);

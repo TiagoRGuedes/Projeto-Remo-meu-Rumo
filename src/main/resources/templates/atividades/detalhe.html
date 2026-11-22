@@ -151,7 +151,6 @@
             <div class="timeline timeline-compact" th:if="${!#lists.isEmpty(historicoAdministrativo)}"><article class="timeline-item" th:each="evento : ${historicoAdministrativo}"><time th:text="${evento.dataFormatada + ' · ' + evento.horaFormatada}">Data</time><strong th:text="${evento.acao.descricao}">Ação</strong><span th:text="${evento.descricao}">Descrição</span></article></div>
             <div class="empty-state" th:if="${#lists.isEmpty(historicoAdministrativo)}">As próximas alterações desta turma aparecerão aqui.</div>
         </section>
-        <footer th:replace="~{fragments/footer :: footer}"></footer>
     </main>
 </div>
 </body>
