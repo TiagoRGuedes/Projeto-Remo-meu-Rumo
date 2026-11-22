@@ -5,6 +5,10 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# O token do GitHub só pode ler o repositório; o deploy usa o perfil de publicação dos segredos.
+permissions:
+  contents: read
+
 concurrency:
   group: deploy-azure
   cancel-in-progress: true
