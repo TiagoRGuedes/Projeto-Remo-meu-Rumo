@@ -88,7 +88,6 @@
             <a class="button button-primary" th:if="${busca == null or #strings.isEmpty(busca)}" th:href="@{/atividades/nova}"><span class="icon icon-plus" aria-hidden="true"></span>Cadastrar turma</a>
             <a class="button button-soft" th:if="${busca != null and !#strings.isEmpty(busca)}" th:href="@{/atividades}">Limpar pesquisa</a>
         </div>
-        <footer th:replace="~{fragments/footer :: footer}"></footer>
     </main>
 </div>
 </body>

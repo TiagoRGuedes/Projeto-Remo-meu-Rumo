@@ -16,5 +16,4 @@
         <div class="button-row" th:if="${podeExcluir}"><a class="button button-soft" th:href="@{/encontros/{id}(id=${encontro.id})}">Cancelar</a><form method="post" th:action="@{/encontros/{id}/excluir(id=${encontro.id})}"><button class="button button-danger-solid" type="submit"><span class="icon icon-close" aria-hidden="true"></span>Excluir aula</button></form></div>
         <div class="button-row" th:if="${!podeExcluir}"><a class="button button-soft" th:href="@{/encontros/{id}(id=${encontro.id})}">Manter como está</a><form method="post" th:if="${encontro.status.name() != 'CANCELADO'}" th:action="@{/encontros/{id}/cancelar(id=${encontro.id})}"><button class="button button-primary" type="submit">Cancelar aula e preservar registros</button></form></div>
     </section>
-    <footer th:replace="~{fragments/footer :: footer}"></footer>
 </main></div></body></html>
