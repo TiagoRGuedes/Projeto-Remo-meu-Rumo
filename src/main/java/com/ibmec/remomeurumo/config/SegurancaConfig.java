@@ -130,20 +130,80 @@ public class SegurancaConfig {
     static void aposLogin(HttpServletRequest req, HttpServletResponse res, Authentication auth) throws IOException {
         String destino = null;
         HttpSession sessao = req.getSession(false);
-        if (sessao != null && sessao.getAttribute(VOLTAR_PARA) instanceof String voltar && voltar.startsWith("/chamada/")) {
-            destino = req.getContextPath() + voltar;
+        if (sessao != null && sessao.getAttribute(VOLTAR_PARA) instanceof String voltar) {
+            destino = caminhoSeguroDaChamada(voltar);
             sessao.removeAttribute(VOLTAR_PARA);
         }
         HttpSessionRequestCache cache = new HttpSessionRequestCache();
         SavedRequest salvo = cache.getRequest(req, res);
         if (salvo != null) {
             cache.removeRequest(req, res);
-            if (destino == null && URI.create(salvo.getRedirectUrl()).getPath().startsWith(req.getContextPath() + "/chamada/")) {
-                destino = salvo.getRedirectUrl();
+            if (destino == null) {
+                destino = caminhoSeguroDaChamada(caminhoRelativo(salvo.getRedirectUrl(), req.getContextPath()));
             }
         }
         boolean coordenacao = auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_COORDENACAO"));
-        res.sendRedirect(destino != null ? destino : req.getContextPath() + (coordenacao ? "/" : "/chamada"));
+        res.sendRedirect(req.getContextPath() + (destino != null ? destino : (coordenacao ? "/" : "/chamada")));
+    }
+
+    /** Caminho e parâmetros de um endereço salvo, sem esquema, servidor nem o contexto da aplicação. */
+    private static String caminhoRelativo(String endereco, String contexto) {
+        try {
+            URI uri = URI.create(endereco);
+            String caminho = uri.getRawPath();
+            if (caminho == null || !caminho.startsWith(contexto)) {
+                return null;
+            }
+            caminho = caminho.substring(contexto.length());
+            return uri.getRawQuery() == null ? caminho : caminho + "?" + uri.getRawQuery();
+        } catch (IllegalArgumentException enderecoInvalido) {
+            return null;
+        }
+    }
+
+    /**
+     * Remonta um endereço /chamada/{turma}?data=AAAA-MM-DD[&corrigir=1] a partir de partes validadas
+     * (número da turma e data); nunca devolve um texto recebido de fora. Qualquer outra coisa vira null.
+     */
+    static String caminhoSeguroDaChamada(String endereco) {
+        if (endereco == null) {
+            return null;
+        }
+        int interrogacao = endereco.indexOf('?');
+        Matcher turma = TURMA.matcher(interrogacao < 0 ? endereco : endereco.substring(0, interrogacao));
+        if (!turma.matches()) {
+            return null;
+        }
+        long turmaId;
+        try {
+            turmaId = Long.parseLong(turma.group(1));
+        } catch (NumberFormatException numeroInvalido) {
+            return null;
+        }
+        LocalDate data = null;
+        boolean corrigir = false;
+        if (interrogacao >= 0) {
+            for (String par : endereco.substring(interrogacao + 1).split("&")) {
+                if (par.startsWith("data=")) {
+                    try {
+                        data = LocalDate.parse(par.substring("data=".length()));
+                    } catch (RuntimeException dataInvalida) {
+                        data = null;
+                    }
+                } else if (par.equals("corrigir=1")) {
+                    corrigir = true;
+                }
+            }
+        }
+        StringBuilder destino = new StringBuilder("/chamada/").append(turmaId);
+        if (data != null) {
+            destino.append("?data=").append(data.getYear()).append('-')
+                    .append(String.format(Locale.ROOT, "%02d-%02d", data.getMonthValue(), data.getDayOfMonth()));
+            if (corrigir) {
+                destino.append("&corrigir=1");
+            }
+        }
+        return destino.toString();
     }
 
     /**
